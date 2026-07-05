@@ -14,12 +14,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Journal/2026/February.md",
+                "file": "Journal/2026/June.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "February"
+              "title": "June"
             },
             "group": "628de3a35901da5e"
           }
@@ -36,13 +36,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Journal/2026/February.md",
+                "file": "Journal/2026/June.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of February"
+              "title": "Outline of June"
             },
             "group": "628de3a35901da5e"
           }
@@ -119,7 +119,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Journal/2026/February.md",
+                "file": "Journal/2026/June.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -129,7 +129,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for February"
+              "title": "Backlinks for June"
             }
           },
           {
@@ -138,12 +138,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Journal/2026/February.md",
+                "file": "Journal/2026/June.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from February"
+              "title": "Outgoing links from June"
             }
           },
           {
@@ -181,13 +181,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Journal/2026/February.md",
+                "file": "Journal/2026/June.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of February"
+              "title": "Outline of June"
             }
           }
         ]
@@ -210,8 +210,9 @@
   },
   "active": "b6ae63caf63fc1bb",
   "lastOpenFiles": [
-    "Note.md",
     "Journal/2026/February.md",
+    "Journal/2026/June.md",
+    "Note.md",
     "Journal/2026",
     "Journal",
     "2026-07-05.md"
