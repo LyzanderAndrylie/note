@@ -15,14 +15,140 @@ You can use the same basic structure for all IELTS Academic Writing Task 1 quest
 
 ### Vocabulary
 
-- Significant
+#### Adjectives
+
+- **Significant**
   - There are no ==significant differences between the two groups of students==.
   - ==A significant== difference/increase/decrease/reduction/loss
-- Rapid
+- **Rapid**
   - The company has experienced ==significant growth in sales in recent years==.
   - There was ==a rapid decline in sales== during the economic downturn.
-- Substantial
+- **Substantial**
   - The findings show a substantial difference between the opinions of men and women.
+- **Considerable**
+- **Sharp**
+- **Sudden**
+  - The price of the stock took ==a steep dive==.
+- **Slight**
+  - There was only a slight improvement in her condition.
+- **Gradual**
+  - There has been a gradual change in the climate.
+- **Moderate**
+  - Even moderate amounts of the drug can be fatal.
+- **Marginal**: small and not important
+  - The difference between the two estimates is marginal.
+
+#### Adverbs
+
+- **Dramatically**
+  - Prices ==have fallen== dramatically.
+- **Precipitously**: very steep or sudden
+  - Sales dropped precipitously following the product recall.
+
+#### Verb
+
+- **Rise**
+- **Grow**
+- **Climb**
+  - The paper's circulation continues to climb.
+- **Jump**
+  - Prices jumped by 60% last year.
+  - Sales jumped from $2.7 billion to $3.5 billion.
+- **Peak**
+  - Unemployment peaked at 17 percent.
+- **Go up/down**
+- **Fall**
+  - House prices have fallen.
+- **Drop**: significant, often large decrease
+- **Dip**: mild decrease
+  - Sales for this quarter have dipped from 38.7 million to 33 million.
+  - There has been a sharp dip in profits.
+- **Plummet**: to fall suddenly and quickly from a high level or position.
+  - Share prices plummeted to an all-time low.
+- **Fluctuate**
+  - The rate of inflation has been fluctuating around 4% for some time.
+
+#### Little or no change
+
+- to remain ==the same==/==static==/==unchanges==
+- to stablize
+- to ==level out==/==level off==
+- a period stability
+
+#### Collocations
+
+| Verb + Adverb           | Adjective + Noun       |
+| :---------------------- | :--------------------- |
+| increased significantly | a dramatic improvement |
+| rose steeply            | a sudden increase      |
+| improved considerably   | a rapid rise           |
+| jumped suddenly         | a steady growth        |
+| fluctuated slightly     | a slight fluctuation   |
+| fell rapidly            | a gradual decrease     |
+| dropped dramatically    | a steep drop           |
+| dipped sharply          | a sharp decline        |
+
+Example:
+
+- The price of houses went into ==sharp decline== between 1980 and 1985 but ==increased significantly== from 1986 to 1990.
+- Over the whole time period, there was a ==steady growth== in the number of women choosing to study part-time but for men, the level ==fluctuated==.
+  - ==a steady growth==: Primarily when "growth" is accompanied by a descriptive prepositional phrase defining a specific instance or magnitude (similar to "a period of steady growth").
+    - Ex: The chart shows a steady growth of 5% year-over-year
+  - ==steady growth==: more common
+
+#### Other Useful Phrases
+
+- **Trends & Extremes:**
+  - **upward trend**
+    - Overall, the number of internet users showed a continuous ==upward trend== throughout the period.
+  - **downward trend**
+    - Car manufacturing followed a clear ==downward trend==, ==dropping from== 1.2 million ==to== 800,000 units.
+  - **highest point**
+    - Solar energy production reached its ==highest point== in 2020 at approximately 450 megawatts.
+  - **lowest point**
+    - The unemployment rate hit its ==lowest point== of 3.2% in June before recovering.
+- **Comparisons:**
+  - **compare to / compared to**
+    - Sales of desktop computers were significantly lower ==compared to== those of smartphones in 2015.
+  - **a comparison with / in comparison with**
+    - ==In comparison with== 1990, the total carbon emissions in 2010 ==decreased noticeably==.
+    - ==A comparison with== other European nations reveals a similar pattern of population growth.
+  - **relative to**
+    - The proportion of expenditure on food was minor ==relative to== spending on housing.
+  - **second/third highest/lowest**
+    - Coal ==accounted== for the ==second highest== proportion of total energy consumption at 28%.
+    - France ==recorded== the ==third lowest== rate of carbon emissions among the countries surveyed.
+
+### Percentages, Proportions, and Approximations
+
+| Percentage | Proportion / Approximation        |
+| :--------- | :-------------------------------- |
+| 7%         | a small proportion                |
+| 23%        | just under a quarter              |
+| 26%        | approximately a quarter           |
+| 49%        | almost a half                     |
+| 50%        | exactly a half                    |
+| 52%        | more than a half                  |
+| 71%        | slightly less than three quarters |
+| 78%        | roughly three quarters            |
+| 84%        | well over three quarters          |
+| 95%        | a significant majority            |
+
+- **Almost**
+- **Nearly**
+- **Respectively**
+  - Steven and james are aged 10 and 13 respectively.
+- **Well over**: significantly more than
+  - The attendance was ==well over== the expected number.
+  - She earned ==well over== the minimum wage.
+- **A little more than**: slightly greater than
+  - The journey took ==a little more than== two hours.
+- **Just Above**: a bit higher than
+- **Just Over**: a bit more than
+- **A large portion of**
+  - A large portion of the budget was allocated to research.
+- **A significant majority**: a large proportion or number that constitutes more than half
+  - The survey showed a significant majority ==in favor of== the new policy.
 
 ### Question Types
 
