@@ -1,0 +1,43 @@
+# Task 2
+
+## IELTS Mock 2026 January
+
+### Shopping malls vs small shops
+
+You should spend about **40 minutes** on this task.
+
+In many places large shopping malls are replacing small shops. What are the advantages and disadvantages of this development?
+
+Summarise the information by selecting and reporting the main features, and make comparisons where relevant.
+
+You should write **at least 250 words.**
+
+#### First attempt (6.5/9)
+
+As the world evolves, large shopping malls are replacing small shops as the main destination to fulfill our needs. On one side, these large places ==streamline us to get things== like foods, clothes, and our daily neccessities, as they provide extensive options. On the other side, small shops may be less popular, as they usually cannot provide everything due to its limited options. Thus, in this essay, I would like to compare the advantages and disadvantages of both places for shoppers.
+
+==One of the biggest advantage== of large shopping malls is the abundance of choices they offer. One shopping mall is ussually filled with a lot of tenants that provide various commodities, such as well-cooked meals by chefs, high-quality clothes, and basic daily products. This is the reason why people in Indonesia visit malls frequently, such as Grand Indonesia and Central Park, to buy their day-to-day requirements. For example, at Central Park, foods are provided at lower floors while basic needs are placed at higher floors to fullfil different kind of visitors. In addition, these places are filled with various kind of attractions that help the visitors to be more relax and enjoy them. For example, most of malls in Indonesia have theaters, sport areas, and mini concerts. Thus, these malls are usually visited by most of people.
+
+However, this development may cause significant disadvantages to small shops, which usually focus on providing specific needs only. Their limited options target only specific groups of people compared to large shops. For example, in Indonesia, there are small shops, such as Indomaret and Alfamart, that are usually visited by a number of people to buy basic requirements only. If the development of large shopping malls become massive, then there is no reason to go to small shops when everything can be fulfilled by large shopping malls. This can also cause major economic impact on small shops own by small shopkeepers, as they may not even gain revenue from doing it.
+
+Overall, while the development of large shopping places may streamline people to gather their needs, their disadvantages may also be considered. The goverment can take a precaution to balance both places to accomodate different cases.
+
+##### Note
+
+- "On one side... On the other side" is better phrased as "On one hand... On the other hand."
+- There are noticeable spelling errors (_neccessities, ussually, fullfil, goverment, accomodate_).
+  - Additionally, there are a few word choice errors, such as using "foods" (which is rarely pluralized in this context) and "streamline us to get things" (streamline usually applies to processes, not people).
+- Frequent minor errors prevent a higher score.
+  - You missed several pluralization rules ("One of the biggest advantage" instead of "advantages", "most of people" instead of "most people") and made an error with the passive voice ("own by" instead of "owned by").
+
+##### Recommendation
+
+- Move Transitions Inside the Sentence
+  - Mechanical: However, this development causes significant disadvantages to small shops.
+  - Natural: This development, however, causes significant disadvantages to small shops.
+  - Mechanical: Therefore, the government should take action.
+  - Natural: The government should, therefore, take action.
+- Use "This" and "These" (Referencing)
+  - Mechanical: Large malls offer extensive options. As a result, small shops are less popular.
+  - Natural: Large malls offer extensive options. This massive variety makes small shops less popular.
+  - Natural: Small shops usually focus on specific needs. These limitations target only specific groups.

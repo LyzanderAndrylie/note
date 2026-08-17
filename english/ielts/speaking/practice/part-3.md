@@ -1,0 +1,21 @@
+# Part 3
+
+## IELTS Mock 2026 January
+
+1. How do most people respond to bad services?
+   a. ==I believe most people have a baseline expectation of quality once they have invested resources,== namely money and time, to receive particular services. When this expectation is not met, they become ==frustrated because their expectation is not aligned well with the reality.==
+
+2. Do you think services are better now than in the past?
+   a. ==From my perspective, it seems that the standard of service has improved over the years. I believe this== is primarily due to the advancement of technology. For instance, the widespread use of mobile application has made services much more accessible and efficient. Even in Indonesia, many street vendors already accept online payment via QRIS. In general, I believe this is ==far more efficient== compared to services in the past.
+
+3. What kind of services are bad services?
+   a. ==I would say bad services are those that fall short of our expectations.== For example, when we contact customer service to solve our issue, we expect them to be fast and helpful. However, because our issue may not be a common issue, it would take much longer than we anticipated. ==And thing like this often fail to meet our expectation== even though we already invest time and effort to solve it.
+
+4. Why do some people choose to remain silent when they receive bad services?
+   a. From my perspective, this ==is primarily due to social etiquette.== When we receive bad services, we usually accept it to ==avoid creating a scene.== Basically, as long as the services are still in a tolerable level compared to our baseline expectation, I think people would inevitably accept it.
+
+5. Who should be responsible for bad services?
+   a. ==I believe both the management and staff play a role in the service delivery. On one hand, The management should establish a service standard. On the other hand, the staff should strive to give the best experience to the client.==
+
+6. What can employers do to improve the service that their employees provide?
+   a. So, I believe employers should prioritize training and feedback loop. For training, because every company has a different way to conduct things, it is better to have a standard that their employees can follow. On the other hand, a feedback loop is also important because the standard may not be perfect. By gathering suggestions from their employees, they ==can continuously improve the process.==
