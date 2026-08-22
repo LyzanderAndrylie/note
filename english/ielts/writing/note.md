@@ -88,13 +88,58 @@ You can use the same basic structure for all IELTS Academic Writing Task 1 quest
 | dropped dramatically    | a steep drop           |
 | dipped sharply          | a sharp decline        |
 
-Example:
+#### Articles with Trend & Change Nouns (Countable vs. Uncountable)
 
-- The price of houses went into ==sharp decline== between 1980 and 1985 but ==increased significantly== from 1986 to 1990.
-- Over the whole time period, there was a ==steady growth== in the number of women choosing to study part-time but for men, the level ==fluctuated==.
-  - ==a steady growth==: Primarily when "growth" is accompanied by a descriptive prepositional phrase defining a specific instance or magnitude (similar to "a period of steady growth").
-    - Ex: The chart shows a steady growth of 5% year-over-year
-  - ==steady growth==: more common
+Understanding when to use **"a / an"** vs. **no article** is crucial for IELTS Task 1 grammar accuracy (Grammatical Range & Accuracy).
+
+##### General Rule
+
+- **Countable (Use "a / an" + Singular Noun):** Used when referring to a **single, specific instance, shift, or measured movement** (e.g., _a sharp rise, a sudden drop, a slight fluctuation_).
+- **Uncountable (No article):** Used when referring to an **ongoing process, general activity, or abstract concept** (e.g., _considerable development, steady economic growth, constant fluctuation_).
+
+---
+
+##### Detailed Breakdown by Noun
+
+- **`development`**
+  - **Without "a" (Uncountable - Most Common in Task 1):** Broad process of growth, construction, or modernization of an area over time.
+    - ✅ _There was ==considerable development== of the settlement over the 80-year period._
+    - ✅ _The village underwent ==significant development== between 1930 and 2010._
+  - **With "a" (Countable):** Refers to a _specific building project/complex_ (e.g., _a residential housing development_) or a _specific new event_ (e.g., _an important development in trade negotiations_).
+- **`growth`**
+  - **Without "a" (Uncountable - General Process):** Continuous expansion or increase in economy, population, or sales.
+    - ✅ _The country experienced ==steady growth== in solar power production._
+    - ✅ _There was ==rapid population growth== throughout the 1990s._
+  - **With "a" (Countable - Defined Rate / Specific Instance):** When paired with a descriptive phrase or specific percentage/period (similar to _"a growth rate of"_ or _"a period of growth"_).
+    - ✅ _The chart illustrates ==a steady growth of 5%== year-over-year._
+- **`fluctuation`**
+  - **Plural: `fluctuations` (Most Natural in Task 1):**
+    - ✅ _The figure experienced ==minor fluctuations== between May and September._
+  - **With "a" (`a fluctuation` - Single Instance):**
+    - ✅ _There was ==a slight fluctuation== in oil prices during the second quarter._
+  - **Without "a" (Uncountable - Abstract State):**
+    - ✅ _The market was characterized by ==constant fluctuation==._
+- **`increase / decrease / rise / fall / drop / decline`**
+  - **Always with "a / an" (Countable - Singular):** When using the `There was a [Adjective] + [Noun]` pattern to describe a single upward or downward movement:
+    - ✅ _There was ==a sharp increase== in the number of car owners._
+    - ✅ _The graph shows ==a dramatic drop== in sales in 2020._
+    - ✅ _Expenditure saw ==a gradual decline== over the five-year period._
+    - ❌ _There was sharp increase in sales._ (Incorrect: Missing "a")
+- **`expansion`**
+  - **Without "a" (Uncountable - General Enlargement):**
+    - ✅ _The town underwent ==rapid urban expansion==._
+  - **With "a" (Countable - Specific Project / Instance):**
+    - ✅ _The primary school underwent ==a substantial expansion== to double its previous capacity._
+- **`change`**
+  - **With "a" (Countable - Specific Alteration):**
+    - ✅ _There was ==a noticeable change== in land use from 1930 to 2010._
+  - **Without "a" (Uncountable - Broad Concept):**
+    - ✅ _The region was subject to ==rapid change==._
+- **`progress / stability` (Always Uncountable - Never with "a")**
+  - ✅ _The sector made ==steady progress== throughout the decade._ (❌ _a steady progress_)
+  - ✅ _Prices maintained ==stability== over the two-year period._ (❌ _a stability_)
+
+---
 
 #### Other Useful Phrases
 
@@ -118,6 +163,35 @@ Example:
   - **second/third highest/lowest**
     - Coal ==accounted== for the ==second highest== proportion of total energy consumption at 28%.
     - France ==recorded== the ==third lowest== rate of carbon emissions among the countries surveyed.
+- **Future Projections & Predictions:**
+  - Standard passive structure used for objective reporting in Task 1:
+    - **Subject + [be] + Past Participle + to-infinitive**
+      - **forecast to** (_forecast_ is the standard/preferred irregular past participle in formal/academic English over _forecasted_)
+        - The people of Africa ==are forecast to make up== a fifth of the total world population by 2050.
+      - **projected to**
+        - The population of Europe ==is projected to decline== to just 7% in 2050.
+      - **expected to**
+        - Europe ==is expected to have== the greatest drop in proportion ==over the same time span==.
+      - **predicted to**
+        - Global energy consumption ==is predicted to rise== sharply by 2035.
+      - **estimated to**
+        - The number of commuters ==is estimated to reach== 1.5 million.
+    - **It is + Past Participle + that + [clause]**
+      - ==It is forecast that== the population will reach 9 billion by 2050.
+      - ==It is predicted that== solar power will become the dominant energy source.
+    - **with predictions / projections for...**
+      - The table compares population distribution between 1950 and 2000, ==with predictions for the year 2050==.
+- **Time Periods & Durations:**
+  - **an [X]-year period vs. the [X]-year period:**
+    - **an [X]-year period**: Most common and natural when introducing the duration for the first time as a general span of time.
+      - The village changed noticeably ==over an 80-year period from 1930 to 2010==.
+    - **the [X]-year period**: Also correct when emphasizing the specific, defined timeframe specified by the prepositional phrase (_from ... to ..._).
+      - The village changed noticeably ==over the 80-year period from 1930 to 2010==.
+  - **Compound Adjective Rule (Hyphenation):**
+    - When a number and unit of time act as a compound adjective modifying a noun (such as _period_, _span_, or _timeframe_), keep it singular and hyphenated:
+      - ✅ ==an 80-year period== / ==a 10-year span==
+      - ✅ ==a period of 80 years==
+      - ❌ _an 80 years period_ / _an 80-years period_
 
 ### Percentages, Proportions, and Approximations
 
@@ -156,7 +230,7 @@ Example:
 
 1. What is the most obvious trend?
    a. You should look for any clear increases or decreases in the data. They could be gradual or sharp changes.
-2. Are there any notable similarities?
+1. Are there any notable similarities?
    a. As well as knowing market increases and decreases, you also need to look out for things that are similar or stay the same over a period of time.
 
 #### Table Chart
@@ -168,9 +242,9 @@ Example:
 1. Is it a linear or a cyclical process?
    a. A Linear process starts and finishes at different places. It will often involve the manufacture or creation of something, with raw materials going in at one end and the finished product coming out the other end.
    b. A Cyclical process is a process that goes back to the beginning and repeats over and over again, such as the life cycle of a frog.
-2. How many steps are there to the process?
-3. Can the process be easily broken down into stages?
-4. What is the end result?
+1. How many steps are there to the process?
+1. Can the process be easily broken down into stages?
+1. What is the end result?
    a. What are the raw materials? What is produced at the end of the process?
    b. What is the end result of the process?
 
@@ -179,6 +253,72 @@ Example:
 1. What time periods are shown?
 2. What are the main differences between the maps?
 3. What features have remained the same over the time period?
+
+##### Prepositions of Direction & Location
+
+- **`in the [direction] (of)` vs. `to the [direction] (of)` vs. `on the [direction] (of)`:**
+  - **`in the east / in the eastern part (of...)`** → **Inside the boundary / area**
+    - Used when a feature is located within the borders of a village, town, city, island, or region.
+    - _Example:_ A new supermarket was built ==in the north-east of the village==.
+    - _Example:_ The farmland ==in the eastern part of the town== was converted into residential housing.
+  - **`to the east (of...)`** → **Outside / Relative to a reference landmark**
+    - Used when describing a feature's direction relative to another separate landmark or object (separated / external).
+    - _Example:_ The two shops were situated ==to the north-west of the school==.
+    - _Example:_ A large retirement home was built ==to the south-east of the village centre==.
+  - **`on the east / on the eastern side/bank (of...)`** → **Along an edge, border, coast, or line**
+    - Used when a feature lies along a linear boundary, coastline, river, or road.
+    - _Example:_ The village is situated ==on the east bank of the River Stoke==.
+    - _Example:_ Several houses were constructed ==on the eastern side of the main road==.
+
+##### Useful Map Location & Relative Position Phrases
+
+- **Compass Points:**
+  - **Nouns:** _in the north / south / east / west / north-east / north-west / south-east / south-west_
+  - **Adjectives:** _the northern / southern / eastern / western / north-eastern section/corner/sector_
+    - _Example:_ Housing expanded rapidly in the ==north-western corner== of the map.
+    - _Example:_ The farmland in the ==south-eastern sector== was repurposed for residential use.
+- **Position & Proximity (with Examples):**
+  - **1. Direct Adjacency & Closeness:**
+    - **adjacent to / adjoining / next to / beside**
+      - _Example:_ A new car park was constructed ==adjacent to the primary school==.
+      - _Example:_ Two new classrooms were built ==adjoining the main hall==.
+      - _Example:_ A small community garden was developed ==beside the post office==.
+    - **in close proximity to / within easy reach of**
+      - _Example:_ Newly built houses were positioned ==in close proximity to the railway station==.
+      - _Example:_ All commercial facilities remained ==within easy reach of the residential zone==.
+  - **2. Opposite & Across:**
+    - **across from / opposite / on the opposite side of**
+      - **Meaning:** Located on the other side of an intervening space, road, river, or corridor (facing it / _berseberangan_).
+      - > [!NOTE]
+        >
+        > In British English, _opposite_ is commonly used without "to" or "from" (_opposite the school_), while _across from_ is widely used with the exact same meaning (_across from the school_).
+      - _Example:_ The retirement home was established ==directly opposite the medical clinic==.
+      - _Example:_ A shopping area was opened ==on the opposite side of the main road==.
+      - _Example:_ The old warehouse was demolished to build apartments ==across from the river bank==.
+  - **3. Linear Alignment & Borders:**
+    - **along / running along**
+      - _Example:_ A pedestrian pathway was created ==running along the east bank of the River Stoke==.
+      - _Example:_ A line of trees was planted ==along the southern perimeter of the farmland==.
+    - **parallel to**
+      - _Example:_ A new bypass road was constructed ==parallel to the existing railway line==.
+    - **surrounding / encircling**
+      - _Example:_ Modern housing estates expanded, ==surrounding the historic church on three sides==.
+      - _Example:_ A ring road was added ==encircling the town centre==.
+  - **4. Junctions, Corners, and Peripheries:**
+    - **at the intersection / junction of**
+      - _Example:_ A roundabout was built ==at the junction of Main Street and Station Road==.
+    - **in the [direction] corner of**
+      - _Example:_ The two shops ==in the north-west corner of the map== were replaced by residential housing.
+    - **on the outskirts / periphery / edge of**
+      - _Example:_ An industrial zone was developed ==on the eastern outskirts of the village==.
+      - _Example:_ Farmland ==on the northern periphery of the town== was cleared for housing.
+    - **in the heart / centre of**
+      - _Example:_ The post office remained ==in the heart of the settlement== throughout the 80-year period.
+  - **5. Between & Connecting:**
+    - **between X and Y / nestled between**
+      - _Example:_ A children's playground was constructed ==between the school and the residential block==.
+    - **spanning / connecting**
+      - _Example:_ A new bridge was built ==spanning the river==, ==connecting the eastern and western districts==.
 
 ## Task 2
 
@@ -214,15 +354,18 @@ First, here is the basic 4 part structure recommended to use for Task 2 essays:
    - Paraphrase the question
    - Give your opinion
    - State two supporting reasons
-2. **Main Body Paragraph 1**
+
+1. **Main Body Paragraph 1**
    - Topic sentence – outline 1st reason for supporting this view
    - Explanation – explain this idea
    - Example – give an example
-3. **Main Body Paragraph 2**
+
+1. **Main Body Paragraph 2**
    - Topic sentence – outline 2nd reason for supporting this view
    - Explanation – explain this idea
    - Example – give an example
-4. **Conclusion**
+
+1. **Conclusion**
    - Summarise opinion and key reasons
 
 #### Discussion
@@ -242,15 +385,18 @@ The easiest way to approach this type of IELTS Task 2 question is to choose one 
    - Paraphrase the question
    - Give your opinion
    - State two supporting reasons
-2. **Main Body Paragraph 1 – Negative Viewpoint**
+
+1. **Main Body Paragraph 1 – Negative Viewpoint**
    - Topic sentence – outline the view you do not agree with
    - Explanation – explain why this view is held by some people
    - Example – give an example
-3. **Main Body Paragraph 2 – Positive Viewpoint**
+
+1. **Main Body Paragraph 2 – Positive Viewpoint**
    - Topic sentence – outline the view you do agree with
    - Explanation – explain why this view is held by some people
    - Example – give an example
-4. **Conclusion**
+
+1. **Conclusion**
    - Summarise the key points and state your opinion
 
 #### Problem Solution (Causes and Solutions)
@@ -266,15 +412,18 @@ The easiest way to approach this type of IELTS Task 2 question is to choose one 
 1. **Introduction**
    - Paraphrase the question
    - State 1 key problem/cause and related solution
-2. **Main Body Paragraph 1 – Problem or Cause**
+
+1. **Main Body Paragraph 1 – Problem or Cause**
    - Topic sentence – state the problem or cause
    - Explanation – give detail explaining the problem or cause
    - Example – give an example
-3. **Main Body Paragraph 2 – Solution**
+
+1. **Main Body Paragraph 2 – Solution**
    - Topic sentence – state the solution
    - Explanation – give detail explaining the solution
    - Example – give an example
-4. **Conclusion**
+
+1. **Conclusion**
    - Summarise the key points and state your opinion
 
 #### Advantages vs Disadvantages
@@ -288,17 +437,20 @@ The easiest way to approach this type of IELTS Task 2 question is to choose one 
 1. **Introduction**
    - Paraphrase the question
    - Outline the view or views stated the statement
-2. **Main Body Paragraph 1 – Advantage**
+
+1. **Main Body Paragraph 1 – Advantage**
    - Topic sentence – state 1 advantage
    - Explanation – give detail explaining the advantage
    - Example – give an example or
    - Result – state the result
-3. **Main Body Paragraph 2 – Disadvantage**
+
+1. **Main Body Paragraph 2 – Disadvantage**
    - Topic sentence – state 1 disadvantage
    - Explanation – give detail explaining the disadvantage
    - Example – give an example or
    - Result – state the result
-4. **Conclusion**
+
+1. **Conclusion**
    - Summarise the key points
    - State your opinion (if required)
 
@@ -317,13 +469,16 @@ This type of IELTS Task 2 question is sometimes called a _Direct question_ or _T
 1. **Introduction**
    - Paraphrase the question
    - Outline sentence – state your answer to both questions
-2. **Main Body Paragraph 1 – Answer question 1**
+
+1. **Main Body Paragraph 1 – Answer question 1**
    - Topic sentence – state your answer
    - Explanation – explain why you think this
    - Example – give an example
-3. **Main Body Paragraph 2 – Answer question 2**
+
+1. **Main Body Paragraph 2 – Answer question 2**
    - Topic sentence – state your answer
    - Explanation – explain why you think this
    - Example – give an example
-4. **Conclusion**
+
+1. **Conclusion**
    - Summarise both questions and answers

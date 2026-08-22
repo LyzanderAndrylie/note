@@ -113,9 +113,10 @@ The most important words on the cue card are the first sentence. This is your _t
 
 ### Structure of Thoughts
 
-|                   |                |                              |
-| ----------------- | -------------- | ---------------------------- |
+> Use **5W + 1H** (What, Where, Who, When, How, and Why).
+
 | **Your thoughts** | • Background   | • Present situation          |
+| ----------------- | -------------- | ---------------------------- |
 | **Your opinion**  | • Descriptions | • Future situation           |
 | **Your feelings** | • Examples     | • Anything else relevant ... |
 
