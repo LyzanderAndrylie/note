@@ -23,13 +23,13 @@ sequenceDiagram
     autonumber
     actor App as Application
 
-    box rgb(240, 244, 248) PostgreSQL Database Engine
+    box PostgreSQL Database Engine
         participant WAL as Shared WAL Pool<br/>(File 101, 102, 103)
         participant Pub as Publication<br/>(account_outbox_pub)
         participant Slot as Replication Slot<br/>(Debezium Bookmark)
     end
 
-    box rgb(248, 240, 244) Kafka Connect JVM
+    box Kafka Connect JVM
         participant Deb as Debezium Postgres Connector
     end
 
