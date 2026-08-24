@@ -35,14 +35,18 @@
     - Occasionally
     - Seldom
     - Rarely
-    - Never
     - Hardly ever
+      - "almost never"
+    - Never
   - Contrast:
     - But
     - Although
+      - followed by a subject or a verb
     - However
     - even though
+      - followed by a subject or a verb
     - despite
+      - followed by a noun or a gerund
     - while.
   - past comparisons
   - future

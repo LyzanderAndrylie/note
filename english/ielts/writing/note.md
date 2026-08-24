@@ -326,10 +326,175 @@ Understanding when to use **"a / an"** vs. **no article** is crucial for IELTS T
 
 First, here is the basic 4 part structure recommended to use for Task 2 essays:
 
-1. Introduction
-2. Main Body Paragraph 1
-3. Main Body Paragraph 2
-4. Conclusion
+1. **Introduction**
+   1. Paraphrased question
+   2. Thesis statement
+   3. Outline statement
+2. **Main Body Paragraph 1**
+   1. Main idea
+   2. Explanation
+   3. Example
+      1. Alternative: further explanation
+3. **Main Body Paragraph 2**
+   1. Main idea
+   2. Explanation
+   3. Example
+      1. Alternative: further explanation
+4. **Conclusion**
+   1. Summary of main ideas
+   2. If required, restate your opinion
+
+---
+
+#### Introduction Breakdown & Example
+
+##### 1. Paraphrased question
+
+Start your introduction by paraphrasing the question.
+
+- **Example Question:**
+
+  > _Some young people are leaving the countryside to live in cities and towns, leaving only old people in the countryside._
+  >
+  > _Do you think this is a positive or a negative development?_
+
+- **Paraphrased question:**
+
+  > _"The migration of the younger generation to urban areas is leaving many rural locations populated predominantly by the elderly."_
+
+- **Paraphrasing Variations (Contrasting / Two Views):**
+
+  There are various phrases you can use to paraphrase questions that present two opposing viewpoints (e.g., in _Discussion_ essays). They all convey the same idea using different sentence structures:
+  - **Variant 1:**
+    - `Some people argue that... while others say that...`
+    - _Example:_ ==Some people argue that== zoos help to preserve wild creatures, ==while others say that== they are inhumane and should be abolished.
+  - **Variant 2:**
+    - `It is considered by some... while there are others who think...`
+    - _Example:_ ==It is considered by some== that zoos help to preserve wild creatures, ==while there are others who think== that they are inhumane and should be abolished.
+  - **Variant 3:**
+    - `It is often argued that... whilst others disagree and think...`
+    - _Example:_ ==It is often argued that== zoos help to preserve wild creatures, ==whilst others disagree and think== that they are inhumane and should be abolished.
+
+##### 2. Thesis statement
+
+The thesis statement states your opinion on the topic. In most instances, you simply need to decide whether to _agree or disagree_ with it and to reiterate the main idea of the statement. For example:
+
+- **Thesis statement:**
+
+  > _"This essay argues that the loss of young people from the rural landscape has problematic consequences."_
+
+This thesis statement states the opinion of the writer and paraphrases the question again in a way that makes this view clear.
+
+##### 3. Outline statement
+
+Finally in the introduction, you must outline the two _main points_ that you will cover in the rest of the essay. This acts as a guide to the examiner and also helps to keep you focused and on track as you write.
+
+Do it in one sentence, or you can add them onto the end of the _thesis statement_ if appropriate.
+
+- **Outline statement:**
+
+  > _"The two most serious are, the depletion of the rural workforce and the loss of local education facilities."_
+
+---
+
+#### Connecting Outline to Main Body Paragraphs
+
+These two ideas will become your two main body paragraphs:
+
+- **Main Body (Paragraph 1):** the depletion of the rural workforce.
+- **Main Body (Paragraph 2):** the loss of local education facilities.
+
+---
+
+#### Main Body Paragraph 1 Breakdown & Example
+
+- **Topic sentence 1:**
+
+  > _"When 18-30 year olds move to towns and cities ==in search of== new opportunities, they leave behind ==an ageing population== to do all the work."_
+
+- **Explanation and example 1:**
+
+  > _"==Most employment== in the countryside involves manual labour. This can be difficult for older people to manage as it is far more suited to fit and healthy young adults. A government survey ==carried out== ==over the past decade== reveals that the number of family farms being ==sold off== to developers is increasing year by year. The main reason given for this is that the parents can no longer manage to do all the hard work themselves and their sons and daughters have moved to urban areas to seek new opportunities."_
+
+> [!TIP]
+>
+> Examples can come from many sources including personal experience, news reports and articles or academic studies you have read.
+>
+> - Do not worry if you cannot think of a real example. It is fine to make one up, as this one is, as long as it is believable.
+> - If you really cannot think of an example, add another piece of information to support your idea instead.
+
+---
+
+#### Main Body Paragraph 2 Breakdown & Example
+
+- **Topic sentence 2:**
+
+  > _"In many rural areas, there is no longer a village school for the local children to attend."_
+
+- **Explanation and example 2:**
+
+  > _"With fewer young families living on the farms and in the villages, there are not enough kids to keep the local primary schools open. This is ==a big loss== to rural communities as it means that children still living in the countryside often have to travel ==a long way== to school each day. In the region of Devon where I live, every village had its own school just forty years ago. Now only ==a handful== of them still exist. Most have been converted into houses or holiday cottages."_
+
+> [!NOTE]
+>
+> Note how the word _furthermore_ has been added to the beginning of the second paragraph as a cohesive device to link the two ideas.
+
+---
+
+#### Conclusion Breakdown & Example
+
+The ideal conclusion has **1 or 2 sentences**:
+
+- **Sentence 1:** a summary of your main ideas
+- **Sentence 2:** a prediction or recommendation statement _(optional)_
+
+Second sentence is optional but perfectly acceptable if you do want to add one. It is useful if you find that you are just below the word limit when you finish your essay and need just one more sentence to get you over the ==minimum 250 words==.
+
+> [!TIP]
+>
+> If your essay is already long enough, ==leave it out== as it will not earn you extra marks. Your time will be better spent checking your grammar and spellings.
+
+##### Starting the Summary Sentence
+
+The first few words of a summary sentence are **extremely important**. You can use the same phrase for almost any Task 2 IELTS writing essay. It is recommended that you use:
+
+- `In conclusion,`
+- `To conclude,`
+
+##### Paraphrasing into the Conclusion
+
+Since your conclusion is about what the essay **did include** (your opinion and the main points), all you need to do now is to _paraphrase_ this same information.
+
+- **Summary Sentence:**
+
+  > _"In conclusion, the significant rise in the average age of people living in rural areas has resulted in a lack of suitable people to fill the workforce and the closure of the majority of village schools, causing hardship to local communities."_
+
+> [!NOTE]
+>
+> Study the way synonyms and a different sentence structure have been used to form this **conclusion** from the **introduction**. This really is all you need to do.
+
+##### Prediction or Recommendation Sentence (Optional Sentence 2)
+
+Let's consider the optional prediction or recommendation sentence. What do these two words mean?
+
+- **A prediction** is a statement about what you think _will_ happen in the future.
+- **A recommendation** is a statement about what you think _should_ happen in the future.
+
+Here are examples of each type of sentence that you could use for this Task 2 IELTS writing essay:
+
+- **Prediction:**
+
+  > _"It is predicted that there will be a steady increase in young families moving to country locations in the coming decade as parents seek a more relaxed lifestyle for themselves and their children."_
+
+- **Recommendation:**
+
+  > _"It is recommended that governments should improve public transport and provide affordable village housing to encourage young people back to rural areas."_
+
+> [!NOTE]
+>
+> Sometimes it will be appropriate to use _"I predict that..."_ or _"I recommend that..."_.
+
+---
 
 ### Question Types
 
@@ -367,6 +532,7 @@ First, here is the basic 4 part structure recommended to use for Task 2 essays:
 
 1. **Conclusion**
    - Summarise opinion and key reasons
+   - Prediction or recommendation (optional)
 
 #### Discussion
 
@@ -383,6 +549,9 @@ The easiest way to approach this type of IELTS Task 2 question is to choose one 
 
 1. **Introduction**
    - Paraphrase the question
+     - `Some people argue that... while others say that...`
+     - `It is considered by some... while there are others who think...`
+     - `It is often argued that... whilst others disagree and think...`
    - Give your opinion
    - State two supporting reasons
 
@@ -406,6 +575,16 @@ The easiest way to approach this type of IELTS Task 2 question is to choose one 
 - Do not list lots of causes and solutions
 - Choose just one or two and develop them fully
 - Be sure to link each problem/cause and its solution
+
+> [!NOTE]
+>
+> **One Problem/Cause and Solution or Two?**
+>
+> Most questions will state problems, causes and solutions in the plural, that is, more than one. However, it is acceptable to write about just one.
+>
+> This will give you an essay of just over the minimum 250 words. To write about two problems/causes and solutions will require you to write between 350 and 400 words which are a lot to plan and write in the 40 minutes allowed.
+>
+> It is better to fully develop one problem/cause and solution than ending up with one idea missing an explanation or an example because you run out of time.
 
 ##### Essay Structure
 
@@ -431,6 +610,25 @@ The easiest way to approach this type of IELTS Task 2 question is to choose one 
 - What are the advantages and disadvantages of....?
 - Do you think the advantages outweigh the disadvantages?
 - Discuss the advantages and disadvantages and give your opinion.
+
+IELTS advantages and disadvantages essay questions fall into two main categories:
+
+1. Questions that ask for your opinion
+2. Questions that do not require you to state your opinion
+
+> [!NOTE]
+>
+> **One Advantage and Disadvantage or Two?**
+>
+> The question will state _advantages_ and _disadvantages_ in the plural, that is, more than one. However, it is acceptable to write about just one.
+>
+> This should give you an essay of just over the minimum 250 words. To write about two advantages and disadvantages will require you to write nearer 400 words which are a lot to plan and write in the 40 minutes allowed.
+>
+> It is better to fully develop one advantage and one disadvantage than ending up with your second idea missing an explanation or an example because you run out of time, but you can write about two if you feel able to or more comfortable doing so.
+>
+> Having said that, using **Essay structure 2**, where you start with the examples, will enable you to easily add more than one advantage and disadvantage without having to write many more words.
+>
+> It will be more suitable for some questions than others so bear this in mind when you are writing practice essays and try out both structures.
 
 ##### Essay Structure
 
@@ -482,3 +680,65 @@ This type of IELTS Task 2 question is sometimes called a _Direct question_ or _T
 
 1. **Conclusion**
    - Summarise both questions and answers
+
+## Synonym
+
+> [!WARNING]
+>
+> In Writing Task 2, it is fine to repeat one or two words. Do not spend too much time trying to think of synonyms or use ones you are not 100% sure are correct.
+
+- **Poor area** – _deprived neighbourhood, impoverished locality_
+  - Governments should allocate more funding to improve infrastructure in ==deprived neighbourhoods==.
+  - Crime rates tend to be higher in ==impoverished localities== due to a lack of educational and economic opportunities.
+- **City** – _metropolis, urban area_
+  - Living in a bustling ==metropolis== offers numerous career prospects but often entails higher living expenses.
+  - Traffic congestion and air pollution remain major concerns across modern ==urban areas==.
+- **Night time** – _after dark_
+  - Many citizens avoid walking alone in the city centre ==after dark== due to safety concerns.
+  - Installing better street lighting can significantly reduce crime rates ==after dark==.
+- **Cause** – _reason for, source of, origin of_
+  - Excessive consumption of sugary foods is a primary ==reason for== childhood obesity.
+  - Industrial emissions are a leading ==source of== atmospheric pollution.
+  - The rapid growth of technology is the ==origin of== many modern employment shifts.
+- **What can be done** – _solution, answer to the problem_
+  - Investing in public transportation is a viable ==solution to== traffic congestion.
+  - Strict government regulations on carbon emissions provide a long-term ==answer to the problem== of global warming.
+- **As well as** – _in addition to, besides, not only... but also (Indonesian: selain / di samping itu)_
+  - **Meaning & Context:**
+    - _"==As well as learning new job skills==, their social skills will also improve..."_
+    - 👉 _"==In addition to learning new job skills==, their social skills will also improve..."_
+    - 👉 _"They will not only learn new job skills, ==but also improve their social skills==."_
+  - **Key Grammar Rules:**
+    - **1. Followed by a Verb $\rightarrow$ Use Gerund (`-ing`):**
+      - ✅ _"==As well as studying== for exams, students should do regular exercise."_
+      - ❌ _"As well as study for exams..."_
+    - **2. Connecting Nouns `As well as + Noun`:**
+      - _"The course covers theoretical knowledge ==as well as practical skills==."_
+  - **Useful Synonyms & Sentence Variations (Task 2):**
+    - **In addition to:** _"==In addition to== learning new job skills, ..."_
+    - **Besides:** _"==Besides== acquiring professional expertise, ..."_
+    - **Apart from:** _"==Apart from== developing technical abilities, ..."_
+    - **Not only... but also:** _"They ==not only== learn new job skills, ==but also== enhance their social skills."_
+- **Start working / Enter the workforce** – _take up employment_
+  - Many school leavers choose to ==take up employment== before pursuing higher education.
+- **Network / Build connections** – _make valuable contacts, establish professional networks_
+  - Internships enable undergraduates to ==make valuable contacts== that are beneficial when seeking a career.
+- **Survive financially / Cover living costs** – _make ends meet_
+  - Many undergraduates find it difficult to ==make ends meet== while studying at university.
+- **Fund one's education** – _help finance one's course/studies, cover tuition costs_
+  - Earning money through part-time work helps students ==finance their course== without accumulating heavy debt.
+- **Young people** – _younger generation, youth, adolescents_
+  - Governments should invest heavily in career development programs for the ==younger generation==.
+  - Many ==young people== face intense competition in the modern labor market.
+- **Countryside** – _rural locations, rural areas_
+  - Healthcare and transport infrastructure in ==rural locations== are often limited.
+  - Many people prefer living in the ==countryside== due to lower stress and pollution levels.
+- **Cities and towns** – _urban areas, municipalities_
+  - The rapid growth of ==urban areas== has placed immense pressure on housing and public transit.
+  - Employment opportunities are predominantly concentrated in major ==cities and towns==.
+- **Leaving / Relocating** – _migration, departure, rural-to-urban drift_
+  - The large-scale ==migration== of young workers has led to labor shortages in agricultural communities.
+  - Economic disparity is a primary driver behind people ==leaving== rural regions.
+- **Old people** – _the elderly, senior citizens, older generation_
+  - Governments must allocate sufficient funding to support ==the elderly== with healthcare and pension schemes.
+  - Many ==senior citizens== require accessible public infrastructure and specialized care.
