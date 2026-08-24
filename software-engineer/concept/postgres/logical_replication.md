@@ -25,8 +25,9 @@ sequenceDiagram
 
     box PostgreSQL Database Engine
         participant WAL as Shared WAL Pool<br/>(File 101, 102, 103)
-        participant Pub as Publication<br/>(account_outbox_pub)
-        participant Slot as Replication Slot<br/>(Debezium Bookmark)
+        participant WS as WAL Sender + pgoutput Plugin
+        participant Pub as Publication Catalog<br/>(account_outbox_pub)
+        participant Slot as Replication Slot State<br/>(Debezium Bookmark)
     end
 
     box Kafka Connect JVM
@@ -38,33 +39,26 @@ sequenceDiagram
     App->>WAL: Write Outbox Event (SQL Mutation)
     activate WAL
     Note over WAL: Append transaction data<br/>to current WAL file
-    WAL->>Pub: Process WAL records
     deactivate WAL
-    activate Pub
-    Note over Pub: Apply Row Filtering:<br/>WHERE topic = 'onKYC...'
-    deactivate Pub
 
-    alt Row matches filter
-        Pub->>Slot: Forward matching row
-        activate Slot
+    WS->>WAL: Read WAL records
+    WS->>Pub: Check publication membership & row filters
+    Note over WS: Decode WAL to logical change events<br/>(using pgoutput plugin)
 
-        alt Debezium is Connected
-            Slot->>Deb: Stream Filtered WAL Bytes (Network)
-            activate Deb
+    alt Row matches publication filter
+        WS->>Deb: Stream Decoded Logical Change Events
+        activate Deb
 
-            Note over Deb: • Parses WAL Stream bytes<br/>• Skips Groovy Filter SMT<br/>• Runs Built-in Outbox SMT
+        Note over Deb: • Receives logical change events<br/>• Runs Built-in Outbox SMT<br/>• Routes payload to target topic
 
-            Deb->>Kafka: Publish to Dynamic Outbox Topic
-            deactivate Deb
-
-            Deb-->>Slot: Send WAL bytes ACK
-            Note over Slot: Advance bookmark LSN
-        else Debezium is Disconnected
-            Note over Slot: ⚠️ Slot protects WAL Files 102+<br/>from deletion on disk!
-        end
-        deactivate Slot
-    else Row does not match
-        Note over Pub: Discard / Ignore row
+        Deb->>Kafka: Publish to Dynamic Outbox Topic
+        Deb-->>WS: Send ACK (Flush LSN)
+        deactivate Deb
+        WS->>Slot: Advance confirmed_flush_lsn & restart_lsn
+    else Debezium is Disconnected
+        Note over Slot: ⚠️ Slot protects WAL Files 102+<br/>from deletion on disk!
+    else Row does not match filter
+        Note over WS: Filtered out / Skipped
     end
 ```
 
@@ -73,9 +67,9 @@ sequenceDiagram
 ### Lifecycle Breakdown
 
 1. **The Write:** Your application drops a row into the `outbox_event` table. Postgres logs this mutation directly to the **Shared WAL Pool**.
-2. **The Gatekeeper:** The **Publication** evaluates the incoming data against its internal filter query (`WHERE topic = '<topic-name>'`). If the row doesn't match, it is ignored by the replication engine.
-3. **The Bookmark:** If the row matches, the **Logical Replication Slot** increments its target ledger and streams the raw transaction bytes across the network boundary to your Kafka Connect container.
-4. **The Transform:** The **Debezium Postgres Connector** catches the raw bytes, decodes them natively, and passes them to the lightweight Outbox SMT to router-map the final payload directly into your designated **Redpanda** topics.
+2. **The Decode & Filter:** The **`walsender` background process** reads WAL records on the server, uses the **`pgoutput` output plugin** to perform logical decoding (translating physical WAL entries into structured row-level change events), and checks the **Publication** catalog to apply table membership and row filters (`WHERE topic = '<topic-name>'`). If the row doesn't match, it is skipped.
+3. **The Stream:** If the row matches, the `walsender` streams the **decoded logical change events** (not raw WAL bytes) across the network to your Kafka Connect container, and the **Replication Slot** tracks how far the consumer has read (`confirmed_flush_lsn`) and the oldest WAL position needed for restart (`restart_lsn`).
+4. **The Transform:** The **Debezium Postgres Connector** receives the structured logical events and passes them to the lightweight Outbox SMT to route the final payload directly into your designated **Redpanda** topics.
 
 ### The Risk of Shared WAL & Slots
 
@@ -162,11 +156,97 @@ DROP PUBLICATION IF EXISTS my_pub;
 
 ```
 
-> ⚠️ **Crucial Replica Identity Rule:** If a publication includes `UPDATE` or `DELETE` operations, the published tables **must** have a Primary Key. Without one, you must manually assign a replica identity (e.g., `ALTER TABLE my_table REPLICA IDENTITY FULL;`), otherwise future updates/deletes on the publisher will throw a fatal error.
+---
+
+## 3. Replica Identity (Publisher Side)
+
+When a subscriber receives an `UPDATE` or `DELETE` event, it needs a way to locate the **exact row** to modify on the target table. The **Replica Identity** tells Postgres which column values to include in the WAL as the "old row key" so the subscriber can match the correct row.
+
+Without a configured replica identity, Postgres has no way to communicate _which_ row changed, and will throw a fatal error:
+
+```
+ERROR: cannot update table "orders" because it does not have a replica identity and publishes updates
+```
+
+> 💡 If a publication only publishes `INSERT` operations (`WITH (publish = 'insert')`), replica identity is **not required** because inserts don't need to locate an existing row.
+
+### Replica Identity Modes
+
+| Mode          | What gets logged in WAL                           | Requirements                                                             | Performance                                                                                |
+| ------------- | ------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `DEFAULT`     | Old values of **Primary Key** columns only        | Table must have a PK                                                     | ✅ Best — minimal WAL overhead                                                             |
+| `USING INDEX` | Old values of the chosen **unique index** columns | A non-partial, non-deferrable `UNIQUE` index with all columns `NOT NULL` | ✅ Good — similar to PK                                                                    |
+| `FULL`        | Old values of **all columns** in the row          | None (works on any table)                                                | ⚠️ Heavy — increased WAL volume, slower subscriber lookups, expensive with TOASTed columns |
+| `NOTHING`     | No old row values logged                          | N/A                                                                      | ❌ `UPDATE`/`DELETE` cannot be replicated at all                                           |
+
+> 📝 **`USING INDEX` requirements explained:**
+>
+> - **Non-partial:** The index must cover _all_ rows in the table (no `WHERE` clause on the index definition), so every row can be uniquely identified.
+> - **Non-deferrable:** The uniqueness constraint must be checked immediately on each statement, not deferred to the end of a transaction.
+>   - This matters because Postgres writes change events to WAL **at statement execution time**, not at commit time.
+>   - A `DEFERRABLE` constraint allows temporarily duplicated values mid-transaction (e.g., swapping two rows' values), meaning the "old key" logged to WAL could match multiple rows — making it ambiguous on the subscriber.
+>   - A non-deferrable constraint guarantees the key is always unique at the moment it is logged.
+>
+> ```sql
+> -- Example: a deferrable unique constraint allows temporary duplicates
+> CREATE TABLE seats (
+>    id INT PRIMARY KEY,
+>    seat_number INT UNIQUE DEFERRABLE INITIALLY DEFERRED
+> );
+>
+> BEGIN;
+>  UPDATE seats SET seat_number = 2 WHERE id = 1;  -- seat 2 briefly duplicated!
+>  UPDATE seats SET seat_number = 1 WHERE id = 2;  -- swap complete, no duplicates
+> COMMIT;  -- uniqueness checked HERE, passes — but WAL already logged ambiguous keys
+> ```
+>
+> - **All columns `NOT NULL`:** `NULL` values cannot be reliably compared for equality (`NULL ≠ NULL`), so every column in the index must reject nulls to guarantee a deterministic row match on the subscriber.
+
+### Setting Replica Identity
+
+- **Use Primary Key (Default — nothing to do):**
+  _If the table already has a PK, Postgres uses it automatically._
+
+```sql
+-- Verify current replica identity
+SELECT relname, relreplident
+FROM pg_class
+WHERE relname = 'orders';
+-- 'd' = default (PK), 'n' = nothing, 'f' = full, 'i' = index
+
+```
+
+- **Use a Unique Index:**
+
+```sql
+-- The index must be UNIQUE, non-partial, non-deferrable, and all columns NOT NULL
+ALTER TABLE orders REPLICA IDENTITY USING INDEX orders_external_id_idx;
+
+```
+
+- **Use Full (fallback for tables without any key):**
+
+```sql
+ALTER TABLE legacy_events REPLICA IDENTITY FULL;
+
+```
+
+- **Reset back to Default:**
+
+```sql
+ALTER TABLE orders REPLICA IDENTITY DEFAULT;
+
+```
+
+### Gotchas
+
+> ⚠️ **Partitioned Tables:** Replica identity must be set on **each partition individually**. Setting it on the parent table does **not** propagate to existing or future partitions.
+
+> ⚠️ **Row Filter Gotcha (PG 15+):** If a table uses row filtering (`WHERE ...`), any columns referenced in the `WHERE` clause **must** be part of the replica identity (or the table must use `REPLICA IDENTITY FULL`), otherwise `UPDATE`/`DELETE` operations will fail with an error.
 
 ---
 
-## 3. Replication Slot Commands (Publisher Side)
+## 4. Replication Slot Commands (Publisher Side)
 
 Replication slots are typically created automatically under the hood when a subscription is initialized. However, manual management is vital for monitoring and troubleshooting.
 
@@ -182,31 +262,25 @@ FROM pg_replication_slots;
 ```
 
 - **Check exact WAL lag size per slot (Postgres 13+):**
+  _`restart_lsn` measures actual WAL retention on disk (what prevents Postgres from removing WAL files). `confirmed_flush_lsn` measures consumer consumption lag (what the client has processed)._
 
 ```sql
 SELECT slot_name,
-       pg_wal_lsn_diff(pg_current_wal_lsn(), confirmed_flush_lsn) AS lag_bytes
+       pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn) AS wal_retained_bytes,
+       pg_wal_lsn_diff(pg_current_wal_lsn(), confirmed_flush_lsn) AS consumer_lag_bytes
 FROM pg_replication_slots;
 
 ```
 
-### Manual Slot Maintenance
+### Manual Slot Maintenance & Cleanup
 
-- **Manually drop a stuck/orphaned slot:**
-  _If a subscriber is permanently destroyed, you must manually run this on the publisher to avoid filling up the disk._
-
-```sql
-SELECT pg_drop_replication_slot('your_slot_name');
-
-```
-
-### Manual Slot Drop
+_If a subscriber is permanently destroyed, you must manually drop its slot on the publisher to avoid filling up the disk with retained WAL files._
 
 ```sql
 -- 1. Identify if a stale slot is still stuck in the system
 SELECT slot_name, active FROM pg_replication_slots;
 
--- 2. Kill any zombie processes clinging to the slot
+-- 2. Kill any zombie processes clinging to the slot (if still active)
 SELECT pg_terminate_backend(active_pid)
 FROM pg_replication_slots
 WHERE slot_name = 'your_slot_name' AND active = true;
@@ -217,7 +291,7 @@ SELECT pg_drop_replication_slot('your_slot_name');
 
 ---
 
-## 4. Subscription Control (Subscriber Side Shortcuts)
+## 5. Subscription Control (Subscriber Side Shortcuts)
 
 Instead of dropping publications when troubleshooting or performing maintenance, it is safer to temporarily pause the data stream from the subscriber side.
 
