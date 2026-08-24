@@ -73,7 +73,7 @@ sequenceDiagram
 ### Lifecycle Breakdown
 
 1. **The Write:** Your application drops a row into the `outbox_event` table. Postgres logs this mutation directly to the **Shared WAL Pool**.
-2. **The Gatekeeper:** The **Publication** evaluates the incoming data against its internal filter query (`WHERE topic = 'onKYCQCSnapshotReviewRequested'`). If the row doesn't match, it is ignored by the replication engine.
+2. **The Gatekeeper:** The **Publication** evaluates the incoming data against its internal filter query (`WHERE topic = '<topic-name>'`). If the row doesn't match, it is ignored by the replication engine.
 3. **The Bookmark:** If the row matches, the **Logical Replication Slot** increments its target ledger and streams the raw transaction bytes across the network boundary to your Kafka Connect container.
 4. **The Transform:** The **Debezium Postgres Connector** catches the raw bytes, decodes them natively, and passes them to the lightweight Outbox SMT to router-map the final payload directly into your designated **Redpanda** topics.
 
