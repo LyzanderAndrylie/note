@@ -229,9 +229,11 @@ Understanding when to use **"a / an"** vs. **no article** is crucial for IELTS T
 #### Bar Chart and Line Graph
 
 1. What is the most obvious trend?
-   a. You should look for any clear increases or decreases in the data. They could be gradual or sharp changes.
+   1. You should look for any clear increases or decreases in the data.
+   2. They could be gradual or sharp changes.
+
 1. Are there any notable similarities?
-   a. As well as knowing market increases and decreases, you also need to look out for things that are similar or stay the same over a period of time.
+   1. As well as knowing market increases and decreases, you also need to look out for things that are similar or stay the same over a period of time.
 
 #### Table Chart
 
@@ -240,13 +242,15 @@ Understanding when to use **"a / an"** vs. **no article** is crucial for IELTS T
 #### Process Diagram
 
 1. Is it a linear or a cyclical process?
-   a. A Linear process starts and finishes at different places. It will often involve the manufacture or creation of something, with raw materials going in at one end and the finished product coming out the other end.
-   b. A Cyclical process is a process that goes back to the beginning and repeats over and over again, such as the life cycle of a frog.
+   1. A Linear process starts and finishes at different places.
+      1. It will often involve the manufacture or creation of something, with raw materials going in at one end and the finished product coming out the other end.
+   2. A Cyclical process is a process that goes back to the beginning and repeats over and over again, such as the life cycle of a frog.
 1. How many steps are there to the process?
 1. Can the process be easily broken down into stages?
 1. What is the end result?
-   a. What are the raw materials? What is produced at the end of the process?
-   b. What is the end result of the process?
+   1. What are the raw materials?
+   2. What is produced at the end of the process?
+   3. What is the end result of the process?
 
 #### Map
 
