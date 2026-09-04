@@ -35,3 +35,19 @@ Create a feature documentation in {markdown_path} by checking the whole code in 
 2. Add a separete section for each feature, each with its own feature interaction diagram or flow chart in mermaid to better visualize its functionality.
 </expected_output>
 ```
+
+## Generate Product Architecture Documentation
+
+```text
+<task>
+Create an end-to-end product architecture documentation in {markdown_path} by exploring and analyzing the codebase in {code_path}.
+</task>
+
+<expected_output>
+1. Follow the existing format in the markdown.
+    - Draw all diagrams using mermaid.
+2. Fill out all sections based on actual implementation found in the codebase.
+    - Take your time to understand the codebase.
+    - Spawn multiple agents if needed to analyze different parts of the codebase.
+</expected_output>
+```
