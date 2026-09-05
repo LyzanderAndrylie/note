@@ -1,15 +1,15 @@
 # {product_name}
 
-| Metadata             | Value                |
-| :------------------- | :------------------- |
-| **Repository**       | {repo_url}           |
-| **Product Version**  | {product_version}    |
-| **Category**         | {category}           |
-| **Language & Stack** | {language_and_stack} |
-| **Entry Points**     | {entry_points}       |
-| **Input / Output**   | {input_and_output}   |
-| **Created Date**     | {created_date}       |
-| **Updated Date**     | {updated_date}       |
+| Metadata                       | Value                |
+| :----------------------------- | :------------------- |
+| **Repository**                 | {repo_url}           |
+| **Product Version**            | {product_version}    |
+| **Category**                   | {category}           |
+| **Language & Stack**           | {language_and_stack} |
+| **Entry Points**               | {entry_points}       |
+| **Input / Output**             | {input_and_output}   |
+| **Document Creation Date**     | {created_date}       |
+| **Document Last Updated Date** | {updated_date}       |
 
 ---
 
@@ -252,20 +252,39 @@ erDiagram
 
 - **Location**: `{path}`
 - **Purpose**: {what_problem_or_operation_this_algorithm_addresses}
-- **How It Works**: {description_of_the_algorithm_or_method}
 - **Complexity**: {time_and_space_complexity}
 
-```mermaid
-flowchart LR
-    A["{input_state}"] -->|"{step_or_transformation}"| B["{output_state}"]
-```
+#### How It Works
 
-### {algorithm_or_method_2}
+1. Input
 
-- **Location**: `{path}`
-- **Purpose**: {what_problem_or_operation_this_algorithm_addresses}
-- **How It Works**: {description_of_the_algorithm_or_method}
-- **Complexity**: {time_and_space_complexity}
+   ```text
+   {example_input}
+   ```
+
+2. {step_1_description}
+
+   ```text
+   {example_illustration}
+   ```
+
+3. {step_2_description}
+
+   ```text
+   {example_illustration}
+   ```
+
+4. {step_3_description}
+
+   ```text
+   {example_illustration}
+   ```
+
+5. Output
+
+   ```text
+   {example_output}
+   ```
 
 ---
 

@@ -46,6 +46,7 @@ Create an end-to-end product architecture documentation in {markdown_path} by ex
 <expected_output>
 1. Follow the existing format in the markdown.
     - Draw all diagrams using mermaid.
+    - For code snippets in the markdown, always provide the expected output in the form of comments.
 2. Fill out all sections based on actual implementation found in the codebase.
     - Take your time to understand the codebase.
     - Spawn multiple agents if needed to analyze different parts of the codebase.
