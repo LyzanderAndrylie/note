@@ -226,8 +226,8 @@ flowchart LR
 
 ```mermaid
 erDiagram
-    {entity_a} ||--o{ {entity_b} : "{relationship}"
-    {entity_b} }o--|| {entity_c} : "{relationship}"
+    "{entity_a}" ||--o{ "{entity_b}" : "{relationship}"
+    "{entity_b}" }o--|| "{entity_c}" : "{relationship}"
 ```
 
 | Entity       | Location | Lifecycle   | Description   |
