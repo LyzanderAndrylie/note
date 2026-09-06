@@ -13,6 +13,38 @@
 
 ---
 
+## Glossary
+
+![ECC Report 178](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRK55n9dBsN1rd8GIqMvf7E4wITnc4bGYFW7jsgvIhZorQUrHngUAOXDOU&s=10)
+
+- **IDD (International Direct Dialing)**: A telephony service and mechanism allowing subscribers to place outbound international calls directly without operator intervention. In dialing notation, it refers to the **international exit code** dialed before the destination country calling code (e.g., `008` or `009` in Indonesia, `011` in North America, or `00` under ITU recommendation; represented abstractly by `+` in ITU-T E.164).
+  - **International Exit Code (International Call Prefix)**: The dialing prefix dialed by a caller to break out of the local/national telephone exchange and route an outbound call onto an international telephone gateway.
+    - Standardized by the ITU as `00` (used throughout Europe and parts of Asia), `011` in North America (NANP), `0011` in Australia, and carrier-specific codes in Indonesia (`008` Indosat, `009` Telkom). In the international E.164 standard, it is represented by the leading `+` symbol.
+  - **Country Calling Code (Country Code / CC)**: A 1- to 3-digit numerical code assigned by the ITU-T (under Recommendations E.123 and E.164) to route international calls to a specific sovereign nation, overseas territory, or international service.
+    - It is dialed immediately following the international exit code or represented after the `+` sign (e.g., `+62` for Indonesia, `+1` for North America, `+44` for the UK, `+81` for Japan).
+- **NDD (National Direct Dialing)**: A telephony service and procedure enabling callers to place domestic trunk, inter-city, or mobile calls directly without operator assistance, typically initiated by dialing the domestic trunk prefix.
+  - **Domestic Trunk Prefix (National Prefix)**: The leading digit or sequence of digits dialed before a telephone number to route the call outside the local exchange onto the national trunk network (to reach other geographic area codes or cellular networks).
+    - Typically `0` in Indonesia and most countries, or `1` in North America (NANP). It is strictly used for domestic dialing and is omitted when formatting in international E.164 format.
+- **NSN (National Significant Number)**: Under ITU-T Recommendation E.164, the portion of a telephone number that immediately follows the country calling code, completely stripped of international exit codes (IDD) and domestic trunk prefixes.
+  - It consists of the **National Destination Code** (NDC / area code or mobile network code) and the **Subscriber Number** (SN).
+  - For example, for Indonesian mobile `+62 812-3456-7890`, the NSN is `81234567890` (represented as `NationalNumber` in `libphonenumber`).
+- **Dedicated Service Blocks**: Special non-geographic numbering blocks allocated for specific organizational or utility telephony services:
+  - **Universal Access Numbers (UAN / `1500xxx`)**: Single nationwide business access numbers routed to centralized customer service/call centers.
+    - The telecom operator’s switch automatically routes the call to the organization’s central customer service PBX or the nearest regional call center.
+    - The primary nationwide commercial hotline block:
+
+      • Halo BCA: 1500888
+
+      • Bank Mandiri: 1500046
+
+      • Telkomsel: 1500735
+
+  - **Toll-Free (`0800`)**: Inbound service numbers where calling charges are fully absorbed by the recipient.
+  - **Shared Cost (`0804`)**: Service numbers where call charges are split between the caller and the recipient.
+  - **Premium Rate (`0809`)**: Information, entertainment, or specialized support lines billed to the caller at higher-than-standard tariffs.
+
+---
+
 ## 1. Overview & Telephony Fundamentals
 
 Indonesian telecommunications are regulated by the Ministry of Communication and Informatics (Kementerian Komunikasi dan Digital / KOMDIGI) and follow the ITU-T E.164 recommendation under country calling code **`+62`**.
@@ -82,12 +114,12 @@ flowchart TD
 
 ### Possibility vs. Full Validity
 
-| Check Method                        | Execution Scope                                                                                                                              | Cost             | Indonesia Behavior                                                                                                                                                                          |
-| :---------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------- | :--------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `IsPossibleNumber(num)`             | Checks whether the NSN length matches possible length constraints defined in `general_desc`.                                                 | $\mathcal{O}(1)$ | Returns `true` if NSN length is between **7 and 17 digits**, or **5 to 6 digits** for local-only fixed lines (evaluates `possible == IS_POSSIBLE \|\| possible == IS_POSSIBLE_LOCAL_ONLY`). |
-| `IsPossibleNumberWithReason(num)`   | Returns an enum explaining possibility failure reasons (`TOO_SHORT`, `TOO_LONG`, `INVALID_LENGTH`, `IS_POSSIBLE`, `IS_POSSIBLE_LOCAL_ONLY`). | $\mathcal{O}(1)$ | Returns `TOO_SHORT` if NSN $< 5$ digits; `IS_POSSIBLE_LOCAL_ONLY` if 5–6 digits; `IS_POSSIBLE` if 7–17 digits; `TOO_LONG` if $> 17$ digits.                                                 |
-| `IsValidNumber(num)`                | Executes full regular-expression matching against the active territory's category descriptors.                                               | $\mathcal{O}(K)$ | Returns `true` only if the NSN matches a valid recognized category pattern (Mobile, Fixed Line, Toll-Free, UAN, etc.).                                                                      |
-| `IsValidNumberForRegion(num, "ID")` | Verifies both that `num.GetCountryCode() == 62` and that the number satisfies Indonesia's categorical rules.                                 | $\mathcal{O}(K)$ | Returns `false` if country code is not 62, even if the national number would be valid in another territory.                                                                                 |
+| Check Method                        | Execution Scope                                                                                                                              | Cost             | Indonesia Behavior                                                                                                                                  |
+| :---------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------- | :--------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `IsPossibleNumber(num)`             | Checks whether the NSN length matches possible length constraints defined in `general_desc`.                                                 | $\mathcal{O}(1)$ | Returns `true` if NSN length is between **7 and 17 digits**, or **5 to 6 digits** for local-only fixed lines (evaluates `possible == IS_POSSIBLE \  |
+| `IsPossibleNumberWithReason(num)`   | Returns an enum explaining possibility failure reasons (`TOO_SHORT`, `TOO_LONG`, `INVALID_LENGTH`, `IS_POSSIBLE`, `IS_POSSIBLE_LOCAL_ONLY`). | $\mathcal{O}(1)$ | Returns `TOO_SHORT` if NSN $< 5$ digits; `IS_POSSIBLE_LOCAL_ONLY` if 5–6 digits; `IS_POSSIBLE` if 7–17 digits; `TOO_LONG` if $> 17$ digits.         |
+| `IsValidNumber(num)`                | Executes full regular-expression matching against the active territory's category descriptors.                                               | $\mathcal{O}(K)$ | Returns `true` only if the NSN matches a valid recognized category pattern (Mobile, Fixed Line, Toll-Free, UAN, etc.).                              |
+| `IsValidNumberForRegion(num, "ID")` | Verifies both that `num.GetCountryCode() == 62` and that the number satisfies Indonesia's categorical rules.                                 | $\mathcal{O}(K)$ | Returns `false` if country code is not 62, even if the national number would be valid in another territory.                                         |
 
 ---
 
@@ -97,20 +129,21 @@ The canonical metadata for Indonesia embedded in `phonenumbers` (`metadata/data/
 
 ### Metadata Descriptors
 
-| Descriptor         | National Number Regex Pattern                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | NSN Lengths                                               | National Format Example           |
-| :----------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------- | :-------------------------------- |
-| **`general_desc`** | `00[1-9]\d{9,14}\|(?:[1-36]\|8\d{5})\d{6}\|00\d{9}\|[1-9]\d{8,10}\|[2-9]\d{7}`                                                                                                                                                                                                                                                                                                                                                                                                                         | `7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17` (Local: `5, 6`) | —                                 |
-| **`mobile`**       | `8[1-35-9]\d{7,10}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | `9, 10, 11, 12`                                           | `0812-3456-789`                   |
-| **`fixed_line`**   | `2[124]\d{7,8}\|619\d{8}\|2(?:1(?:14\|500)\|2\d{3})\d{3}\|61\d{5,8}\|(?:2(?:[35][1-4]\|6[0-8]\|7[1-6]\|8\d\|9[1-8])\|3(?:1\|[25][1-8]\|3[1-68]\|4[1-3]\|6[1-3568]\|7[0-469]\|8\d)\|4(?:0[1-589]\|1[01347-9]\|2[0-36-8]\|3[0-24-68]\|43\|5[1-378]\|6[1-5]\|7[134]\|8[1245])\|5(?:1[1-35-9]\|2[25-8]\|3[124-9]\|4[1-3589]\|5[1-46]\|6[1-8])\|6(?:[25]\d\|3[1-69]\|4[1-6])\|7(?:02\|[125][1-9]\|[36]\d\|4[1-8]\|7[0-36-9])\|9(?:0[12]\|1[013-8]\|2[0-479]\|5[125-8]\|6[23679]\|7[159]\|8[01346]))\d{5,8}` | `7, 8, 9, 10, 11` (Local: `5, 6`)                         | `(021) 29955888`                  |
-| **`toll_free`**    | `00(?:1803\d{5,11}\|7803\d{7})\|(?:177\d\|800)\d{5,7}`                                                                                                                                                                                                                                                                                                                                                                                                                                                 | `8, 9, 10, 11, 12, 13, 14, 15, 16, 17`                    | `0800 1234567`                    |
-| **`shared_cost`**  | `804\d{7}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | `10`                                                      | `0804 123 4567`                   |
-| **`premium_rate`** | `809\d{7}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | `10`                                                      | `0809 1 234 567`                  |
-| **`uan`**          | `(?:1500\|8071\d{3})\d{3}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | `7, 10`                                                   | `1 500 123`                       |
-| **`emergency`**    | `11[02389]`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `3`                                                       | `110`, `112`, `113`, `118`, `119` |
-| **`short_code`**   | `1(?:1[02389]\|40\d\d\|50264)\|71400\|89887`                                                                                                                                                                                                                                                                                                                                                                                                                                                           | `3, 5, 6`                                                 | `14000`, `71400`                  |
-| **`no_intl_dial`** | `001803\d{5,11}\|(?:007803\d\|8071)\d{6}`                                                                                                                                                                                                                                                                                                                                                                                                                                                              | `10, 11, 12, 13, 14, 15, 16, 17`                          | —                                 |
+| Descriptor         | National Number Regex Pattern                                                                      | NSN Lengths                         | National Format Example           |
+| :----------------- | :------------------------------------------------------------------------------------------------- | :---------------------------------- | :-------------------------------- |
+| **`general_desc`** | `00[1-9]\d{9,14}\|(?:[1-36]\|8\d{5})\d{6}\|00\d{9}\|[1-9]\d{8,10}\|[2-9]\d{7}`                     | `7–17`                              | —                                 |
+| **`mobile`**       | `8[1-35-9]\d{7,10}`                                                                                | `9, 10, 11, 12`                     | `0812-3456-789`                   |
+| **`fixed_line`**   | `2[124]\d{7,8}\|619\d{8}\|2(?:1(?:14\|500)\|2\d{3})\d{3}\|61\d{5,8}\|(?:2(?:[35][1-4]\|…))\d{5,8}` | `7, 8, 9, 10, 11` _(+ 5, 6 local)_  | `0218-350-123`                    |
+| **`toll_free`**    | `00(?:1803\d{5,11}\|7803\d{7})\|(?:177\d\|800)\d{5,7}`                                             | `8–17`                              | `0800-123-4567`                   |
+| **`shared_cost`**  | `804\d{7}`                                                                                         | `10`                                | `0804 123 4567`                   |
+| **`premium_rate`** | `809\d{7}`                                                                                         | `10`                                | `0809 1 234 567`                  |
+| **`uan`**          | `(?:1500\|8071\d{3})\d{3}`                                                                         | `7, 10`                             | `8071-123-456`                    |
+| **`emergency`**    | `11[02389]`                                                                                        | `3`                                 | `110`, `112`, `113`, `118`, `119` |
+| **`short_code`**   | `1(?:1[02389]\|40\d\d\|50264)`                                                                     | `3, 5, 6`                           | `110`, `14010`, `150264`          |
+| **`no_intl_dial`** | `001803\d{5,11}\|(?:007803\d\|8071)\d{6}`                                                          | `10–17`                             | —                                 |
 
 > [!NOTE]
+>
 > `VOIP`, `PERSONAL_NUMBER`, `PAGER`, and `VOICEMAIL` descriptors have `possible_length: [-1]` for Indonesia, indicating they are not assigned or classified independently under Indonesian national numbering plans.
 
 ---
@@ -275,6 +308,7 @@ name2, _ := carrier.GetNameForNumber(indosatNum, "en")
 ```
 
 > [!NOTE]
+>
 > **Mobile Number Portability (MNP) & Prefix Allocation**: Indonesia has not implemented nationwide MNP for cellular services (`phonenumbers.IsMobileNumberPortableRegion("ID") == false`). Therefore, `carrier.GetNameForNumber` directly reflects the prefix-allocating operator based on national regulatory assignment blocks, and `carrier.GetSafeDisplayName(num, "en")` returns the same resolved name. In countries where MNP _is_ active (such as the US or UK), `GetSafeDisplayName` intentionally returns an empty string `""` because offline prefix lookup cannot guarantee the current carrier without live HLR/telecom dips.
 
 ---
@@ -504,6 +538,7 @@ func extractIndonesianNumbers(text string) {
 ## Appendix A: Upstream `libphonenumber` Metadata Source
 
 > [!NOTE]
+>
 > The files documented below are sourced from the upstream [google/libphonenumber](https://github.com/google/libphonenumber) repository and stored locally at [`metadata/62/`](file:///c:/Users/Lyzander%20Andrylie/Documents/%285%29%20Note/software-engineer/product/go/phonenumbers/metadata/62). These CSV files are the **canonical human-readable definitions** from which the compiled protobuf metadata (`metadata.xml.gz`) is generated. They represent the ground truth for Indonesia's numbering plan as maintained by Google's telephony team.
 
 ### Source File Inventory
