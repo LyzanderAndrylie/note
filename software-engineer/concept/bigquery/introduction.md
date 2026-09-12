@@ -286,14 +286,19 @@ In PostgreSQL, an unoptimized query consumes local CPU time and causes slow resp
 #### 2. The `LIMIT` Myth
 
 - In PostgreSQL:
+
   ```sql
   SELECT * FROM massive_audit_log LIMIT 10;
   ```
+
   Postgres executes an index scan or stops sequential scan after retrieving 10 tuples. It reads ~1-2 disk blocks.
+
 - In BigQuery (On-Demand):
+
   ```sql
   SELECT * FROM `my_project.analytics.massive_audit_log` LIMIT 10;
   ```
+
   **BigQuery will still scan the ENTIRE table (e.g., 50 TB = $312.50)!**
   The `LIMIT` clause is applied at the **Root coordinator node** after all leaf nodes have scanned and processed their assigned column blocks. It reduces network egress from BigQuery to your application, but does **not** reduce scanned bytes or billing.
 
@@ -370,17 +375,21 @@ Partitioning divides a table into distinct physical segments based on a single c
   3. **Integer range**: Numeric ranges (e.g., `customer_id` range 0 to 100,000, step 1,000).
 - **Partition Limits**: A single table can have a maximum of **10,000 partitions**. Daily partitioning gives ~27 years of data.
 - **Partition Pruning in Action**:
+
   ```sql
   -- Scans ONLY the 2026-03-01 partition files in Colossus:
   SELECT order_id, total_amount
   FROM `my_project.analytics.orders`
   WHERE order_date = '2026-03-01';
   ```
+
 - **Guardrail Protection**: Always enforce partition filtering on critical tables:
+
   ```sql
   ALTER TABLE `my_project.analytics.orders`
   SET OPTIONS (require_partition_filter = true);
   ```
+
   Any query omitting a `WHERE` clause on the partition column will fail immediately before executing.
 
 ### 2. Clustering (Fine-Grained Colossus Sorting)
@@ -705,6 +714,7 @@ To replicate transactional data from PostgreSQL into BigQuery in near real-time:
 4. **Target Strategy**:
    - **Append-only log**: Stream CDC events directly into a partitioned BigQuery table (`raw_orders_cdc`).
    - **Analytical View**: Expose the current state to users using a view with `QUALIFY`:
+
      ```sql
      CREATE VIEW `my_project.analytics.v_current_orders` AS
      SELECT * EXCEPT(cdc_op, cdc_timestamp)
@@ -712,6 +722,7 @@ To replicate transactional data from PostgreSQL into BigQuery in near real-time:
      QUALIFY ROW_NUMBER() OVER(PARTITION BY order_id ORDER BY cdc_timestamp DESC) = 1
      AND cdc_op != 'D'; -- Filter out deleted records
      ```
+
    - **Periodic Compaction**: Run a scheduled `MERGE` query once per hour to collapse CDC logs into a consolidated table.
 
 ---
@@ -721,12 +732,14 @@ To replicate transactional data from PostgreSQL into BigQuery in near real-time:
 ### 1. Time Travel & Table Snapshots
 
 - **Time Travel**: BigQuery preserves a 7-day change history automatically for all tables. You can query data as it existed at any historical point within the last 7 days without restoring backups:
+
   ```sql
   -- Query the table exactly as it looked 2 hours ago:
   SELECT COUNT(1)
   FROM `my_project.analytics.users`
   FOR SYSTEM_TIME AS OF TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 2 HOUR);
   ```
+
 - **Table Clones & Snapshots (Zero-Copy)**:
   - Create instant, zero-cost copies of production tables for staging or QA environments:
 
@@ -743,6 +756,7 @@ Unlike PostgreSQL Materialized Views (which require manual `REFRESH MATERIALIZED
 
 - **Incremental Refresh**: BigQuery automatically refreshes MVs in the background as new data streams in.
 - **Smart Query Rewrite**: If a user queries the base table, the BigQuery optimizer **automatically redirects the query to the Materialized View** if it satisfies the aggregation, cutting cost and latency without modifying user SQL:
+
   ```sql
   CREATE MATERIALIZED VIEW `my_project.analytics.mv_daily_tenant_revenue`
   PARTITION BY order_date

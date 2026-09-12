@@ -205,6 +205,7 @@ If Transaction 2 attempts to update a row that was concurrently modified and com
 1. Transaction 2 blocks until Transaction 1 finishes.
 2. If Transaction 1 commits, Transaction 2 detects that the updated tuple version is newer than its frozen snapshot.
 3. PostgreSQL **immediately aborts Transaction 2** with a serialization failure error:
+
    ```text
    ERROR: could not serialize access due to concurrent update (SQLSTATE 40001)
    ```
