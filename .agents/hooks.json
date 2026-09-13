@@ -1,0 +1,16 @@
+{
+  "prettier-markdown": {
+    "PostToolUse": [
+      {
+        "matcher": "write_to_file|replace_file_content|multi_replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:\\PROGRA~1\\Git\\bin\\bash.exe ./scripts/format-markdown.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
