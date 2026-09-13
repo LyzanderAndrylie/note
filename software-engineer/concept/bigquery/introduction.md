@@ -578,10 +578,42 @@ QUALIFY ROW_NUMBER() OVER(PARTITION BY user_id ORDER BY created_at DESC) = 1;
 
 ### Native `PIVOT` and `UNPIVOT`
 
-BigQuery includes native operators to transpose row values into column headers:
+BigQuery provides first-class, native SQL operators to reshape tables between **tall / normalized formats** (rows) and **wide / denormalized formats** (columns) without requiring manual conditional aggregation or external extensions.
+
+```mermaid
+flowchart LR
+    subgraph Tall_Format ["Tall / Normalized Format (Rows)"]
+        direction TB
+        T1["tenant_id: T1 | status: PENDING   | amount: $100"]
+        T2["tenant_id: T1 | status: COMPLETED | amount: $250"]
+        T3["tenant_id: T1 | status: COMPLETED | amount: $150"]
+        T4["tenant_id: T2 | status: COMPLETED | amount: $500"]
+    end
+
+    subgraph Operation ["Reshaping Mechanics"]
+        direction TB
+        P_Op["<b>PIVOT</b><br/>1. Implicit GROUP BY unmentioned cols (tenant_id)<br/>2. Match values in FOR ... IN (...)<br/>3. Compute aggregate expressions"]
+        U_Op["<b>UNPIVOT</b><br/>1. Rotate column headers into value labels<br/>2. Collect values into single column<br/>3. EXCLUDE or INCLUDE NULLs"]
+    end
+
+    subgraph Wide_Format ["Wide / Pivot Format (Columns)"]
+        direction TB
+        W1["tenant_id: T1<br/>revenue_PENDING: $100 | count_PENDING: 1<br/>revenue_COMPLETED: $400 | count_COMPLETED: 2"]
+        W2["tenant_id: T2<br/>revenue_PENDING: null | count_PENDING: 0<br/>revenue_COMPLETED: $500 | count_COMPLETED: 1"]
+    end
+
+    Tall_Format -->|"PIVOT (Rows → Columns)"| P_Op --> Wide_Format
+    Wide_Format -->|"UNPIVOT (Columns → Rows)"| U_Op --> Tall_Format
+```
+
+---
+
+#### 1. The `PIVOT` Operator (Rows to Columns)
+
+The `PIVOT` operator aggregates values across distinct categories and projects them as discrete columns.
 
 ```sql
--- Transpose status counts into columns per tenant
+-- Transpose status counts and revenues into columns per tenant
 SELECT * FROM (
     SELECT tenant_id, order_status, total_amount
     FROM `my_project.ecommerce.orders`
@@ -594,13 +626,189 @@ PIVOT(
 );
 ```
 
+##### How the Query Works Under the Hood
+
+1. **The Subquery Input (Source Dataset)**:
+
+   ```sql
+   SELECT tenant_id, order_status, total_amount FROM `orders`
+   ```
+
+   Only columns strictly needed for the pivot should be selected in the subquery.
+
+   > [!WARNING]
+   > **The Implicit `GROUP BY` Trap**: BigQuery treats every column in the input table that is **NOT** in an aggregate function (`SUM(total_amount)`, `COUNT(1)`) and **NOT** in the `FOR` clause (`order_status`) as an **implicit `GROUP BY` column**. If you run `SELECT * FROM orders` into `PIVOT`, unpruned columns such as `order_id` or `created_at` will prevent aggregation, producing one row per order instead of one row per tenant.
+
+2. **The Aggregation Expressions**:
+
+   ```sql
+   SUM(total_amount) AS revenue, COUNT(1) AS order_count
+   ```
+
+   Specifies the metrics to compute for each pivot category. When defining multiple aggregations, providing an alias (`AS revenue`, `AS order_count`) is **mandatory**.
+
+3. **The `FOR ... IN (...)` Clause**:
+
+   ```sql
+   FOR order_status IN ('PENDING', 'COMPLETED', 'CANCELLED')
+   ```
+
+   - Specifies which column's row values become the new column names.
+   - The `IN (...)` list must contain **static literals** (constants). In standard SQL, you cannot pass a dynamic subquery like `IN (SELECT DISTINCT status FROM orders)`. If dynamic categories are required, you must construct and run the query via dynamic SQL (`EXECUTE IMMEDIATE`).
+
+4. **Output Schema & Column Naming Convention**:
+   The output columns are named using the pattern `<aggregation_alias>_<pivot_value>`:
+   - `tenant_id` (the non-pivoted grouping key)
+   - `revenue_PENDING`, `order_count_PENDING`
+   - `revenue_COMPLETED`, `order_count_COMPLETED`
+   - `revenue_CANCELLED`, `order_count_CANCELLED`
+
+##### Transformation Preview
+
+**Input Table (Narrow/Tall):**
+
+| `tenant_id` | `order_status` | `total_amount` |
+| :---------- | :------------- | :------------- |
+| `tenant_1`  | `PENDING`      | `100.00`       |
+| `tenant_1`  | `COMPLETED`    | `250.00`       |
+| `tenant_1`  | `COMPLETED`    | `150.00`       |
+| `tenant_2`  | `COMPLETED`    | `500.00`       |
+
+**Output Table (Wide):**
+
+| `tenant_id` | `revenue_PENDING` | `order_count_PENDING` | `revenue_COMPLETED` | `order_count_COMPLETED` | `revenue_CANCELLED` | `order_count_CANCELLED` |
+| :---------- | :---------------- | :-------------------- | :------------------ | :---------------------- | :------------------ | :---------------------- |
+| `tenant_1`  | `100.00`          | `1`                   | `400.00`            | `2`                     | `null`              | `0`                     |
+| `tenant_2`  | `null`            | `0`                   | `500.00`            | `1`                     | `null`              | `0`                     |
+
+_(Note: `SUM()` on unmatched categories returns `null`, while `COUNT(1)` returns `0`)._
+
+##### PostgreSQL Comparison (Conditional Aggregation)
+
+In PostgreSQL, achieving the same result without third-party extensions (`tablefunc` / `crosstab`) requires cumbersome `CASE WHEN` statements:
+
+```sql
+-- PostgreSQL equivalent pattern
+SELECT
+    tenant_id,
+    SUM(CASE WHEN order_status = 'PENDING' THEN total_amount END) AS revenue_PENDING,
+    COUNT(CASE WHEN order_status = 'PENDING' THEN 1 END) AS order_count_PENDING,
+    SUM(CASE WHEN order_status = 'COMPLETED' THEN total_amount END) AS revenue_COMPLETED,
+    COUNT(CASE WHEN order_status = 'COMPLETED' THEN 1 END) AS order_count_COMPLETED,
+    SUM(CASE WHEN order_status = 'CANCELLED' THEN total_amount END) AS revenue_CANCELLED,
+    COUNT(CASE WHEN order_status = 'CANCELLED' THEN 1 END) AS order_count_CANCELLED
+FROM ecommerce.orders
+WHERE created_at >= '2026-01-01'
+GROUP BY tenant_id;
+```
+
+---
+
+#### 2. The `UNPIVOT` Operator (Columns to Rows)
+
+`UNPIVOT` is the inverse operation: it takes wide, denormalized columns and normalizes them back into row-level key-value pairs.
+
+```sql
+-- Reshape quarterly revenue columns into normalized rows
+SELECT
+    tenant_id,
+    quarter,
+    revenue
+FROM `my_project.ecommerce.tenant_quarterly_revenue`
+UNPIVOT (
+    revenue FOR quarter IN (
+        q1_revenue AS 'Q1',
+        q2_revenue AS 'Q2',
+        q3_revenue AS 'Q3',
+        q4_revenue AS 'Q4'
+    )
+);
+```
+
+##### How `UNPIVOT` Works
+
+- **`revenue`**: The new column that will store the values extracted from `q1_revenue`, `q2_revenue`, etc.
+- **`quarter`**: The new column that will store the name / label representing which column the value originated from (`'Q1'`, `'Q2'`, etc.).
+- **`IN (...)`**: The list of existing columns to collapse into rows, with optional string aliases to clean up the output names.
+- **Null Handling**:
+  - `EXCLUDE NULLS` (Default): Rows where the unpivoted value is `NULL` are omitted from the output.
+  - `INCLUDE NULLS`: Explicitly keeps rows even when the value is `NULL`.
+
+##### Transformation Preview
+
+**Input Table (Wide):**
+
+| `tenant_id` | `q1_revenue` | `q2_revenue` | `q3_revenue` | `q4_revenue` |
+| :---------- | :----------- | :----------- | :----------- | :----------- |
+| `tenant_1`  | `12000.00`   | `15000.00`   | `null`       | `18000.00`   |
+
+**Output Table (Narrow/Normalized via default `EXCLUDE NULLS`):**
+
+| `tenant_id` | `quarter` | `revenue`  |
+| :---------- | :-------- | :--------- |
+| `tenant_1`  | `Q1`      | `12000.00` |
+| `tenant_1`  | `Q2`      | `15000.00` |
+| `tenant_1`  | `Q4`      | `18000.00` |
+
 ### `MERGE` Statements (Upsert / CDC Sync)
 
-Like modern PostgreSQL, BigQuery supports standard `MERGE` for syncing Change Data Capture (CDC) events into target tables:
+The `MERGE` statement is BigQuery's atomic Data Manipulation Language (DML) construct designed to synchronize target tables with upstream changes. It evaluates a join condition between a **Target table** and a **Source dataset** (table, view, or subquery), executing conditional `INSERT`, `UPDATE`, or `DELETE` operations within a single atomic transaction.
+
+It is the standard mechanism for handling **Change Data Capture (CDC)** feeds (e.g., from Debezium, Fivetran, Kafka, or Google Cloud Datastream) and implementing **Slowly Changing Dimensions (SCD Type 1)**.
+
+```mermaid
+flowchart TD
+    subgraph Input ["Incoming CDC Batch (Source S)"]
+        S_Rows["Staging / Streaming Buffer<br/>{user_id, op_type, payload...}"]
+    end
+
+    subgraph JoinCondition ["Hash Join on Primary Key: ON T.user_id = S.user_id"]
+        MatchCheck{"Does S.user_id match T.user_id?"}
+    end
+
+    subgraph Branch_Matched ["WHEN MATCHED"]
+        DelCheck{"S.op_type = 'DELETE'?"}
+        Action_Delete["DELETE Target Row"]
+        Action_Update["UPDATE SET T.col = S.col"]
+    end
+
+    subgraph Branch_NotMatched ["WHEN NOT MATCHED BY TARGET"]
+        InsCheck{"S.op_type = 'INSERT'?"}
+        Action_Insert["INSERT INTO Target<br/>VALUES (...)"]
+    end
+
+    subgraph Branch_NotMatchedBySource ["WHEN NOT MATCHED BY SOURCE"]
+        SourceCheck{"Row missing in Source batch?"}
+        Action_SoftDel["Optional: UPDATE SET is_active = FALSE<br/>or DELETE (Snapshot Sync)"]
+    end
+
+    Input --> JoinCondition
+    JoinCondition --> MatchCheck
+    MatchCheck -->|"Yes (Matched)"| Branch_Matched
+    MatchCheck -->|"No (New in Source)"| Branch_NotMatched
+    MatchCheck -->|"In Target only"| Branch_NotMatchedBySource
+
+    DelCheck -->|"Yes"| Action_Delete
+    DelCheck -->|"No"| Action_Update
+    InsCheck -->|"Yes"| Action_Insert
+    SourceCheck -->|"Match Condition"| Action_SoftDel
+```
+
+---
+
+#### 1. Anatomy of a Production CDC `MERGE`
 
 ```sql
 MERGE `my_project.analytics.users` T
-USING `my_project.staging.user_cdc_events` S
+USING (
+    -- Best Practice: Deduplicate source events before merging
+    SELECT *
+    FROM `my_project.staging.user_cdc_events`
+    QUALIFY ROW_NUMBER() OVER (
+        PARTITION BY user_id
+        ORDER BY event_timestamp DESC
+    ) = 1
+) S
 ON T.user_id = S.user_id
 WHEN MATCHED AND S.op_type = 'DELETE' THEN
     DELETE
@@ -613,6 +821,134 @@ WHEN NOT MATCHED AND S.op_type = 'INSERT' THEN
     INSERT (user_id, email, full_name, created_at, updated_at)
     VALUES (S.user_id, S.email, S.full_name, S.created_at, S.updated_at);
 ```
+
+##### Clause Breakdown & Execution Order
+
+1. **`MERGE INTO <target> T`**:
+   - The destination table being mutated. Must be a persisted BigQuery table (views and external tables cannot be merge targets).
+2. **`USING <source> S`**:
+   - The source of updates. Can be a physical table, view, or an inline subquery/CTE.
+3. **`ON T.user_id = S.user_id`**:
+   - The join predicate that correlates target rows with source rows.
+4. **`WHEN MATCHED AND <condition>`**:
+   - Executes when a row exists in both Target and Source, and the secondary boolean condition evaluates to `TRUE`.
+   - **Evaluation Order**: If multiple `WHEN MATCHED` clauses are specified, BigQuery evaluates them **top-to-bottom**. The first matching clause executes; subsequent clauses are skipped for that row.
+5. **`WHEN NOT MATCHED [BY TARGET] AND <condition>`**:
+   - Executes when a row exists in Source but has no corresponding primary key in Target.
+   - Typically triggers an `INSERT` statement.
+6. **`WHEN NOT MATCHED BY SOURCE AND <condition>`**:
+   - Executes when a row exists in Target but was **not** present in Source.
+   - Extremely valuable for full snapshot synchronizations or tracking churned/archived entities (e.g., setting `T.is_deleted = TRUE`).
+
+---
+
+#### 2. The Cardinality Rule & Deduplication Trap
+
+> [!CAUTION]
+> **Cardinality Invariant**: BigQuery enforces that **a target row can match at most ONE source row**.
+>
+> If multiple rows in the source dataset share the same join key (`user_id`), BigQuery aborts the entire transaction with the error:
+>
+> ```text
+> UPDATE/MERGE must match at most one source row for each target row
+> ```
+
+In distributed streaming pipelines (e.g., Kafka or Pub/Sub), out-of-order delivery or burst updates often introduce multiple CDC events for the same entity within a single ingestion micro-batch (e.g., a user registers and updates their profile within seconds).
+
+##### The Idiomatic Solution: Pre-Merge Deduplication with `QUALIFY`
+
+Always wrap the source table in an inline subquery with **`QUALIFY ROW_NUMBER()`** to pick the latest event per primary key before the join occurs:
+
+```sql
+USING (
+    SELECT *
+    FROM `my_project.staging.user_cdc_events`
+    QUALIFY ROW_NUMBER() OVER (
+        PARTITION BY user_id
+        ORDER BY event_timestamp DESC
+    ) = 1
+) S
+```
+
+---
+
+#### 3. Advanced Pattern: `WHEN NOT MATCHED BY SOURCE`
+
+Beyond basic upserts, BigQuery supports bidirectional matching. When syncing periodic full-state dumps (e.g., a daily snapshot from an external API), you can soft-delete or purge rows that no longer exist upstream:
+
+```sql
+MERGE `my_project.analytics.active_subscriptions` T
+USING `my_project.staging.stripe_daily_snapshot` S
+ON T.subscription_id = S.subscription_id
+WHEN MATCHED THEN
+    UPDATE SET
+        T.status = S.status,
+        T.plan_id = S.plan_id,
+        T.synced_at = CURRENT_TIMESTAMP()
+WHEN NOT MATCHED BY TARGET THEN
+    INSERT (subscription_id, customer_id, status, plan_id, synced_at)
+    VALUES (S.subscription_id, S.customer_id, S.status, S.plan_id, CURRENT_TIMESTAMP())
+WHEN NOT MATCHED BY SOURCE THEN
+    -- Flag accounts dropped upstream as CANCELLED
+    UPDATE SET
+        T.status = 'CANCELLED',
+        T.synced_at = CURRENT_TIMESTAMP();
+```
+
+---
+
+#### 4. Performance, Cost & Storage Internals
+
+Because BigQuery is a distributed columnar OLAP engine (not an OLTP row store), mutating data via `MERGE` behaves fundamentally differently under the hood:
+
+```mermaid
+flowchart LR
+    subgraph Storage_Layer ["Capacitor Columnar Storage (Immutable)"]
+        direction TB
+        F1["Partition: 2026-03-01<br/>(100 MB Columnar File)"]
+        F2["Partition: 2026-03-02<br/>(120 MB Columnar File)"]
+        F3["Partition: 2026-03-03<br/>(90 MB Columnar File)"]
+    end
+
+    subgraph Execution ["MERGE Execution"]
+        Scan["Distributed Hash Join<br/>(Source ⨝ Target)"]
+        Rewrite["Partition Compaction / Mutation<br/>Rewrites or delta-masks affected blocks"]
+    end
+
+    Scan --> Rewrite
+    Rewrite -->|Mutates target partition| F3
+    Rewrite -.->|"Untouched partitions skipped via pruning"| F1
+```
+
+1. **Partition Pruning is Mandatory for Cost Control**:
+   - If the target table is partitioned (e.g., by `DATE(created_at)`), a naive `ON T.user_id = S.user_id` will trigger a **full scan of every historical partition** in the target table.
+   - **Optimization**: Add partition boundaries to the join condition or target predicate whenever possible:
+  
+     ```sql
+     ON T.user_id = S.user_id
+     -- Limit scan to the last 14 days if historical rows never update
+     AND T.created_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 14 DAY)
+     ```
+
+2. **Clustering Cuts Join Shuffle Overhead**:
+   - Cluster the target table on the join key (e.g., `CLUSTER BY user_id`).
+   - This physically collocates rows with identical IDs within the same storage blocks, dramatically reducing slot I/O and network shuffle during the hash join.
+3. **Avoid High-Frequency Micro-Merges**:
+   - BigQuery enforces rate limits on table mutations (~5 concurrent DML operations per table, and a maximum of 1,500 table update operations per partition per day).
+   - **Architectural Rule**: Do not run `MERGE` per individual HTTP request or message. Accumulate events and run batch `MERGE` operations every **5 to 15 minutes**, or adopt the **BigQuery Storage Write API with continuous CDC** (which leverages BigLake managed row-level deletion masks).
+
+---
+
+#### 5. Architectural Comparison: PostgreSQL vs. BigQuery
+
+| Characteristic              | PostgreSQL (`INSERT ... ON CONFLICT` / `MERGE`) | BigQuery (`MERGE`)                                        |
+| :-------------------------- | :---------------------------------------------- | :-------------------------------------------------------- |
+| **Engine Focus**            | OLTP (Row-oriented heap pages with MVCC)        | OLAP (Distributed columnar Capacitor storage)             |
+| **Execution Mechanism**     | B-Tree index lookup with row-level locks        | Distributed hash join across worker slots                 |
+| **Optimal Throughput**      | Low latency, single-row or small batch inserts  | High latency, massive bulk operations (millions of rows)  |
+| **Concurrency Limits**      | Thousands of concurrent transactions            | Concurrent DML limit (~5 concurrent operations per table) |
+| **`NOT MATCHED BY SOURCE`** | Supported in PG 15+ `MERGE`                     | Native, highly optimized for large distributed scans      |
+| **Pricing / Cost Impact**   | Fixed compute (CPU / RAM of server instance)    | Billed by total bytes scanned in Target + Source tables   |
 
 ---
 
