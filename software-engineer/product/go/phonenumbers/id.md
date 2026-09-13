@@ -19,9 +19,11 @@
 
 - **IDD (International Direct Dialing)**: A telephony service and mechanism allowing subscribers to place outbound international calls directly without operator intervention. In dialing notation, it refers to the **international exit code** dialed before the destination country calling code (e.g., `008` or `009` in Indonesia, `011` in North America, or `00` under ITU recommendation; represented abstractly by `+` in ITU-T E.164).
   - **International Exit Code (International Call Prefix)**: The dialing prefix dialed by a caller to break out of the local/national telephone exchange and route an outbound call onto an international telephone gateway.
-    - Standardized by the ITU as `00` (used throughout Europe and parts of Asia), `011` in North America (NANP), `0011` in Australia, and carrier-specific codes in Indonesia (`008` Indosat, `009` Telkom). In the international E.164 standard, it is represented by the leading `+` symbol.
+    - Standardized by the ITU as `00` (used throughout Europe and parts of Asia), `011` in North America (NANP), `0011` in Australia, and carrier-specific codes in Indonesia (`008` Indosat, `009` Telkom). In the international E.164 standard, it is represented by the leading `+` symbol. _(See [Section 1.1](#11-outbound-international-dialing-idd-vs-voip-sli-vs-voip) for carrier differences, cost tiers, and `+` vs. `00x` dialing mechanics)._
+
   - **Country Calling Code (Country Code / CC)**: A 1- to 3-digit numerical code assigned by the ITU-T (under Recommendations E.123 and E.164) to route international calls to a specific sovereign nation, overseas territory, or international service.
     - It is dialed immediately following the international exit code or represented after the `+` sign (e.g., `+62` for Indonesia, `+1` for North America, `+44` for the UK, `+81` for Japan).
+
 - **NDD (National Direct Dialing)**: A telephony service and procedure enabling callers to place domestic trunk, inter-city, or mobile calls directly without operator assistance, typically initiated by dialing the domestic trunk prefix.
   - **Domestic Trunk Prefix (National Prefix)**: The leading digit or sequence of digits dialed before a telephone number to route the call outside the local exchange onto the national trunk network (to reach other geographic area codes or cellular networks).
     - Typically `0` in Indonesia and most countries, or `1` in North America (NANP). It is strictly used for domestic dialing and is omitted when formatting in international E.164 format.
@@ -59,6 +61,93 @@ Telephone numbering in Indonesia is structurally diverse due to:
 - **Dedicated Service Blocks**: Special numbering blocks for Universal Access Numbers (**UAN** `1500xxx`), Toll-Free (`0800`), Shared Cost (`0804`), and Premium Rate (`0809`).
 
 `phonenumbers` provides deterministic parsing, possibility checks, category-based regular expression verification, formatting, and offline enrichment for all Indonesian numbers without making external network calls.
+
+### 1.1. Outbound International Dialing: IDD vs. VoIP (SLI vs. VoIP)
+
+Historically and architecturally, Indonesia does not route international calls through a single monolithic `00` exit prefix. The Ministry of Communication and Informatics (KOMDIGI) allocated distinct international gateway prefixes to competing telecom operators (principally Indosat and Telkom). Dialing codes differ significantly across **routing infrastructure (PSTN/TDM vs. VoIP)**, **audio quality & latency**, **tariffs / cost tiers**, and **`libphonenumber` metadata handling**:
+
+- **SLI (Sambungan Langsung Internasional)**: The official Indonesian statutory and regulatory term (under KOMDIGI) for **IDD (International Direct Dialing)**. It designates standard outbound international telephone calls placed directly by subscribers over licensed international gateway switches without operator assistance.
+- **PSTN (Public Switched Telephone Network)**: The traditional, global circuit-switched telephone network consisting of fiber-optic cables, cellular base stations, switching centers, and undersea cables. In PSTN routing, a dedicated, continuous physical or logical circuit is reserved for the entire duration of the call.
+- **TDM (Time-Division Multiplexing)**: A digital transmission technology used across core telecommunication backbones and PSTN trunk lines that interleaves multiple discrete phone calls into separate recurrent time slots within a single channel (e.g., E1 trunks delivering 30 voice channels at 64 kbps PCM). TDM provides deterministic latency, zero packet jitter, and fixed bitrates.
+- **VoIP (Voice over Internet Protocol)**: A digital telephony technology that packetizes voice signals into discrete IP packets (using protocols like SIP and RTP, encoded with codecs like G.711 or compressed G.729) and routes them over packet-switched data networks or the public internet, rather than reserving dedicated circuit lines.
+- **CLI (Calling Line Identification / Caller ID)**: A telephony signaling feature (via SS7 / ISUP or SIP `From` / `P-Asserted-Identity` headers) that transmits the caller’s original telephone number to the recipient's display terminal. Standard SLI guarantees CLI integrity, whereas budget VoIP routes frequently strip or overwrite CLI with generic gateway trunks.
+- **KOMDIGI (Kementerian Komunikasi dan Digital)**: The government ministry responsible for telecommunication regulations, radio spectrum licensing, and national numbering plans in the Republic of Indonesia (formerly _Kemenkominfo_).
+
+```mermaid
+flowchart TD
+    IntlCall["Outbound International Call from Indonesia"] --> Choice{"Dialing Route Selection"}
+
+    Choice -->|"Standard / Premium IDD (SLI)\nDedicated TDM / Submarine Fiber"| SLI["Carrier Gateway (SLI)"]
+    Choice -->|"Economy VoIP Prefix (010xx)\nCompressed IP / SIP Trunk"| VoIP["VoIP Internet Gateway"]
+
+    SLI --> IndosatSLI["Indosat Ooredoo Hutchison"]
+    SLI --> TelkomSLI["PT Telkom Indonesia / Telkomsel"]
+
+    IndosatSLI --> P001["001: Premium Flagship\n(PSTN, Highest Cost, Pristine Audio, CLI Guaranteed)"]
+    IndosatSLI --> P008["008: Standard IDD\n(Cost-effective PSTN, libphonenumber default)"]
+
+    TelkomSLI --> P007["007: Premium Flagship\n(PSTN, Highest Cost, Enterprise Grade)"]
+    TelkomSLI --> P009["009: Standard IDD\n(Aggressive Tariff, libphonenumber default)"]
+
+    VoIP --> V01016["01016: Indosat FlatCall\n(Ultra Low Cost, Compressed Audio)"]
+    VoIP --> V01017["01017: Telkom Global 01017\n(Ultra Low Cost, Variable CLI)"]
+    VoIP --> V01000["01000: XL Axiata VoIP\n(Discount Consumer VoIP)"]
+```
+
+#### Carrier Exit Prefixes & Tariff Comparison Matrix
+
+| Prefix                    | Operator / Gateway                                             | Service Type & Network                                                             | Relative Cost / Tariff                                             | Voice Quality & CLI                                                                       | `libphonenumber` Status                                                                      |
+| :------------------------ | :------------------------------------------------------------- | :--------------------------------------------------------------------------------- | :----------------------------------------------------------------- | :---------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- |
+| **`001`**                 | **Indosat Ooredoo Hutchison**                                  | Flagship SLI (PSTN/TDM circuit-switched via dedicated submarine cables/satellites) | **Premium (Highest)**<br>_(~IDR 9,000–30,000+/min)_                | Crystal-clear, zero jitter, uncompressed audio, guaranteed Caller ID (CLI).               | Excluded from IDD regex in metadata to avoid collision with inbound Toll-Free (`001803...`). |
+| **`008`**                 | **Indosat Ooredoo Hutchison** _(Originally Satelindo)_         | Standard SLI (PSTN international gateway)                                          | **Medium / Standard**<br>_(~20%–40% cheaper than 001)_             | High carrier-grade quality, reliable CLI delivery.                                        | **Recognized IDD** in `metadata.xml` (`00[89]`).                                             |
+| **`007`**                 | **Telkom Indonesia**                                           | Flagship SLI (Telkom International Gateway)                                        | **Premium (High)**<br>_(Enterprise-level PSTN rates)_              | Crystal-clear, uncompressed PSTN, prioritized routing, guaranteed CLI.                    | Excluded from IDD regex in metadata to avoid collision with Toll-Free (`007803...`).         |
+| **`009`**                 | **Telkom Indonesia** _(Originally Bakrie Telecom / Ratelindo)_ | Standard / Economy SLI                                                             | **Medium / Standard**<br>_(Competitive / discounted standard IDD)_ | Carrier-grade quality, reliable CLI delivery.                                             | **Recognized IDD** in `metadata.xml` (`00[89]`).                                             |
+| **`01016`**               | **Indosat Ooredoo Hutchison** _(Indosat FlatCall)_             | VoIP / IP Telephony (H.323/SIP packet-switched)                                    | **Economy (Lowest)**<br>_(~IDR 500–2,500/min or flat rate)_        | Compressed audio (e.g. G.729), potential latency/jitter, CLI pass-through not guaranteed. | Not an E.164 IDD; treated as a value-added service prefix.                                   |
+| **`01017`**               | **Telkomsel / Telkom** _(Global 01017)_                        | VoIP / IP Telephony                                                                | **Economy (Lowest)**<br>_(Budget per-minute / per-block rates)_    | Compressed audio, slight delay, CLI may display generic gateway number.                   | Not an E.164 IDD; treated as a value-added service prefix.                                   |
+| **`01000`** / **`01088`** | **XL Axiata** _(XL VoIP)_                                      | VoIP / IP Telephony                                                                | **Economy (Lowest)**                                               | Compressed audio, consumer budget tier.                                                   | Not an E.164 IDD.                                                                            |
+
+> [!NOTE]
+> **Why `phonenumbers` only recognizes `008` and `009` as IDD**:
+> In Google `libphonenumber`, the metadata regex for Indonesia's `internationalPrefix` is strictly `00[89]`. Although `001` and `007` are valid PSTN exit prefixes in Indonesian telecommunications, they are omitted from the IDD prefix regex to prevent parser collisions with inbound **International Toll-Free Services (ITFS)** such as `001803xxxxxxx` and `007803xxxxxxx` (which are categorized under `TOLL_FREE` / `no_intl_dial`).
+
+#### Dialing `+` vs. Explicit Numerical Prefix (`00x` / `010xx`)
+
+When placing outbound international calls, dialing the abstract `+` symbol versus dialing an explicit numerical prefix (`001`, `007`, `008`, `009`, or `010xx`) behaves fundamentally differently across device types, carrier routing, and billing:
+
+```mermaid
+flowchart TD
+    User["User Initiates Outbound International Call"] --> DialMethod{"Dialing Format Used"}
+
+    DialMethod -->|"'+' Prefix\n(e.g., +1 202 555 0123)"| PlusRoute["Mobile Baseband / MSC Interception"]
+    DialMethod -->|"'00x' Prefix (SLI)\n(e.g., 008 1 202 555 0123)"| ExplicitSLI["Explicit Carrier Gateway\n(001, 007, 008, 009)"]
+    DialMethod -->|"'010xx' Prefix (VoIP)\n(e.g., 01016 1 202 555 0123)"| ExplicitVoIP["Explicit Economy VoIP Gateway\n(01016, 01017, 01000)"]
+
+    PlusRoute --> DeviceType{"Device & Network Type"}
+
+    DeviceType -->|"Fixed-Line Landline (PSTN)"| PSTNFail["⚠️ Unsupported\n(Standard DTMF keypads lack '+' key;\nmust dial numeric 001/007/008/009)"]
+    DeviceType -->|"Cellular / GSM Mobile"| AutoResolve["SIM Operator Replaces '+' with Default Gateway"]
+
+    AutoResolve --> CarrierMap{"Active SIM Operator"}
+    CarrierMap -->|Telkomsel SIM| TelkomDef["Routes via Telkom SLI (007/Default)"]
+    CarrierMap -->|Indosat SIM| IndosatDef["Routes via Indosat SLI (001/008/Default)"]
+    CarrierMap -->|XL Axiata SIM| XLDef["Routes via XL International Gateway"]
+
+    TelkomDef --> PremiumBilling["⚠️ Standard / Premium Tariff Applied\n(Default IDD rates: ~IDR 9,000–30,000+/min)\nDoes NOT trigger discounted VoIP rates"]
+    IndosatDef --> PremiumBilling
+    XLDef --> PremiumBilling
+
+    ExplicitSLI --> SLIBilling["Billed under Selected SLI Tariff\n(001/007: Premium | 008/009: Standard)"]
+    ExplicitVoIP --> VoIPBilling["✅ Economy Discount Tariff Applied\n(~IDR 500–2,500/min flat-rate VoIP)"]
+```
+
+| Feature / Dimension        | Dialing `+` (e.g., `+1 202...`)                                                                                                                            | Dialing `00x` (e.g., `008 1...`, `009 1...`)                                                             | Dialing `010xx` (e.g., `01016 1...`, `01017 1...`)                                           |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- |
+| **Underlying Mechanism**   | 3GPP/GSM Type-of-Number (TON) flag set to `International`. Handset/MSC maps `+` to the SIM carrier's default exit trunk.                                   | Caller explicitly chooses which licensed gateway operator (Indosat vs. Telkom) handles the call.         | Caller explicitly routes call through packet-switched IP telephony gateway.                  |
+| **Cost / Tariff Impact**   | **Standard / Premium IDD Rate**.<br>⚠️ The network **never** auto-downgrades `+` to cheaper VoIP tariffs.                                                  | Billed according to the dialed gateway operator's specific SLI tier (e.g., `008` is cheaper than `001`). | **Cheapest / Economy Rate** (often 80%–90% cheaper, flat-rate per minute or 6-second block). |
+| **Cellular (Mobile)**      | Supported globally. Long-press `0` on phone dialer generates `+`.                                                                                          | Supported (if caller's SIM permits cross-carrier SLI routing).                                           | Supported. Must be manually dialed to benefit from budget promo rates.                       |
+| **Fixed-Line (Landline)**  | **Not possible**. Traditional PSTN DTMF keypads do not have a `+` key.                                                                                     | **Mandatory**. Landlines must dial `001`, `007`, `008`, or `009`.                                        | Supported if VoIP service is enabled on the landline account.                                |
+| **International Roaming**  | **Seamless & Globally Portable**. Works worldwide; visiting foreign carrier automatically resolves `+` to local exit code (e.g. `011` in US, `001` in SG). | **Fails when roaming**. Indonesian exit codes (`008`/`009`) are unrecognized in foreign networks.        | **Fails when roaming**.                                                                      |
+| **Software / API Storage** | **Universal Best Practice (ITU-T E.164)**. Carrier-agnostic, country-agnostic, deterministic parsing in `phonenumbers`.                                    | Fragile in software databases; ties numbers to domestic Indonesian routing.                              | Fragile; value-added service prefix, not standard E.164.                                     |
 
 ---
 
@@ -129,18 +218,18 @@ The canonical metadata for Indonesia embedded in `phonenumbers` (`metadata/data/
 
 ### Metadata Descriptors
 
-| Descriptor         | National Number Regex Pattern                                                                      | NSN Lengths                         | National Format Example           |
-| :----------------- | :------------------------------------------------------------------------------------------------- | :---------------------------------- | :-------------------------------- |
-| **`general_desc`** | `00[1-9]\d{9,14}\|(?:[1-36]\|8\d{5})\d{6}\|00\d{9}\|[1-9]\d{8,10}\|[2-9]\d{7}`                     | `7–17`                              | —                                 |
-| **`mobile`**       | `8[1-35-9]\d{7,10}`                                                                                | `9, 10, 11, 12`                     | `0812-3456-789`                   |
-| **`fixed_line`**   | `2[124]\d{7,8}\|619\d{8}\|2(?:1(?:14\|500)\|2\d{3})\d{3}\|61\d{5,8}\|(?:2(?:[35][1-4]\|…))\d{5,8}` | `7, 8, 9, 10, 11` _(+ 5, 6 local)_  | `0218-350-123`                    |
-| **`toll_free`**    | `00(?:1803\d{5,11}\|7803\d{7})\|(?:177\d\|800)\d{5,7}`                                             | `8–17`                              | `0800-123-4567`                   |
-| **`shared_cost`**  | `804\d{7}`                                                                                         | `10`                                | `0804 123 4567`                   |
-| **`premium_rate`** | `809\d{7}`                                                                                         | `10`                                | `0809 1 234 567`                  |
-| **`uan`**          | `(?:1500\|8071\d{3})\d{3}`                                                                         | `7, 10`                             | `8071-123-456`                    |
-| **`emergency`**    | `11[02389]`                                                                                        | `3`                                 | `110`, `112`, `113`, `118`, `119` |
-| **`short_code`**   | `1(?:1[02389]\|40\d\d\|50264)`                                                                     | `3, 5, 6`                           | `110`, `14010`, `150264`          |
-| **`no_intl_dial`** | `001803\d{5,11}\|(?:007803\d\|8071)\d{6}`                                                          | `10–17`                             | —                                 |
+| Descriptor         | National Number Regex Pattern                                                                      | NSN Lengths                        | National Format Example           |
+| :----------------- | :------------------------------------------------------------------------------------------------- | :--------------------------------- | :-------------------------------- |
+| **`general_desc`** | `00[1-9]\d{9,14}\|(?:[1-36]\|8\d{5})\d{6}\|00\d{9}\|[1-9]\d{8,10}\|[2-9]\d{7}`                     | `7–17`                             | —                                 |
+| **`mobile`**       | `8[1-35-9]\d{7,10}`                                                                                | `9, 10, 11, 12`                    | `0812-3456-789`                   |
+| **`fixed_line`**   | `2[124]\d{7,8}\|619\d{8}\|2(?:1(?:14\|500)\|2\d{3})\d{3}\|61\d{5,8}\|(?:2(?:[35][1-4]\|…))\d{5,8}` | `7, 8, 9, 10, 11` _(+ 5, 6 local)_ | `0218-350-123`                    |
+| **`toll_free`**    | `00(?:1803\d{5,11}\|7803\d{7})\|(?:177\d\|800)\d{5,7}`                                             | `8–17`                             | `0800-123-4567`                   |
+| **`shared_cost`**  | `804\d{7}`                                                                                         | `10`                               | `0804 123 4567`                   |
+| **`premium_rate`** | `809\d{7}`                                                                                         | `10`                               | `0809 1 234 567`                  |
+| **`uan`**          | `(?:1500\|8071\d{3})\d{3}`                                                                         | `7, 10`                            | `8071-123-456`                    |
+| **`emergency`**    | `11[02389]`                                                                                        | `3`                                | `110`, `112`, `113`, `118`, `119` |
+| **`short_code`**   | `1(?:1[02389]\|40\d\d\|50264)`                                                                     | `3, 5, 6`                          | `110`, `14010`, `150264`          |
+| **`no_intl_dial`** | `001803\d{5,11}\|(?:007803\d\|8071)\d{6}`                                                          | `10–17`                            | —                                 |
 
 > [!NOTE]
 >
