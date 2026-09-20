@@ -382,10 +382,428 @@ Used for counterfactual past events (things that did not happen):
 
 ### 3. Summary Table
 
-| Conditional Type | Inverted Structure | Standard Example (`if`) | Inverted Example |
-| :--- | :--- | :--- | :--- |
-| **First Conditional** | `Should + Subject + Base Verb` | _If you see him..._ | _**Should you see** him, give him my regards._ |
-| **Second Conditional (State)** | `Were + Subject + ...` | _If she were the manager..._ | _**Were she** the manager, things would run smoothly._ |
-| **Second Conditional (Action)** | `Were + Subject + to + Base Verb` | _If they decided to sell..._ | _**Were they to decide** to sell the house..._ |
-| **Third Conditional** | `Had + Subject + Past Participle` | _If we had left earlier..._ | _**Had we left** earlier, we wouldn't have missed the flight._ |
-| **Negative Pattern** | `[Auxiliary] + Subject + not` | _If you hadn't reminded me..._ | _**Had you not reminded** me..._ (No contractions) |
+| Conditional Type                | Inverted Structure                | Standard Example (`if`)        | Inverted Example                                               |
+| :------------------------------ | :-------------------------------- | :----------------------------- | :------------------------------------------------------------- |
+| **First Conditional**           | `Should + Subject + Base Verb`    | _If you see him..._            | _**Should you see** him, give him my regards._                 |
+| **Second Conditional (State)**  | `Were + Subject + ...`            | _If she were the manager..._   | _**Were she** the manager, things would run smoothly._         |
+| **Second Conditional (Action)** | `Were + Subject + to + Base Verb` | _If they decided to sell..._   | _**Were they to decide** to sell the house..._                 |
+| **Third Conditional**           | `Had + Subject + Past Participle` | _If we had left earlier..._    | _**Had we left** earlier, we wouldn't have missed the flight._ |
+| **Negative Pattern**            | `[Auxiliary] + Subject + not`     | _If you hadn't reminded me..._ | _**Had you not reminded** me..._ (No contractions)             |
+
+---
+
+## 9. Subject–Verb & Number Agreement in Academic and Technical Writing
+
+Subject–verb agreement in scientific and technical prose often breaks down around compound structures, predicate complements, Latin plurals, numerical ranges, and introductory prepositional phrases.
+
+```mermaid
+flowchart TD
+    Start["Check Grammatical Subject"] --> Type{"What is the Subject?"}
+
+    Type -->|"Plural Subject + Linking Verb"| Copula["Match Predicate Noun Number"]
+    Copula --> ExCopula["'SAEs are an unsupervised method' ❌<br>'SAEs are unsupervised methods' ✔️<br>'An SAE is an unsupervised method' ✔️"]
+
+    Type -->|"Range / Multiple References"| Range["Plural Verb Required"]
+    Range --> ExRange["'Figures 1–3 shows' ❌<br>'Figures 1–3 show' ✔️"]
+
+    Type -->|"Introductory Prepositional Phrase"| PrepPhrase["Find True Subject Noun"]
+    PrepPhrase --> ExPrep["'In earlier layers focus on...' ❌ (No subject!)<br>'The earlier layers focus on...' ✔️"]
+
+    Type -->|"Latin / Irregular Nouns"| Latin["Identify Singular vs. Plural Form"]
+    Latin --> ExLatin["'the entire corpora' ❌<br>'the entire corpus' ✔️ (singular)"]
+```
+
+### 1. Copula & Predicate Noun Agreement (Plural Subject vs. Singular Complement)
+
+While linking verbs grammatically agree with the subject, mismatched singular/plural complements create logical dissonance in scientific definitions:
+
+- ❌ _"Sparse autoencoders (SAEs) **are an unsupervised method** to discover features."_ (Plural subject _SAEs_ vs. singular complement _an unsupervised method_).
+- ✔️ _"**An SAE is an unsupervised method** used to discover features..."_ (Singular–singular).
+- ✔️ _"Sparse autoencoders (SAEs) **are unsupervised methods** used to discover features..."_ (Plural–plural).
+- ✔️ _"Sparse autoencoders (SAEs) **provide an unsupervised approach** to discover features..."_ (Rephrased with an active transitive verb).
+
+#### Mathematical Variables and Set Definitions
+
+- ❌ _"where $\bm{h}$ **is the intermediate activations**..."_ ($\bm{h}$ is a singular vector symbol, but _activations_ is plural).
+- ✔️ _"where $\bm{h}$ **denotes the intermediate activation vector**..."_
+- ❌ _"$\mathcal{T}_K \subseteq \{0, \ldots, n-1\}$ **is the indices** of the top-$k$ values..."_
+- ✔️ _"$\mathcal{T}_K \subseteq \{0, \ldots, n-1\}$ **is the set of indices** of the top-$k$ values..."_
+
+---
+
+### 2. Plural Cross-References and Number Ranges
+
+When referencing a range of figures, tables, equations, or layers, the subject is plural and requires a plural verb:
+
+- ❌ _"**Figures 1--3 shows** the distribution of language-specific neurons..."_
+- ✔️ _"**Figures 1--3 show** the distribution of language-specific neurons..."_
+- ❌ _"Initially, in earlier layers (e.g., **layer 0--1**)..."_
+- ✔️ _"Initially, in earlier layers (e.g., **layers 0--1**)..."_
+
+> [!NOTE]
+> In contrast, singular noun adjuncts are preferred when modifying another noun:
+>
+> - ❌ _"Language-Specific **Features** Counts"_ (Heading)
+> - ✔️ _"Language-Specific **Feature** Counts"_ (Noun adjunct _feature_ remains singular).
+
+---
+
+### 3. Categorization Expressions: "A Type of [Singular Noun]"
+
+Phrases like _a type of_, _a kind of_, or _a class of_ categorize an item into a single class and take a **singular noun**:
+
+- ❌ _"The features we aim to find are **a type of HFLs**."_
+- ✔️ _"The features we aim to find are **a type of HFL**."_
+- ✔️ _"The features we aim to find **belong to HFLs**."_
+
+---
+
+### 4. Classical & Latin Plurals in Science
+
+Academic English retains classical singular/plural distinctions that must match their modifiers and determiners:
+
+| Singular Form  | Plural Form           | Common Pitfall                  | Correct Academic Usage                                       |
+| :------------- | :-------------------- | :------------------------------ | :----------------------------------------------------------- |
+| **corpus**     | **corpora**           | ❌ _the entire corpora_         | ✔️ _the entire corpus_ / _across all corpora_                |
+| **criterion**  | **criteria**          | ❌ _a criteria_                 | ✔️ _a criterion_ / _these criteria_                          |
+| **phenomenon** | **phenomena**         | ❌ _this phenomena_             | ✔️ _this phenomenon_ / _these phenomena_                     |
+| **matrix**     | **matrices**          | ❌ _matrixes_                   | ✔️ _matrices_                                                |
+| **index**      | **indices** / indexes | ❌ _index with values_          | ✔️ _indices of the top-k values_                             |
+| **datum**      | **data**              | ❌ _this data show_ (ambiguous) | ✔️ _these data show_ (formal plural) or _this dataset shows_ |
+
+---
+
+### 5. Compound Subjects Joined by "And"
+
+Two distinct subjects linked by _and_ take a plural verb:
+
+- ❌ _"Furthermore, the specific configuration of the SAEs and their training process **is described** below."_
+- ✔️ _"Furthermore, the specific configuration of the SAEs and their training process **are described** below."_
+
+---
+
+### 6. Prepositional Phrases Cannot Serve as Grammatical Subjects
+
+An introductory prepositional phrase indicates setting, location, or circumstance; it cannot function as the grammatical subject of a finite verb:
+
+- ❌ _"**In the earlier layers (layers 0--5) primarily focus on** identifying fundamental building blocks."_ (Who or what focuses? The prepositional phrase _In the earlier layers_ cannot perform the action).
+- ✔️ _"**The earlier layers (layers 0--5) primarily focus on** identifying fundamental building blocks."_ (Noun phrase as subject).
+- ✔️ _"**In the earlier layers (layers 0--5), the model primarily focuses on** identifying fundamental building blocks."_ (Subject _the model_ supplied).
+
+---
+
+## 10. Technical Prepositions, Collocations, and Mathematical Syntax
+
+Mathematical operations and academic comparisons require strict prepositional pairings. Using casual conversational prepositions weakens scientific rigor.
+
+```mermaid
+flowchart LR
+    Op["Mathematical / Comparative Operation"] --> Case{"Expression Type"}
+
+    Case -->|"Arithmetic"| Math["Multiply / Divide X BY Y"]
+    Math --> ExMath["'multiplying features with W' ❌<br>'multiplying features by W' ✔️"]
+
+    Case -->|"Comparative Adjective (-er / more)"| Comp["Use 'THAN' (Drop 'compared to')"]
+    Comp --> ExComp["'sparser compared to FFN' ❌<br>'sparser than FFN' ✔️"]
+
+    Case -->|"Exclusion / Contrast"| Diff["Use 'OTHER THAN' / 'DIFFERENT FROM'"]
+    Diff --> ExDiff["'different language than English' ❌<br>'language other than English' ✔️"]
+```
+
+### 1. Mathematical Operations: Multiply / Divide X "By" Y (Never "With")
+
+In formal mathematics and machine learning prose, multiplication and division always govern **by**:
+
+- ❌ _"...multiplying language-specific features **with** the token unembedding matrix..."_
+- ✔️ _"...multiplying language-specific features **by** the token unembedding matrix..."_
+- ❌ _"...multiplying the intermediate activations $\bm{h}^i$ **with** $\bm{W}_U$..."_
+- ✔️ _"...multiplying the intermediate activations $\bm{h}^i$ **by** $\bm{W}_U$..."_
+
+> [!TIP]
+> Use **with** only when describing an interaction, dot product, or convolution where symmetry applies:
+>
+> - _"Computing the inner product of $\bm{a}$ **with** $\bm{b}$..."_
+> - _"Convolving the signal **with** a Gaussian kernel..."_
+
+---
+
+### 2. Comparative Adjectives vs. "Compared to" (Comparative Redundancy)
+
+When an adjective is already in the comparative form (inflected with _-er_ or accompanied by _more/less_), adding _compared to_ is redundant:
+
+- ❌ _"However, SAE activations are **sparser compared to** FFN activations."_
+- ✔️ _"However, SAE activations are **sparser than** FFN activations."_
+- ❌ _"...and observe **higher PPL changes compared to** baseline..."_
+- ✔️ _"...and observe **larger PPL changes than** the baseline..."_
+
+#### When "Compared to / with" is Appropriate:
+
+Use _compared to_ or _compared with_ only when introducing an independent clause modifier without an existing _than_:
+
+- ✔️ _"**Compared to FFN activations**, SAE activations exhibit lower density."_
+- ✔️ _"We observe that intervention in English exhibits different behavior **compared to that in** other languages."_
+
+---
+
+### 3. Preposition Precision with Attributes, Metrics, and Indices
+
+- **Indices & Scores:**
+  - ❌ _"selecting the index **of** the highest score..."_ (The index does not possess the score).
+  - ✔️ _"selecting the index **with** the highest score..."_
+- **Pairwise Relations:**
+  - ❌ _"high similarity scores **to each other**..."_
+  - ✔️ _"high **pairwise** similarity scores..."_ or _"high similarity scores **with one another**..."_
+- **Spanning Ranges:**
+  - ❌ _"...applied **from layers 3--13**..."_ (Ungrammatical without _to_).
+  - ✔️ _"...applied **across layers 3--13**..."_ or _"...applied **from layer 3 to 13**..."_
+- **Dataset / Model Associations:**
+  - ❌ _"Text generation results **Llama 3.2 1B**..."_ (Missing governing preposition).
+  - ✔️ _"Text generation results **for Llama 3.2 1B**..."_ / _"Text generation results **from Llama 3.2 1B**..."_
+
+---
+
+### 4. "Other Than" vs. "Different From" vs. "Different Than"
+
+In formal academic writing, **different from** or **other than** are preferred; **different than** is generally non-standard when followed by a simple noun phrase:
+
+- ❌ _"...from a different language **than** English."_
+- ✔️ _"...from a language **other than** English."_
+- ✔️ _"...from a language **different from** English."_
+
+---
+
+### 5. Verbs of Action vs. Clunky "Perform [Gerund]"
+
+The verb _perform_ cannot directly govern a bare gerund phrase:
+
+- ❌ _"We **perform steering language-specific features** in Llama 3.2 1B..."_
+- ❌ _"We **perform steering with language-specific features**..."_
+- ✔️ _"We **steer language-specific features** in Llama 3.2 1B..."_ (Direct, concise verb).
+- ✔️ _"We **perform steering of language-specific features**..."_ (Grammatically valid nominalization).
+
+---
+
+## 11. Article & Determiner Conventions in Scientific Writing
+
+Determiners (_a, an, the_) dictate specificity and countability. Dropping or misplacing them is one of the most frequent errors in technical papers.
+
+```mermaid
+flowchart TD
+    Noun["Technical Noun"] --> Count{"Is it Countable or Uncountable?"}
+
+    Count -->|"Uncountable / Abstract Process"| Mass["No Indefinite Article ('a/an')"]
+    Mass --> ExMass["'a hierarchical processing' ❌<br>'hierarchical processing' ✔️"]
+
+    Count -->|"Singular Countable"| Sing{"Is it Specific or Generic?"}
+    Sing -->|"Specific Method / Named Architecture"| Def["Requires 'the'"]
+    Def --> ExDef["'By adapting LAPE method' ❌<br>'By adapting the LAPE method' ✔️"]
+    Sing -->|"Generic Concept Instance"| Indef["Requires 'a/an'"]
+    Indef --> ExIndef["'replacing with discontinuous activation' ❌<br>'with a discontinuous activation function' ✔️"]
+
+    Count -->|"Quantifier: few / a few"| FewCheck{"Context"}
+    FewCheck -->|"Modified by 'only'"| OnlyFew["Must use 'only a few'"]
+    OnlyFew --> ExFew["'only few studies' ❌<br>'only a few studies' ✔️"]
+```
+
+### 1. "Only a Few" vs. "Few" vs. "A Few"
+
+Understanding the subtle pragmatic shift between _few_ and _a few_:
+
+- **`Few`** (without _a_): Emphasizes scarcity or near-absence (negative connotation, meaning _almost none_):
+  - _"Few studies have investigated multilingual SAE interpretability."_ (= Very few exist; there is a notable gap).
+- **`A few`**: Refers to a small number (positive/neutral connotation, meaning _some_):
+  - _"A few studies have investigated multilingual SAE interpretability."_ (= Some have done it).
+- **`Only a few`**: Emphasizes the small quantity, but **always requires the article "a"**:
+  - ❌ _"While some features appear language-agnostic, **only few studies** have explored..."_
+  - ✔️ _"While some features appear language-agnostic, **only a few studies** have explored..."_
+
+---
+
+### 2. Singular Countable Technical Nouns Require Determiners
+
+Technical terms like _method_, _approach_, _function_, _model_, _matrix_, or _layer_ are countable singular nouns. They cannot stand alone without an article or determiner:
+
+- ❌ _"By adapting **language activation probability entropy (LAPE) method** proposed by..."_
+- ✔️ _"By adapting **the language activation probability entropy (LAPE) method** proposed by..."_
+- ❌ _"...by replacing the standard ReLU with **a discontinuous activation** proposed by..."_ (Missing head noun).
+- ✔️ _"...by replacing the standard ReLU with **a discontinuous activation function** proposed by..."_
+- ❌ _"...retaining only the $k$ largest values in **SAE activations**..."_
+- ✔️ _"...retaining only the $k$ largest values in **the SAE activations**..."_
+
+---
+
+### 3. Uncountable Abstract Process Nouns
+
+Abstract verbal nouns describing continuous processes (_processing_, _inference_, _generalization_, _learning_) do not take an indefinite article (_a/an_):
+
+- ❌ _"A consistent pattern observed across languages is **a hierarchical processing** of linguistic information."_
+- ✔️ _"A consistent pattern observed across languages is **hierarchical processing** of linguistic information."_
+- ✔️ _"...is **the hierarchical processing** of linguistic information."_ (If referring to a specific instance).
+
+---
+
+### 4. Parallel Articles in Coordinated Structures
+
+When coordinating two nouns with _both... and_ or _from... to_, maintain balanced article usage:
+
+- ❌ _"Language-specific features influence **both perplexity and language output** of LLMs."_ (Unbalanced).
+- ✔️ _"Language-specific features influence **both the perplexity and the language output** of LLMs."_
+- ❌ _"...concentrated in **the early to the middle layers**..."_
+- ✔️ _"...concentrated in **the early to middle layers**..."_
+
+---
+
+### 5. Numeral–Adjective Word Order
+
+In English noun phrase syntax, cardinal numerals (_one, two, 15_) must precede descriptive adjectives (_analyzed, evaluated, selected_):
+
+- ❌ _"...to identify **the analyzed 15 languages**."_
+- ✔️ _"...to identify **the 15 analyzed languages**."_
+- ❌ _"...across **the observed three patterns**."_
+- ✔️ _"...across **the three observed patterns**."_
+
+---
+
+## 12. Sentence Structure, Modifiers, and Clause Integrity
+
+Academic manuscripts frequently lose clarity due to dangling modifiers, non-finite subordinate clauses, and intransitive participles.
+
+```mermaid
+flowchart TD
+    Mod["Participial / Subordinate Clause"] --> Check{"Clause Integrity Check"}
+
+    Check -->|"Subordinate Conjunction ('as', 'because')"| Finite["Must have Subject + Finite Verb"]
+    Finite --> ExFinite["'...as it explicitly supporting eight languages' ❌<br>'...as it explicitly supports eight languages' ✔️"]
+
+    Check -->|"Introductory / Attached Participle"| Dangling["Agent Check: Does subject match action?"]
+    Dangling --> ExDangling["'due to its capabilities, explicitly supporting languages' ❌ (capabilities don't support!)<br>'...capabilities, as the model explicitly supports languages' ✔️"]
+
+    Check -->|"Past Participle Modifying Noun"| Trans{"Is the Verb Transitive?"}
+    Trans -->|"No (Intransitive)"| IntransError["Cannot use as passive participle"]
+    IntransError --> ExIntrans["'the intervened language' ❌ (intervene is intransitive)<br>'the targeted language' / 'the language intervened in' ✔️"]
+```
+
+### 1. Finite Verbs vs. Bare Participles in Subordinate Clauses
+
+A subordinate clause introduced by a conjunction (_as, because, since, although_) requires a complete grammatical predicate with a **finite (tensed) verb**, not a bare participle (-ing):
+
+- ❌ _"We adopt Llama 3.2 1B as the primary model due to its multilingual capabilities, **as it explicitly supporting eight languages**..."_
+- ✔️ _"We adopt Llama 3.2 1B as the primary model due to its multilingual capabilities, **as it explicitly supports eight languages**..."_
+
+---
+
+### 2. Dangling and Misplaced Participial Modifiers
+
+A participial modifier must logically modify the agent capable of performing the action:
+
+- ❌ _"We adopt Llama 3.2 1B as the primary model in this study due to its multilingual capabilities, **explicitly supporting eight languages**..."_
+  - _Why it fails:_ The modifier attaches to the immediately preceding noun phrase _multilingual capabilities_. But capabilities do not support languages—the model does!
+- ✔️ _"We adopt Llama 3.2 1B as the primary model in this study due to its multilingual capabilities, **as the model explicitly supports eight languages**..."_
+
+#### Misplaced Relative Clauses
+
+- ❌ _"In contrast, automatic interpretation involves presenting these contexts **to LLMs with predefined instructions, which generate an explanation**..."_
+  - _Why it fails:_ Grammatically, _which generate_ attaches to _predefined instructions_ rather than _LLMs_.
+- ✔️ _"In contrast, automatic interpretation involves presenting these contexts **along with predefined instructions to LLMs, which generate an explanation**..."_
+
+---
+
+### 3. Intransitive Verbs Cannot Form Passive Participles
+
+Intransitive verbs do not take direct objects (_you intervene in something_, you do not _intervene something_). Therefore, their past participles cannot serve as passive pre-nominal adjectives:
+
+- ❌ _"Conversely, activating language-specific features has a minimal impact on **the intervened language**..."_
+- ✔️ _"Conversely, activating language-specific features has a minimal impact on **the targeted language**..."_
+- ✔️ _"Conversely, activating language-specific features has a minimal impact on **the language intervened in**..."_
+
+---
+
+### 4. Restrictive ("That") vs. Non-Restrictive ("Which") with Unique Identifiers
+
+- **Restrictive (`that` without comma):** Defines which specific item is being discussed out of many.
+- **Non-Restrictive (`which` with comma):** Provides supplementary information about an already uniquely identified item.
+
+When an item is uniquely designated by name, layer, or ID, use **comma + which**:
+
+- ❌ _"Another surprising instance is Japanese-specific feature 32154 in layer 8 **that is strongly active for Bulgarian morphemes**..."_ (Incorrectly implies there are multiple features with ID 32154 in layer 8).
+- ✔️ _"Another surprising instance is Japanese-specific feature 32154 in layer 8, **which is strongly active for Bulgarian morphemes**..."_
+
+---
+
+### 5. Illogical Comparisons (Reinforcing "That of")
+
+Ensure that comparisons contrast equivalent grammatical and logical categories:
+
+- ❌ _"We observe that intervention in English exhibits different **behavior compared to other languages**."_ (Compares behavior to languages).
+- ✔️ _"We observe that intervention in English exhibits different **behavior compared to that in other languages**."_ (Compares behavior to behavior).
+- ❌ _"...shows that the performance of the SAE-based LID is slightly below **fastText**."_
+- ✔️ _"...shows that the performance of the SAE-based LID is slightly below **that of fastText**."_
+
+---
+
+### 6. Tense & Modality Consistency
+
+Maintain consistent tense and modality across related clauses in an analytical sentence:
+
+- ❌ _"Conversely, activating language-specific features **has** a minimal impact on the target language, but **could** significantly disrupt other languages."_ (Clash between indicative _has_ and hypothetical conditional _could_).
+- ✔️ _"Conversely, activating language-specific features **has** a minimal impact on the target language, but **can** significantly disrupt other languages."_
+- ❌ _"...we found that shallower features **are associated** with generic tokens, while deeper features **promoted** language-specific vocabulary."_
+- ✔️ _"...we found that shallower features **are associated** with generic tokens, while deeper features **promote** language-specific vocabulary."_
+
+---
+
+## 13. Academic Register, Lexical Precision, and Typography
+
+### 1. Phrasal Verbs vs. Formal Academic Verbs
+
+Avoid conversational idioms and informal phrasing in research papers:
+
+| Informal / Colloquial | Formal Academic Alternative               | Example                                                                |
+| :-------------------- | :---------------------------------------- | :--------------------------------------------------------------------- |
+| **shows up**          | **emerges**, **is observed**, **appears** | _"A notable trend **emerges** in English..."_ (Not _shows up_)         |
+| **try**               | **evaluate**, **test**, **investigate**   | _"...we **evaluate** other scaling factors..."_ (Not _try_)            |
+| **happens with**      | **occurs in**, **is observed with**       | _"An exception **occurs with** feature 97688..."_ (Not _happens with_) |
+| **the reported ones** | **those previously reported**             | _"...similar to **those previously reported**."_ (Avoid vague _ones_)  |
+| **found X to vary**   | **found that X varies**                   | _"...found **that** neuron activations **vary**..."_                   |
+
+---
+
+### 2. Quantitative Collocations: Describing Changes and Differences
+
+Quantities, differences, and variations take specific modifying adjectives:
+
+- **Changes / Differences / Discrepancies:** Described as **larger**, **greater**, or **smaller** (never _higher_ or _lower_):
+  - ❌ _"...and observe **higher PPL changes** with higher-magnitude factors."_
+  - ✔️ _"...and observe **larger PPL changes** with higher-magnitude factors."_
+- **Scores / Rates / Perplexities / Values:** Described as **higher** or **lower**:
+  - ✔️ _"...resulting in **higher perplexity** and **lower accuracy**."_
+
+---
+
+### 3. Avoiding Contractions in Formal Prose
+
+Never use informal contractions in research publications:
+
+- ❌ _"...**there's** a refinement in layer 5..."_
+- ✔️ _"...**there is** a refinement in layer 5..."_
+
+---
+
+### 4. Word Class Accuracy in Tables and Labels
+
+Maintain part-of-speech consistency in experimental tables, metrics, and legends:
+
+- ❌ _"Score 0 (**Unchange**):"_ (_Unchange_ is a bare verb).
+- ✔️ _"Score 0 (**Unchanged**):"_ or _"Score 0 (**No Change**):"_
+
+---
+
+### 5. LaTeX Typography Conventions
+
+| Element                     | Incorrect                      | Correct LaTeX Syntax            | Visual Effect / Rule                                                                                                  |
+| :-------------------------- | :----------------------------- | :------------------------------ | :-------------------------------------------------------------------------------------------------------------------- |
+| **Quotation Marks**         | `"Golden Gate"`                | ` ``Golden Gate'' `             | Produces proper curly opening (``) and closing ('') quotes. Standard quotes `"` produce closing quotes on both sides. |
+| **Number Range**            | `layers 3-13`<br>`layers 0–-2` | `layers 3--13`                  | Use an **en-dash** (`--`) for numerical ranges. Never mix en-dash and hyphen (`–-`).                                  |
+| **Compound Modifier**       | `language--specific`           | `language-specific`             | Use a single **hyphen** (`-`) for hyphenated compound adjectives.                                                     |
+| **Em-Dash (Parenthetical)** | `model - unlike SAEs - has`    | `model---unlike SAEs---has`     | Use an **em-dash** (`---`) without surrounding spaces for parenthetical thoughts.                                     |
+| **Author Separator**        | `\AND` vs `\And`               | (Follow conference style sheet) | Check spelling (e.g., `separate`, not `seperate`).                                                                    |
