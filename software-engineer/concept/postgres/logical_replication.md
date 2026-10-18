@@ -73,9 +73,128 @@ sequenceDiagram
 
 ### The Risk of Shared WAL & Slots
 
-Because all slots share the same physical WAL files on disk, Postgres will **never delete a WAL file** until the slowest active slot has finished reading it. If a subscriber goes offline permanently, its slot stands still, causing WAL files to accumulate.
+Because all slots share the same physical WAL files on disk, Postgres will **never delete a WAL file** until the slowest slot (active **or** inactive) no longer needs it. If a subscriber goes offline permanently, its slot stands still, causing WAL files to accumulate.
 
 To prevent your publisher's disk from filling up and crashing the database, use the `max_slot_wal_keep_size` setting (available in Postgres 13+). If a slot falls behind past this threshold, Postgres will **invalidate** the slot, purge the old WAL files to protect the primary database, and change the slot's status to `lost`.
+
+### The Low-Traffic Slot Problem (Active Slot, Still Lagging)
+
+A slot can pile up WAL even when it is `active = true` and the connector is healthy, if its publication rarely sees changes. Example:
+
+| slot_name         | active | retained_wal | flush_lag |
+| ----------------- | ------ | ------------ | --------- |
+| `debezium_slot`   | true   | 1187 kB      | 705 kB    |
+| `debezium_slot_2` | true   | **20 GB**    | **18 GB** |
+
+**Why:** both slots read the same cluster-wide WAL. The `debezium_slot_2` walsender decodes everything and drops changes outside its publication, so Debezium receives nothing (keepalives don't count). Debezium only advances `confirmed_flush_lsn` when it emits a record, so the slot stays stuck at its last published event and pins all WAL written since.
+
+```mermaid
+flowchart LR
+    E["slot_2 event<br/><b>debezium_slot_2</b><br/>confirmed_flush_lsn (stuck)"]
+    O1["other"]
+    O2["other"]
+    O3["... 20 GB of other traffic ...<br/>(retained on disk)"]
+    N["now<br/><b>debezium_slot</b><br/>(keeps up)"]
+    E --> O1 --> O2 --> O3 --> N
+
+    classDef stuck stroke:#e5534b,stroke-width:2px
+    classDef ok stroke:#57ab5a,stroke-width:2px
+    class E stuck
+    class N ok
+```
+
+> 💡 `restart_lsn` trailing `confirmed_flush_lsn` is normal. The problem is `confirmed_flush_lsn` falling behind `pg_current_wal_lsn()`.
+
+#### Fix: heartbeat + action query
+
+A slot only advances when this whole chain runs:
+
+```mermaid
+flowchart LR
+    A["Debezium receives<br/>a change"] --> B["offset =<br/>change's LSN"]
+    B --> C["Record passes through<br/>Kafka Connect"]
+    C --> D["Connect commits<br/>the offset"]
+    D --> E["Debezium confirms<br/>LSN to Postgres"]
+    E --> F["Slot advances"]
+```
+
+A low-traffic slot breaks this chain in two places, and each setting fixes one of them:
+
+| Gap                                                                   | Fixed by                                                                             |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **Nothing arrives.** No published changes, so the offset never moves. | `heartbeat.action.query` writes a change into the WAL that this slot _will_ receive. |
+| **Nothing is emitted.** No records, so Connect never commits.         | The **heartbeat record** that Debezium emits on each tick, which forces a commit.    |
+
+`heartbeat.interval.ms` is the timer that does both on every tick. Setting it **without** an action query only fixes the second gap: Debezium keeps committing the same stuck offset.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Deb as Debezium
+    participant PG as Postgres (WAL + slot)
+    participant KC as Kafka Connect
+
+    Note over Deb,PG: Slot stuck at 84/A8, current WAL at 89/47
+    Deb->>PG: Tick: run heartbeat.action.query
+    Note over PG: New WAL record at 89/47
+    PG->>Deb: pgoutput streams the change
+    Note over Deb: offset = 89/47
+    Deb->>KC: Emit heartbeat record
+    KC->>KC: Commit offset 89/47
+    Deb->>PG: Confirm flush LSN 89/47
+    Note over PG: Slot advances, old WAL can be removed
+```
+
+##### Choosing the action query
+
+```jsonc
+{
+  "heartbeat.interval.ms": "60000",
+
+  // Option A (PG 14+): logical decoding message. pgoutput forwards it regardless of the publication.
+  "heartbeat.action.query": "SELECT pg_logical_emit_message(false, 'heartbeat', now()::varchar)",
+
+  // Option B: heartbeat table. Add it to the publication, but NOT to table.include.list,
+  // so Debezium drops the event after its offset has moved.
+  // "heartbeat.action.query": "INSERT INTO debezium_heartbeat (id, ts) VALUES (1, now()) ON CONFLICT (id) DO UPDATE SET ts = EXCLUDED.ts",
+}
+```
+
+| Option                       | Setup                                                                          | Watch out for                                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| A. `pg_logical_emit_message` | None                                                                           | Debezium emits the message as its own record to `<topic.prefix>.message`. It must be filtered out too (see below). |
+| B. Heartbeat table           | Create the table, then `ALTER PUBLICATION <pub> ADD TABLE debezium_heartbeat;` | Must stay out of `table.include.list`, or the outbox router receives it.                                           |
+
+##### Drop heartbeat records before the outbox transform
+
+The outbox connector uses `ByteArrayConverter`, which only serializes raw bytes. Heartbeat records (and Option A message records) carry a `Struct`, so the converter throws and the task fails. Drop them with a Filter SMT placed before the outbox transform:
+
+```jsonc
+"transforms": "dropHeartbeat,outbox",
+"transforms.dropHeartbeat.type": "org.apache.kafka.connect.transforms.Filter",
+"transforms.dropHeartbeat.predicate": "isHeartbeat",
+"predicates": "isHeartbeat",
+"predicates.isHeartbeat.type": "org.apache.kafka.connect.transforms.predicates.TopicNameMatches",
+// Option A: also match <topic.prefix>.message
+"predicates.isHeartbeat.pattern": "__debezium-heartbeat\\..*|<topic.prefix>\\.message",
+```
+
+Dropping the record does not undo the offset update. Debezium records the offset when it polls the change, before transforms run.
+
+#### Monitoring
+
+Alert on lag per slot, not only on `active = false`:
+
+```sql
+SELECT slot_name, active,
+       pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn))        AS retained_wal,
+       pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), confirmed_flush_lsn)) AS flush_lag,
+       wal_status, safe_wal_size
+FROM pg_replication_slots
+ORDER BY pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn) DESC;
+```
+
+With `max_slot_wal_keep_size` set, `safe_wal_size` is the headroom before the slot becomes `lost`. A lost slot must be re-created, and outbox rows written in the gap must be recovered (e.g. by re-snapshotting).
 
 ---
 
