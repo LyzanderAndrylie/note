@@ -48,7 +48,7 @@ flowchart LR
 1. **Hot Key Expiration**: A frequently accessed item (e.g., a top-selling product on an e-commerce landing page) has a Time-To-Live (TTL) that reaches zero.
 2. **Synchronized Cache Misses**: Thousands of incoming requests arrive in the same 50–100 millisecond window and query Redis for the key, receiving a `nil` (cache miss).
 3. **Redundant Expensive Queries**: Instead of a single query refreshing the cache, all 10,000 requests execute identical, expensive SQL queries against the primary database concurrently.
-4. **Backend Saturation**: The database runs out of available connection slots (see [PostgreSQL Connection Pooling](<file:///c:/Users/Lyzander%20Andrylie/Documents/(5)%20Note/software-engineer/concept/postgres/connection_pool.md>)), CPU utilization surges to 100%, and query execution times balloon from 5ms to several seconds.
+4. **Backend Saturation**: The database runs out of available connection slots (see [PostgreSQL Connection Pooling](/software-engineer/concept/postgres/connection_pool.md)), CPU utilization surges to 100%, and query execution times balloon from 5ms to several seconds.
 5. **Cascading Failure**: Upstream API gateways and application threads reach timeout thresholds, causing request queues to back up and triggering wide-scale service outages.
 
 ---
@@ -222,7 +222,7 @@ sequenceDiagram
    - When requests span multiple instances behind a load balancer, instances use a Redis mutex lock (`SET lock:key uuid NX EX 5`).
    - The instance that wins the lock executes the DB query and populates Redis.
    - Instances that fail to acquire the lock sleep briefly (e.g., 50ms) and retry reading the newly warmed cache.
-   - _For in-depth details on implementing safe distributed locks, see [Distributed Locks with Redis](<file:///c:/Users/Lyzander%20Andrylie/Documents/(5)%20Note/software-engineer/concept/redis/lock.md>)._
+   - _For in-depth details on implementing safe distributed locks, see [Distributed Locks with Redis](/software-engineer/concept/redis/lock.md)._
 
 ---
 

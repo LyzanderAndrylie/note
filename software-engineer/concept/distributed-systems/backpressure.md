@@ -61,6 +61,7 @@ Rate of Accumulation = λ - μ = +8,000 requests/second
 1. **Queue Accumulation & Buffer Bloat**:
 
    - Because the queue is unbounded (or excessively large), requests sit waiting for available worker threads. In just 10 seconds of peak traffic, 80,000 requests accumulate in RAM.
+
 1. **Exponential Latency Deterioration (Little's Law)**:
 
    - According to Little's Law ($L = \lambda W$), as queue length ($L$) grows, average wait time ($W$) balloons from milliseconds to tens of seconds:
@@ -68,16 +69,19 @@ Rate of Accumulation = λ - μ = +8,000 requests/second
      $$
      W = \frac{L}{\mu}
      $$
+
    - Even though each request only takes 10ms of CPU time to process, it spends 40+ seconds waiting in line.
+
 1. **Memory Exhaustion & JVM / Runtime Crash (OOM)**:
 
    - Every buffered request holds allocated memory (headers, payload payloads, context structures). Memory usage ramps up until the OS kernel triggers an **Out-Of-Memory (OOM) Killer** invocation or runtime GC thrashing stops all execution threads.
+
 1. **The Client Retry Storm (Death Spiral)**:
 
    - Upstream clients reach their HTTP connection timeouts (e.g., 5 seconds) and terminate the socket.
    - Automated client retry policies fire 2 to 3 duplicate requests, further multiplying $\lambda_{\text{in}}$.
    - Downstream workers waste precious CPU cycles processing requests whose clients have already timed out and disconnected.
-   - For database-backed systems, this frequently exhausts connection pools and locks up transactions (see [PostgreSQL Connection Pooling](<file:///c:/Users/Lyzander%20Andrylie/Documents/(5)%20Note/software-engineer/concept/postgres/connection_pool.md>)).
+   - For database-backed systems, this frequently exhausts connection pools and locks up transactions (see [PostgreSQL Connection Pooling](/software-engineer/concept/postgres/connection_pool.md)).
 
 ---
 
@@ -203,10 +207,12 @@ flowchart LR
    - The enqueueing thread is suspended until downstream workers drain an item.
    - _Use Case_: Internal thread pools (e.g., Go channels without `default`, Java `ArrayBlockingQueue.put()`).
    - _Drawback_: Upstream threads remain blocked, which can propagate thread exhaustion upstream.
+
 1. **Drop Newest / Fail-Fast (Drop-Tail)**:
 
    - When the queue is full, incoming items are immediately rejected with an explicit error code (e.g., HTTP `429 Too Many Requests` or `503 Service Unavailable`).
    - _Use Case_: REST APIs and public microservice gateways. Allows clients to gracefully fail or retry after a backoff window.
+
 1. **Drop Oldest (Head-Drop)**:
 
    - Evicts the oldest unprocessed item at the front of the queue to make room for fresh data.
@@ -313,10 +319,10 @@ flowchart LR
 ```
 
 - **Token Bucket / Leaky Bucket**:
-    - Accumulates tokens at a steady rate. Traffic bursts are permitted up to the bucket capacity; sustained volume exceeding the refill rate is immediately rejected.
+  - Accumulates tokens at a steady rate. Traffic bursts are permitted up to the bucket capacity; sustained volume exceeding the refill rate is immediately rejected.
 - **Adaptive Load Shedding (CoDel / Latency-Based)**:
-    - Instead of fixed request-per-second thresholds, the system monitors internal metrics (CPU utilization, event-loop lag, or queue delay).
-    - If p90 processing delay exceeds 200ms, the gateway preemptively drops lower-priority requests at the ingress boundary before they consume backend resources.
+  - Instead of fixed request-per-second thresholds, the system monitors internal metrics (CPU utilization, event-loop lag, or queue delay).
+  - If p90 processing delay exceeds 200ms, the gateway preemptively drops lower-priority requests at the ingress boundary before they consume backend resources.
 
 ---
 
@@ -353,16 +359,19 @@ flowchart LR
 
    - Clients generate a sustained burst of **10,000 req/s**.
    - Downstream workers can only consume **2,000 req/s** due to third-party API rate limits and database write throughput.
+
 1. **Buffer Utilization**:
 
    - The bounded queue begins absorbing the excess traffic.
    - At a surplus rate of $+8,000\text{ req/s}$, the queue reaches its high-watermark threshold (8,500 items) in just over 1 second.
+
 1. **Backpressure Triggered**:
 
    - The queue signals the API servers that capacity is nearly exhausted.
    - The API Gateway immediately throttles ingress:
-       - New requests are either held briefly in a short client-side backoff or returned an immediate `HTTP 429 (Too Many Requests)` with a `Retry-After: 5` header.
-       - Mobile clients display an elegant "High demand—please wait a moment" UI banner instead of hanging indefinitely on a blank loading spinner.
+     - New requests are either held briefly in a short client-side backoff or returned an immediate `HTTP 429 (Too Many Requests)` with a `Retry-After: 5` header.
+     - Mobile clients display an elegant "High demand—please wait a moment" UI banner instead of hanging indefinitely on a blank loading spinner.
+
 1. **Outcome**:
 
    - Downstream databases and worker services remain 100% stable at their peak efficiency (2,000 req/s).

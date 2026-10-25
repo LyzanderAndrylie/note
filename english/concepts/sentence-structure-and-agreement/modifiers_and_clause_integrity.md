@@ -75,7 +75,7 @@ Ensure that comparisons contrast equivalent grammatical and logical categories:
 - ❌ _"...shows that the performance of the SAE-based LID is slightly below **fastText**."_
 - ✔️ _"...shows that the performance of the SAE-based LID is slightly below **that of fastText**."_
 
-_(For more details, see [that_those_of_comparisons.md](file:///c:/Users/Lyzander%20Andrylie/Documents/%285%29%20Note/english/concepts/sentence-structure-and-agreement/that_those_of_comparisons.md).)_
+_(For more details, see [that_those_of_comparisons.md](/english/concepts/sentence-structure-and-agreement/that_those_of_comparisons.md).)_
 
 ---
 

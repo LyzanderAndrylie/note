@@ -1,6 +1,6 @@
 # Template & Catatan Finansial Usaha Pre-Order (PO) Rumahan (Perorangan)
 
-Panduan praktis dan sederhana untuk menghitung modal, beban operasional, margin keuntungan, dan titik balik modal (BEP) usaha berbasis **Pre-Order (PO)** yang dikerjakan sendiri di rumah (perorangan), berdasarkan prinsip dasar laporan laba rugi di [3_income_statement.md](file:///c:/Users/Lyzander%20Andrylie/Documents/5-note/invest/saham/stockbit-academy/2_memahami_laporan_keuangan/3_income_statement.md).
+Panduan praktis dan sederhana untuk menghitung modal, beban operasional, margin keuntungan, dan titik balik modal (BEP) usaha berbasis **Pre-Order (PO)** yang dikerjakan sendiri di rumah (perorangan), berdasarkan prinsip dasar laporan laba rugi di [3_income_statement.md](/invest/saham/stockbit-academy/2_memahami_laporan_keuangan/3_income_statement.md).
 
 ---
 

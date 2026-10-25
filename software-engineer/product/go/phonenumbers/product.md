@@ -1487,7 +1487,7 @@ flowchart TD
     Access --> Features["Full Access to All Features:\n- Parsing & Formatting\n- Full Region Metadata\n- Carrier & Geocoding\n- Timezone Lookups"]
 ```
 
-- **Model**: Pure open-source software licensed under the permissive [MIT License](file:///C:/Users/Lyzander%20Andrylie/Documents/%285%29%20Note/software-engineer/product/go/phonenumbers/code/LICENSE).
+- **Model**: Pure open-source software licensed under the permissive [MIT License](/software-engineer/product/go/phonenumbers/code/LICENSE).
 - **Gating Mechanism**: None. There are no commercial editions, paywalled subpackages, telemetry trackers, or API key restrictions.
 
 ---

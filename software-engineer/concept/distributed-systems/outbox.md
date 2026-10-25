@@ -192,7 +192,7 @@ A background worker periodically executes a query against the outbox table to di
 
 #### Safe Concurrent Polling with PostgreSQL `SKIP LOCKED`
 
-To allow multiple publisher worker instances to poll the outbox in parallel without lock collisions or duplicate processing, use `FOR UPDATE SKIP LOCKED` (see [PostgreSQL Locking Mechanisms](<file:///c:/Users/Lyzander%20Andrylie/Documents/(5)%20Note/software-engineer/concept/postgres/lock.md>)):
+To allow multiple publisher worker instances to poll the outbox in parallel without lock collisions or duplicate processing, use `FOR UPDATE SKIP LOCKED` (see [PostgreSQL Locking Mechanisms](/software-engineer/concept/postgres/lock.md)):
 
 ```sql
 -- Fetch and lock up to 100 pending events without waiting on other workers
@@ -219,7 +219,7 @@ COMMIT;
 
 - **Pros**: Simple to implement, requires no external infrastructure, works on any relational database.
 - **Cons**:
-  - **Polling Overhead**: Frequent polling queries impose constant read load and connection pool pressure (see [PostgreSQL Connection Pooling](<file:///c:/Users/Lyzander%20Andrylie/Documents/(5)%20Note/software-engineer/concept/postgres/connection_pool.md>)).
+  - **Polling Overhead**: Frequent polling queries impose constant read load and connection pool pressure (see [PostgreSQL Connection Pooling](/software-engineer/concept/postgres/connection_pool.md)).
   - **Latency Floor**: Publishing delay is bounded by the polling frequency (e.g., 500ms–2s).
   - **Table Bloat**: High write/update frequency generates dead tuples requiring frequent vacuuming in Postgres.
 
@@ -252,7 +252,7 @@ flowchart LR
     style Kafka fill:#fff1f0,stroke:#cf1322,stroke-width:1.5px
 ```
 
-For an in-depth breakdown of replication slots, publications, and WAL stream decoding, see [PostgreSQL Logical Replication Architecture](<file:///c:/Users/Lyzander%20Andrylie/Documents/(5)%20Note/software-engineer/concept/postgres/logical_replication.md>).
+For an in-depth breakdown of replication slots, publications, and WAL stream decoding, see [PostgreSQL Logical Replication Architecture](/software-engineer/concept/postgres/logical_replication.md).
 
 #### CDC Trade-offs
 
@@ -375,8 +375,8 @@ flowchart LR
 ```
 
 - **Exponential Backoff**: Transient network outages should be retried with exponential backoff and randomized jitter to avoid thundering herds.
-- **Dead Letter Quarantine**: When an event exceeds maximum retry attempts (e.g., `retry_count >= 5`), mark `status = 'FAILED'`, record `last_error`, and divert the event to a Dead Letter Queue for forensic analysis (see [Dead Letter Queue (DLQ)](<file:///c:/Users/Lyzander%20Andrylie/Documents/(5)%20Note/software-engineer/concept/distributed-systems/dlq.md>)).
-- **Publisher Rate Limiting**: Ensure outbox dispatchers apply bounded queueing and flow control so they do not saturate broker ingress (see [Backpressure in Distributed Systems](<file:///c:/Users/Lyzander%20Andrylie/Documents/(5)%20Note/software-engineer/concept/distributed-systems/backpressure.md>)).
+- **Dead Letter Quarantine**: When an event exceeds maximum retry attempts (e.g., `retry_count >= 5`), mark `status = 'FAILED'`, record `last_error`, and divert the event to a Dead Letter Queue for forensic analysis (see [Dead Letter Queue (DLQ)](/software-engineer/concept/distributed-systems/dlq.md)).
+- **Publisher Rate Limiting**: Ensure outbox dispatchers apply bounded queueing and flow control so they do not saturate broker ingress (see [Backpressure in Distributed Systems](/software-engineer/concept/distributed-systems/backpressure.md)).
 
 ---
 
@@ -415,7 +415,7 @@ mindmap
 - [x] **Non-Blocking Locks**: When using multiple poller workers, always query with `SELECT ... FOR UPDATE SKIP LOCKED` to avoid worker lock contention.
 - [x] **Table Purge & Retention Strategy**: Implement a retention policy (e.g., deleting published records after 7 days, or utilizing PostgreSQL declarative table partitioning by month) to avoid unbounded table bloat.
 - [x] **Outbox Lag Monitoring**: Alert when `COUNT(*) WHERE status = 'PENDING'` exceeds normal operational thresholds or oldest pending event age exceeds SLA (e.g., > 10 seconds).
-- [x] **Poison Pill Handling**: Route unpublishable messages to a [DLQ](<file:///c:/Users/Lyzander%20Andrylie/Documents/(5)%20Note/software-engineer/concept/distributed-systems/dlq.md>) after $N$ failed retries rather than blocking the worker thread indefinitely.
+- [x] **Poison Pill Handling**: Route unpublishable messages to a [DLQ](/software-engineer/concept/distributed-systems/dlq.md) after $N$ failed retries rather than blocking the worker thread indefinitely.
 
 ---
 
