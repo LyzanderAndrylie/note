@@ -1,12 +1,12 @@
 {
-  "format-markdown": {
+  "format": {
     "PostToolUse": [
       {
         "matcher": "write_file|edit_file",
         "hooks": [
           {
             "type": "command",
-            "command": "bash ./scripts/format-markdown.sh",
+            "command": "bash ./scripts/format.sh",
             "timeout": 30
           }
         ]
