@@ -1,5 +1,5 @@
 {
-  "prettier-markdown": {
+  "format-markdown": {
     "PostToolUse": [
       {
         "matcher": "write_file|edit_file",
