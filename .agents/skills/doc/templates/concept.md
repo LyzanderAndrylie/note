@@ -21,7 +21,6 @@
 
 <!--
 - 1–2 sentences: what the concept is and the problem it solves.
-- Then bullets: when to reach for it, when not to, and the concepts below in reading order.
 -->
 
 {simple_description}
@@ -35,7 +34,7 @@
 - `#### Interaction`: `sequenceDiagram` when components talk to each other, `flowchart` for a decision or lifecycle. Drop it when nothing interacts.
 -->
 
-### {concept_1}: {simple_concept_title}
+### 1. {concept_1_title}
 
 {simple_concept_description}
 
@@ -46,7 +45,7 @@ sequenceDiagram
     A ->> B: description
 ```
 
-#### {subconcept_1}: {simple_subconcept_1_title}
+#### a. {subconcept_1_title}
 
 <!--
 - Add subconcepts as appropriate when a concept breaks down into distinct parts, variants, or strategies; omit when not needed.
