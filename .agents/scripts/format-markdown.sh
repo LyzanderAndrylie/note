@@ -2,9 +2,9 @@
 # Hooks receive input via stdin as JSON
 PAYLOAD=$(cat)
 
-# Extract TargetFile from toolCall.args
+# Extract Path from toolCall.args
 # In jq, // is the alternative operator, and empty is a built-in filter that emits nothing at all (zero outputs).
-TARGET_FILE=$(echo "$PAYLOAD" | jq -r '.toolCall.args.TargetFile // empty')
+TARGET_FILE=$(echo "$PAYLOAD" | jq -r '.toolCall.args.Path // empty')
 
 # Only run if a file was targeted and has a .md extension
 # -n checks if the TARGET_FILE string is not empty
