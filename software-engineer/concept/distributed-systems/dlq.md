@@ -45,12 +45,12 @@ flowchart LR
 
 ### Core Benefits of a DLQ
 
-| Benefit                                        | Description                                                                                                   | Impact                                                                                                                                             |
-| :--------------------------------------------- | :------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Benefit                                        | Description                                                                                                   | Impact                                                                                                   |
+| :--------------------------------------------- | :------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------- |
 | **Prevents Head-of-Line (HoL) Blocking**       | Stops a single corrupted message from stalling the entire queue partition or worker thread pool.              | Preserves steady system throughput ($\mu$) and prevents artificial [backpressure.md](./backpressure.md). |
-| **Prevents Consumer Crash Loops**              | Shields workers from infinite runtime panic loops (e.g., unhandled `NullPointerException`, memory leaks).     | Maintains high worker availability and prevents cascade failures.                                                                                  |
-| **Enables Forensic Root Cause Analysis (RCA)** | Retains the exact message payload along with diagnostic headers (stack trace, attempt count, exception type). | Allows engineering teams to reproduce bugs without searching through gigabytes of logs.                                                            |
-| **Safe Reprocessing & Replay**                 | Provides a buffer where fixed messages can be safely redriven back to the primary pipeline.                   | Guarantees zero data loss for business-critical transactions (e.g., payments, order fulfillment).                                                  |
+| **Prevents Consumer Crash Loops**              | Shields workers from infinite runtime panic loops (e.g., unhandled `NullPointerException`, memory leaks).     | Maintains high worker availability and prevents cascade failures.                                        |
+| **Enables Forensic Root Cause Analysis (RCA)** | Retains the exact message payload along with diagnostic headers (stack trace, attempt count, exception type). | Allows engineering teams to reproduce bugs without searching through gigabytes of logs.                  |
+| **Safe Reprocessing & Replay**                 | Provides a buffer where fixed messages can be safely redriven back to the primary pipeline.                   | Guarantees zero data loss for business-critical transactions (e.g., payments, order fulfillment).        |
 
 ---
 
