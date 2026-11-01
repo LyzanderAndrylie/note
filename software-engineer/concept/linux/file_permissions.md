@@ -53,17 +53,17 @@ sudo chgrp -R developers /srv/projects/
 ```mermaid
 flowchart TD
     Request["Process Requests File Access<br/>(Reads UID and GIDs of process)"] --> CheckOwner{"Does process UID<br/>match File Owner UID?"}
-    
+
     CheckOwner -- "Yes" --> EvaluateOwner["Apply Owner (u) Permissions<br/>(Stop evaluation)"]
     CheckOwner -- "No" --> CheckGroup{"Does process GID or supplementary<br/>GIDs match File Group GID?"}
-    
+
     CheckGroup -- "Yes" --> EvaluateGroup["Apply Group (g) Permissions<br/>(Stop evaluation)"]
     CheckGroup -- "No" --> EvaluateOther["Apply Others (o) Permissions<br/>(Default to world access)"]
-    
+
     EvaluateOwner --> CheckMode{"Requested mode<br/>(r, w, or x) allowed?"}
     EvaluateGroup --> CheckMode
     EvaluateOther --> CheckMode
-    
+
     CheckMode -- "Yes" --> AccessGranted["Access Granted ✅"]
     CheckMode -- "No" --> AccessDenied["Access Denied ❌<br/>(EACCES / Permission Denied)"]
 ```
@@ -105,13 +105,13 @@ Each triplet is represented as a single base-8 digit (0–7) calculated by summi
 - **Execute (`x`)** = $1$ ($2^0$)
 - **None (`-`)** = $0$
 
-| Octal Digit | Binary Representation | Symbolic Mode | Meaning |
-| :---------- | :-------------------- | :------------ | :------ |
-| **`7`**     | `111`                 | `rwx`         | Full read, write, and execute permissions |
-| **`6`**     | `110`                 | `rw-`         | Read and write (standard for user data files) |
+| Octal Digit | Binary Representation | Symbolic Mode | Meaning                                                  |
+| :---------- | :-------------------- | :------------ | :------------------------------------------------------- |
+| **`7`**     | `111`                 | `rwx`         | Full read, write, and execute permissions                |
+| **`6`**     | `110`                 | `rw-`         | Read and write (standard for user data files)            |
 | **`5`**     | `101`                 | `r-x`         | Read and execute (standard for programs and directories) |
-| **`4`**     | `100`                 | `r--`         | Read-only access |
-| **`0`**     | `000`                 | `---`         | Zero access (complete denial) |
+| **`4`**     | `100`                 | `r--`         | Read-only access                                         |
+| **`0`**     | `000`                 | `---`         | Zero access (complete denial)                            |
 
 ```shell
 # Modify permissions using symbolic syntax
@@ -132,10 +132,10 @@ chmod 700 private_dir/   # rwx------ (Owner: full; Group/Others: locked out)
 
 The permissions `r`, `w`, and `x` have fundamentally different meanings depending on whether the target is a regular file or a directory.
 
-| Mode Bit | Meaning on Regular Files | Meaning on Directories |
-| :------- | :----------------------- | :--------------------- |
-| **`r` (Read)** | View file contents (`cat`, `less`, `grep`). | List file names inside the directory (`ls`). |
-| **`w` (Write)** | Modify, overwrite, or append file content. | Create, delete, or rename files inside the directory. |
+| Mode Bit          | Meaning on Regular Files                       | Meaning on Directories                                             |
+| :---------------- | :--------------------------------------------- | :----------------------------------------------------------------- |
+| **`r` (Read)**    | View file contents (`cat`, `less`, `grep`).    | List file names inside the directory (`ls`).                       |
+| **`w` (Write)**   | Modify, overwrite, or append file content.     | Create, delete, or rename files inside the directory.              |
 | **`x` (Execute)** | Execute the file as a program or shell script. | Enter/traverse the directory (`cd`) and access file inodes inside. |
 
 #### a. Critical Traps & Edge Cases
@@ -177,18 +177,18 @@ In addition to standard user, group, and other modes, Linux provides three speci
   - Causes the binary to run with the privileges of the **file owner**, rather than the user invoking it.
   - Classic Example: `/usr/bin/passwd` is owned by `root`. When an unprivileged user updates their password, the process executes with effective root UID (`0`), allowing it to update `/etc/shadow`.
 - **SGID (Set Group ID - Octal `2000`)**:
-  - *On executable files*: Runs with the privileges of the **file's group**.
-  - *On directories*: Enforces **group inheritance**. Any new file or subdirectory created within automatically inherits the parent directory's group, rather than the creator's current primary group. Standard for shared developer folders.
+  - _On executable files_: Runs with the privileges of the **file's group**.
+  - _On directories_: Enforces **group inheritance**. Any new file or subdirectory created within automatically inherits the parent directory's group, rather than the creator's current primary group. Standard for shared developer folders.
 - **Sticky Bit (Octal `1000`)**:
   - Applied to directories.
   - Enforces **restricted deletion**: users can only delete or rename files they personally own, even if the directory itself is world-writable (`0777`).
   - Classic Example: `/tmp` and `/var/tmp` (`1777` / `drwxrwxrwt`).
 
-| Special Bit | Octal Value | Symbol in `ls -l` | Symbol without `x` | Primary Purpose |
-| :---------- | :---------- | :---------------- | :----------------- | :-------------- |
-| **SUID**    | `4000`      | `s` on owner (`rwsr-xr-x`) | `S` (`rwSr-xr-x`) | Run executable with file owner credentials |
-| **SGID**    | `2000`      | `s` on group (`rwxr-sr-x`) | `S` (`rwxr-Sr-x`) | Inherit group ownership on directory creations |
-| **Sticky**  | `1000`      | `t` on others (`rwxrwxrwt`) | `T` (`rwxrwxrwT`) | Restrict deletion in shared world-writable directories |
+| Special Bit | Octal Value | Symbol in `ls -l`           | Symbol without `x` | Primary Purpose                                        |
+| :---------- | :---------- | :-------------------------- | :----------------- | :----------------------------------------------------- |
+| **SUID**    | `4000`      | `s` on owner (`rwsr-xr-x`)  | `S` (`rwSr-xr-x`)  | Run executable with file owner credentials             |
+| **SGID**    | `2000`      | `s` on group (`rwxr-sr-x`)  | `S` (`rwxr-Sr-x`)  | Inherit group ownership on directory creations         |
+| **Sticky**  | `1000`      | `t` on others (`rwxrwxrwt`) | `T` (`rwxrwxrwT`)  | Restrict deletion in shared world-writable directories |
 
 > [!NOTE]
 > A capital letter (`S` or `T`) indicates that the special bit is set, but the underlying execute (`x`) bit is missing. This usually indicates a configuration error.
@@ -232,6 +232,7 @@ When applications create new files or directories, the Linux kernel determines t
 #### a. The Subtractive Mask Algorithm
 
 Programs specify initial base permissions upon creation:
+
 - **Default Base for Files**: `0666` (`rw-rw-rw-`) — Programs never request execute permissions by default.
 - **Default Base for Directories**: `0777` (`rwxrwxrwx`) — Directories require execute permission for directory traversal.
 
@@ -241,10 +242,10 @@ $$\text{Final Permissions} = \text{Base Mode} \land (\neg \text{umask})$$
 
 For non-conflicting masks, this functions like simple octal subtraction:
 
-| Base Type | Base Permissions | Common Mask (`umask 022`) | Resulting Initial Mode | Symbolic Mode |
-| :-------- | :--------------- | :------------------------ | :--------------------- | :------------ |
-| **File**  | `666`            | `- 022`                   | **`644`**              | `rw-r--r--`   |
-| **Directory** | `777`        | `- 022`                   | **`755`**              | `rwxr-xr-x`   |
+| Base Type     | Base Permissions | Common Mask (`umask 022`) | Resulting Initial Mode | Symbolic Mode |
+| :------------ | :--------------- | :------------------------ | :--------------------- | :------------ |
+| **File**      | `666`            | `- 022`                   | **`644`**              | `rw-r--r--`   |
+| **Directory** | `777`            | `- 022`                   | **`755`**              | `rwxr-xr-x`   |
 
 ```shell
 # View current active creation mask in octal and symbolic form
@@ -290,4 +291,3 @@ setfacl -d -m g:developers:rwx /srv/shared/
 # Strip all extended ACL entries and return to standard DAC
 setfacl -b document.pdf
 ```
-

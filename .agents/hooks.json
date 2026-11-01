@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "C:\\PROGRA~1\\Git\\bin\\bash.exe ./scripts/format-markdown.sh",
+            "command": "bash ./scripts/format-markdown.sh",
             "timeout": 30
           }
         ]

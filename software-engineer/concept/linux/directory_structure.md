@@ -28,10 +28,10 @@ Unlike Windows operating systems that assign distinct drive letters (`C:`, `D:`)
   - **Static vs. Variable**: Static files change only through administrative intervention or package updates (e.g., `/bin`, `/lib`, `/usr`), whereas variable files are written and modified continuously during system execution (e.g., `/var`, `/tmp`, `/run`).
 - **Destructive Command Danger**: Because `/` contains all mounted storage, running `rm -rf /` instructs the system to recursively delete all contents of all accessible filesystems. Modern GNU `coreutils` guards against this by defaulting to `--preserve-root`.
 
-| FHS Dimension | Static (Read-Only Candidate) | Variable (Read-Write Dynamic) |
-| :------------ | :--------------------------- | :---------------------------- |
-| **Shareable** | `/usr`, `/opt`, `/usr/share` | `/var/mail`, `/var/spool`     |
-| **Unshareable** | `/etc`, `/boot`            | `/var/log`, `/var/run`, `/tmp`|
+| FHS Dimension   | Static (Read-Only Candidate) | Variable (Read-Write Dynamic)  |
+| :-------------- | :--------------------------- | :----------------------------- |
+| **Shareable**   | `/usr`, `/opt`, `/usr/share` | `/var/mail`, `/var/spool`      |
+| **Unshareable** | `/etc`, `/boot`              | `/var/log`, `/var/run`, `/tmp` |
 
 ```shell
 # Inspect the top-level root hierarchy and mountpoints
@@ -75,12 +75,12 @@ The primary root filesystem historically stored the minimal set of executables a
 - **`/lib` & `/lib64` (Essential Shared Libraries)**: Holds shared library dependencies (such as `libc.so`) and Linux kernel modules (`/lib/modules/<kernel-version>/`) needed by binaries in `/bin` and `/sbin`.
 - **`/boot` (Static Boot Loader Files)**: Stores the Linux kernel image (`vmlinuz`), the initial RAM disk (`initramfs` or `initrd`), and boot loader configuration files (`grub/grub.cfg`). `/boot` is frequently placed on a dedicated boot partition at the start of the drive to ensure BIOS/UEFI firmware compatibility.
 
-| Directory | Target Audience | Primary Function | Example Files |
-| :-------- | :-------------- | :--------------- | :------------ |
-| `/bin`    | All users       | Core command-line shell utilities | `/bin/cat`, `/bin/ls`, `/bin/sh` |
-| `/sbin`   | System admins   | Low-level disk, network, and recovery commands | `/sbin/fsck`, `/sbin/reboot`, `/sbin/ip` |
-| `/lib`    | System binaries | Shared objects and kernel modules | `/lib/x86_64-linux-gnu/libc.so.6` |
-| `/boot`   | Bootloader      | Kernel images and boot initialization | `/boot/vmlinuz-6.8.0`, `/boot/grub/grub.cfg` |
+| Directory | Target Audience | Primary Function                               | Example Files                                |
+| :-------- | :-------------- | :--------------------------------------------- | :------------------------------------------- |
+| `/bin`    | All users       | Core command-line shell utilities              | `/bin/cat`, `/bin/ls`, `/bin/sh`             |
+| `/sbin`   | System admins   | Low-level disk, network, and recovery commands | `/sbin/fsck`, `/sbin/reboot`, `/sbin/ip`     |
+| `/lib`    | System binaries | Shared objects and kernel modules              | `/lib/x86_64-linux-gnu/libc.so.6`            |
+| `/boot`   | Bootloader      | Kernel images and boot initialization          | `/boot/vmlinuz-6.8.0`, `/boot/grub/grub.cfg` |
 
 ```shell
 # Inspect kernel images and bootloader files
@@ -111,12 +111,12 @@ ls -ld /bin /sbin /lib /lib64
 
 An **image** is a frozen, byte-for-byte snapshot or packaged blueprint bundled into a single file (similar to how a photograph captures a complete scene in a single frame).
 
-| Image Type | What It Is | Purpose in Linux | Primary Location |
-| :--------- | :--------- | :--------------- | :--------------- |
-| **Kernel Image (`vmlinuz`)** | Compressed binary of the core Linux OS engine | Loaded into RAM by the bootloader to start the operating system | `/boot` |
-| **RAM Disk Image (`initramfs`)** | Minimal root filesystem packed with essential drivers | Temporary in-memory filesystem used to find and mount the real hard drive | `/boot` |
-| **Disk Image (`.iso`, `.img`)** | Exact virtual copy of an entire storage drive or partition | Used for OS installation media, virtual machine disks, or simulated loop devices | Storage / USB |
-| **Container Image (Docker / OCI)** | Static bundle of a mini-root filesystem (`/bin`, `/etc`) and app code | Serves as the template to spin up isolated application containers | `/var/lib/docker/` |
+| Image Type                         | What It Is                                                            | Purpose in Linux                                                                 | Primary Location   |
+| :--------------------------------- | :-------------------------------------------------------------------- | :------------------------------------------------------------------------------- | :----------------- |
+| **Kernel Image (`vmlinuz`)**       | Compressed binary of the core Linux OS engine                         | Loaded into RAM by the bootloader to start the operating system                  | `/boot`            |
+| **RAM Disk Image (`initramfs`)**   | Minimal root filesystem packed with essential drivers                 | Temporary in-memory filesystem used to find and mount the real hard drive        | `/boot`            |
+| **Disk Image (`.iso`, `.img`)**    | Exact virtual copy of an entire storage drive or partition            | Used for OS installation media, virtual machine disks, or simulated loop devices | Storage / USB      |
+| **Container Image (Docker / OCI)** | Static bundle of a mini-root filesystem (`/bin`, `/etc`) and app code | Serves as the template to spin up isolated application containers                | `/var/lib/docker/` |
 
 ---
 
@@ -132,15 +132,15 @@ System-wide settings and publicly served application data follow strict separati
   - Dedicated storage for site-specific data served by network services (e.g., `/srv/www` for web pages, `/srv/ftp` for FTP shares, `/srv/git` for source repositories).
   - Keeps application payload data separate from web server application code (which resides in `/usr`) and log files (which reside in `/var`).
 
-| Path | Purpose | Key Content |
-| :--- | :------ | :---------- |
-| `/etc/passwd` | User account database | User IDs, group IDs, home directory paths, default shells |
-| `/etc/shadow` | Encrypted passwords | User password hashes and expiration metadata (restricted to root) |
-| `/etc/fstab`  | Filesystem mount table | Static filesystem mount points and mount options processed at boot |
-| `/etc/hosts`  | Static host lookup | Manual IP-to-hostname mappings |
-| `/etc/resolv.conf` | DNS resolver config | Nameserver IP addresses for DNS queries |
-| `/etc/systemd/` | Systemd service units | Custom daemon unit files overriding vendor defaults |
-| `/srv/` | Web & service payloads | Data for FTP, HTTP, and version-control servers |
+| Path               | Purpose                | Key Content                                                        |
+| :----------------- | :--------------------- | :----------------------------------------------------------------- |
+| `/etc/passwd`      | User account database  | User IDs, group IDs, home directory paths, default shells          |
+| `/etc/shadow`      | Encrypted passwords    | User password hashes and expiration metadata (restricted to root)  |
+| `/etc/fstab`       | Filesystem mount table | Static filesystem mount points and mount options processed at boot |
+| `/etc/hosts`       | Static host lookup     | Manual IP-to-hostname mappings                                     |
+| `/etc/resolv.conf` | DNS resolver config    | Nameserver IP addresses for DNS queries                            |
+| `/etc/systemd/`    | Systemd service units  | Custom daemon unit files overriding vendor defaults                |
+| `/srv/`            | Web & service payloads | Data for FTP, HTTP, and version-control servers                    |
 
 ```shell
 # Check static filesystem mount table
@@ -156,18 +156,18 @@ cat /etc/resolv.conf
 In system administration and the Filesystem Hierarchy Standard, **"site"** refers to your specific organization, company, or deployment, and **"payload"** refers to the actual cargo or content served to users.
 
 - **Site-Specific**: Distinguishes unique organizational data from generic operating system tools.
-  - *Generic OS Software (`/usr`)*: Programs like Nginx, Python, or Apache are identical across millions of Linux systems worldwide and can be reinstalled from distribution repositories.
-  - *Site-Specific Data (`/srv`)*: Content unique to your deployment (e.g., company web pages, internal Git repositories, private FTP files) that must be preserved and restored from private backups.
+  - _Generic OS Software (`/usr`)_: Programs like Nginx, Python, or Apache are identical across millions of Linux systems worldwide and can be reinstalled from distribution repositories.
+  - _Site-Specific Data (`/srv`)_: Content unique to your deployment (e.g., company web pages, internal Git repositories, private FTP files) that must be preserved and restored from private backups.
 - **Payload**: The actual business assets or content delivered by a service, as opposed to the vehicle or daemon delivering it. For example, in a web server, the executable binary (`nginx`) is the delivery mechanism, while the HTML, CSS, video, and PDF files delivered to clients constitute the payload.
 
 ##### Service Layer Separation (The Delivery Analogy)
 
-| Directory | Layer / Role | Delivery Analogy | Web Server Example |
-| :-------- | :----------- | :--------------- | :----------------- |
-| **`/usr/sbin/`** | **Software Engine** | The delivery truck itself | The Nginx executable program |
-| **`/etc/`** | **Configuration** | The driver's route & rules | `nginx.conf` (port bindings, domain names) |
-| **`/var/log/`** | **Runtime State & History** | The driver's trip receipts & logs | `access.log` and `error.log` |
-| **`/srv/`** | **Site-Specific Payload** | The actual cargo inside the truck | Website HTML files, images, downloads |
+| Directory        | Layer / Role                | Delivery Analogy                  | Web Server Example                         |
+| :--------------- | :-------------------------- | :-------------------------------- | :----------------------------------------- |
+| **`/usr/sbin/`** | **Software Engine**         | The delivery truck itself         | The Nginx executable program               |
+| **`/etc/`**      | **Configuration**           | The driver's route & rules        | `nginx.conf` (port bindings, domain names) |
+| **`/var/log/`**  | **Runtime State & History** | The driver's trip receipts & logs | `access.log` and `error.log`               |
+| **`/srv/`**      | **Site-Specific Payload**   | The actual cargo inside the truck | Website HTML files, images, downloads      |
 
 ---
 
@@ -189,13 +189,13 @@ Data with variable lifespans and permissions is segregated to protect system sta
   - Files are ephemeral: wiped automatically during system reboot or cleared periodically by `systemd-tmpfiles`.
   - Configured with the **Sticky Bit** (`chmod 1777`), ensuring users can only delete or rename their own files even though all users have write access to the directory.
 
-| Directory | Volatility | Persistence Across Reboots | Default Access Permissions |
-| :-------- | :--------- | :------------------------- | :------------------------- |
+| Directory | Volatility | Persistence Across Reboots | Default Access Permissions                        |
+| :-------- | :--------- | :------------------------- | :------------------------------------------------ |
 | `/home`   | Low        | Permanent                  | Restricted to individual owner (`0700` or `0750`) |
-| `/root`   | Low        | Permanent                  | Root superuser only (`0700`) |
-| `/var`    | Medium     | Permanent                  | Daemon/service specific (`0755` / `0750`) |
-| `/tmp`    | High       | Ephemeral (Purged on boot) | World-writable with sticky bit (`1777`) |
-| `/run`    | Very High  | None (In-memory `tmpfs`)   | Root and system daemons (`0755`) |
+| `/root`   | Low        | Permanent                  | Root superuser only (`0700`)                      |
+| `/var`    | Medium     | Permanent                  | Daemon/service specific (`0755` / `0750`)         |
+| `/tmp`    | High       | Ephemeral (Purged on boot) | World-writable with sticky bit (`1777`)           |
+| `/run`    | Very High  | None (In-memory `tmpfs`)   | Root and system daemons (`0755`)                  |
 
 ```shell
 # Inspect permissions and sticky bit ('t') on /tmp
@@ -248,12 +248,12 @@ User-facing software is separated into distribution-managed packages, locally co
   - Packages store their executables, libraries, assets, and dependencies inside a single isolated folder (e.g., `/opt/google/chrome`, `/opt/zoom`, `/opt/datadog-agent`).
   - To make an `/opt` executable accessible in standard shell execution, administrators create symlinks in `/usr/local/bin` or append the application folder to `$PATH`.
 
-| Aspect | `/usr` | `/usr/local` | `/opt` |
-| :----- | :----- | :----------- | :----- |
-| **Managed By** | OS Package Manager (APT, DNF, Pacman) | Local Sysadmin (Source builds) | Third-Party Vendor Installers |
-| **File Structure** | Split (`bin/`, `lib/`, `share/`) | Split (`bin/`, `lib/`, `share/`) | Self-contained single subdirectory |
-| **Override Priority** | Lowest in default `$PATH` | Higher priority than `/usr` | Requires explicit `$PATH` or symlink |
-| **Typical Software** | Python, Curl, Systemd, GCC | Custom-compiled Nginx, Go binaries | Google Chrome, Slack, Datadog |
+| Aspect                | `/usr`                                | `/usr/local`                       | `/opt`                               |
+| :-------------------- | :------------------------------------ | :--------------------------------- | :----------------------------------- |
+| **Managed By**        | OS Package Manager (APT, DNF, Pacman) | Local Sysadmin (Source builds)     | Third-Party Vendor Installers        |
+| **File Structure**    | Split (`bin/`, `lib/`, `share/`)      | Split (`bin/`, `lib/`, `share/`)   | Self-contained single subdirectory   |
+| **Override Priority** | Lowest in default `$PATH`             | Higher priority than `/usr`        | Requires explicit `$PATH` or symlink |
+| **Typical Software**  | Python, Curl, Systemd, GCC            | Custom-compiled Nginx, Go binaries | Google Chrome, Slack, Datadog        |
 
 ```shell
 # Inspect vendor application bundles in /opt
@@ -285,14 +285,14 @@ UNIX and Linux expose hardware devices, process activity, and kernel configurati
   - An in-memory virtual filesystem (`sysfs`) exposing device drivers, buses, power states, and kernel subsystems in a structured tree.
   - Administrators read and write to `/sys` files to inspect hardware properties and tune device behavior at runtime.
 
-| Pseudo-Device / File | Subsystem | Functionality & Common Use |
-| :------------------- | :-------- | :------------------------- |
-| `/dev/null`          | Device    | Discards all written data; returns EOF immediately on read |
-| `/dev/zero`          | Device    | Produces an infinite stream of null bytes (`0x00`) |
-| `/dev/urandom`       | Device    | High-throughput cryptographically secure pseudorandom byte generator |
+| Pseudo-Device / File | Subsystem | Functionality & Common Use                                             |
+| :------------------- | :-------- | :--------------------------------------------------------------------- |
+| `/dev/null`          | Device    | Discards all written data; returns EOF immediately on read             |
+| `/dev/zero`          | Device    | Produces an infinite stream of null bytes (`0x00`)                     |
+| `/dev/urandom`       | Device    | High-throughput cryptographically secure pseudorandom byte generator   |
 | `/proc/cpuinfo`      | Kernel    | CPU model, core topology, clock speeds, and hardware instruction flags |
-| `/proc/meminfo`      | Kernel    | Real-time RAM utilization, buffers, cache sizes, and swap state |
-| `/sys/class/net/`    | Hardware  | Configurable network interfaces, link speeds, and MTU controls |
+| `/proc/meminfo`      | Kernel    | Real-time RAM utilization, buffers, cache sizes, and swap state        |
+| `/sys/class/net/`    | Hardware  | Configurable network interfaces, link speeds, and MTU controls         |
 
 ```shell
 # Read CPU and memory metrics directly from procfs
@@ -332,9 +332,9 @@ Unlike Windows which assigns independent drive letters (`C:\`, `D:\`, `E:\`) to 
 
 - **Mounting**: The operation of attaching a formatted storage filesystem (such as a hard drive partition, USB stick, or network share) to a specific directory in the hierarchy.
 - **Mount Point**: The target directory where the filesystem is grafted (e.g., `/mnt`, `/media/usb`, or `/boot`).
-  - *Before mounting*: The mount point is simply an empty folder on the parent filesystem.
-  - *After mounting*: Accessing the mount point directory routes file read/write operations directly to the mounted physical device.
-  - *After unmounting (`umount`)*: The physical device is safely detached, and the mount point folder reverts to its original empty state.
+  - _Before mounting_: The mount point is simply an empty folder on the parent filesystem.
+  - _After mounting_: Accessing the mount point directory routes file read/write operations directly to the mounted physical device.
+  - _After unmounting (`umount`)_: The physical device is safely detached, and the mount point folder reverts to its original empty state.
 - **Masking Behavior**: If files exist inside a directory before a device is mounted over it, those original files become temporarily inaccessible (masked) until the device is unmounted; they are not deleted.
 
 ##### Interaction
@@ -365,12 +365,12 @@ flowchart TD
   - When a user inserts a USB flash drive, external hard drive, SD card, or optical disk, the system automatically creates a subfolder (`/media/<username>/<device-label>`) and mounts the volume.
   - Automatically unmounted and cleaned up when the device is safely ejected.
 
-| Property | `/mnt` | `/media` |
-| :------- | :----- | :------- |
-| **Target User** | System Administrator | Desktop / End User |
-| **Mount Mechanism** | Manual invocation (`mount /dev/sdX1 /mnt`) | Automated via `udisks2` / Desktop Manager |
-| **Directory Lifespan** | Static / Existing mount target | Dynamically created and deleted on eject |
-| **Typical Usage** | Partition recovery, network file sharing, chroot repair | USB drives, camera SD cards, external HDDs |
+| Property               | `/mnt`                                                  | `/media`                                   |
+| :--------------------- | :------------------------------------------------------ | :----------------------------------------- |
+| **Target User**        | System Administrator                                    | Desktop / End User                         |
+| **Mount Mechanism**    | Manual invocation (`mount /dev/sdX1 /mnt`)              | Automated via `udisks2` / Desktop Manager  |
+| **Directory Lifespan** | Static / Existing mount target                          | Dynamically created and deleted on eject   |
+| **Typical Usage**      | Partition recovery, network file sharing, chroot repair | USB drives, camera SD cards, external HDDs |
 
 ```shell
 # Manually mount an external drive partition to /mnt
@@ -382,4 +382,3 @@ findmnt /mnt
 # Safely unmount after maintenance
 sudo umount /mnt
 ```
-
