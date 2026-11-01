@@ -81,7 +81,7 @@ Rate of Accumulation = λ - μ = +8,000 requests/second
    - Upstream clients reach their HTTP connection timeouts (e.g., 5 seconds) and terminate the socket.
    - Automated client retry policies fire 2 to 3 duplicate requests, further multiplying $\lambda_{\text{in}}$.
    - Downstream workers waste precious CPU cycles processing requests whose clients have already timed out and disconnected.
-   - For database-backed systems, this frequently exhausts connection pools and locks up transactions (see [PostgreSQL Connection Pooling](/software-engineer/concept/postgres/connection_pool.md)).
+   - For database-backed systems, this frequently exhausts connection pools and locks up transactions (see [connection_pool.md](../postgres/connection_pool.md)).
 
 ---
 

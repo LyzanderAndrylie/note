@@ -37,7 +37,7 @@ BigQuery is an **OLAP (Online Analytical Processing)** distributed data warehous
   - Enables aggressive compression (Dictionary, Run-Length Encoding, Frame of Reference) because identical data types and similar values are stored contiguously.
 - **Backend Takeaway**:
   - Unused columns directly multiply I/O cost and scan billing. Always project only the required columns; eliminate `SELECT *`.
-  - _See deep-dive note: [PostgreSQL Row-Oriented Heap Internal Mechanism](../postgres/row_oriented_heap.md)._
+  - _See deep-dive note: [row_oriented_heap.md](../postgres/row_oriented_heap.md)._
 
 ---
 
@@ -82,7 +82,7 @@ BigQuery is an **OLAP (Online Analytical Processing)** distributed data warehous
   - Concurrency is managed at the project level via slot availability and dynamic query queuing (up to 1,000 interactive queries can be queued simultaneously per project).
 - **Backend Takeaway**:
   - Backend services do not need connection pool singletons. Use standard HTTP/gRPC SDK client instances that handle job creation, polling, and streaming row iterators.
-  - _See deep-dive note: [PostgreSQL Connection Architecture & Connection Pooling](../postgres/connection_pool.md)._
+  - _See deep-dive note: [connection_pool.md](../postgres/connection_pool.md)._
 
 ---
 
@@ -109,7 +109,7 @@ BigQuery is an **OLAP (Online Analytical Processing)** distributed data warehous
   - A poorly written query on an unpartitioned 40 TB table will cost **$250 in a single execution**.
 - **Backend Takeaway**:
   - Cost optimization is a software engineering responsibility in BigQuery. Backend code must enforce cost guardrails (`dryRun`, `maximum_bytes_billed`, and mandatory partition filtering).
-  - _See deep-dive note: [BigQuery Table Partitioning, Partition Pruning & Cost Economics](partition.md)._
+  - _See deep-dive note: [partition.md](./partition.md)._
 
 ---
 

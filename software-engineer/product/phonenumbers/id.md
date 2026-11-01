@@ -628,19 +628,19 @@ func extractIndonesianNumbers(text string) {
 
 > [!NOTE]
 >
-> The files documented below are sourced from the upstream [google/libphonenumber](https://github.com/google/libphonenumber) repository and stored locally at [`metadata/62/`](/software-engineer/product/go/phonenumbers/metadata/62). These CSV files are the **canonical human-readable definitions** from which the compiled protobuf metadata (`metadata.xml.gz`) is generated. They represent the ground truth for Indonesia's numbering plan as maintained by Google's telephony team.
+> The files documented below are sourced from the upstream [google/libphonenumber](https://github.com/google/libphonenumber) repository and stored locally at [`metadata/62/`](./metadata/62). These CSV files are the **canonical human-readable definitions** from which the compiled protobuf metadata (`metadata.xml.gz`) is generated. They represent the ground truth for Indonesia's numbering plan as maintained by Google's telephony team.
 
 ### Source File Inventory
 
-| File                                                                                      | Size                | Purpose                                                                                                                                  |
-| :---------------------------------------------------------------------------------------- | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------- |
-| [`ranges.csv`](/software-engineer/product/go/phonenumbers/metadata/62/ranges.csv)         | 82 KB (375 entries) | Complete prefix-to-type mapping: every allocated prefix with its type, length, tariff, operator, format, timezone, and bilingual geocode |
-| [`formats.csv`](/software-engineer/product/go/phonenumbers/metadata/62/formats.csv)       | 1.2 KB (11 formats) | Named formatting templates defining national and international digit grouping patterns                                                   |
-| [`altformats.csv`](/software-engineer/product/go/phonenumbers/metadata/62/altformats.csv) | 225 B (6 entries)   | Alternative digit grouping patterns accepted during parsing but not used for canonical output                                            |
-| [`operators.csv`](/software-engineer/product/go/phonenumbers/metadata/62/operators.csv)   | 352 B (6 entries)   | Mobile operator registry with IDD codes and carrier names                                                                                |
-| [`examples.csv`](/software-engineer/product/go/phonenumbers/metadata/62/examples.csv)     | 251 B (6 entries)   | Canonical example NSN for each number type (used in test generation)                                                                     |
-| [`shortcodes.csv`](/software-engineer/product/go/phonenumbers/metadata/62/shortcodes.csv) | 348 B (5 entries)   | Emergency codes and commercial short numbers with tariff and SMS/carrier flags                                                           |
-| [`comments.csv`](/software-engineer/product/go/phonenumbers/metadata/62/comments.csv)     | 1.8 KB (12 entries) | Provenance notes, source URLs, and editorial annotations for metadata maintainers                                                        |
+| File                                                                | Size                | Purpose                                                                                                                                  |
+| :------------------------------------------------------------------ | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| [`ranges.csv`](./metadata/62/ranges.csv)         | 82 KB (375 entries) | Complete prefix-to-type mapping: every allocated prefix with its type, length, tariff, operator, format, timezone, and bilingual geocode |
+| [`formats.csv`](./metadata/62/formats.csv)       | 1.2 KB (11 formats) | Named formatting templates defining national and international digit grouping patterns                                                   |
+| [`altformats.csv`](./metadata/62/altformats.csv) | 225 B (6 entries)   | Alternative digit grouping patterns accepted during parsing but not used for canonical output                                            |
+| [`operators.csv`](./metadata/62/operators.csv)   | 352 B (6 entries)   | Mobile operator registry with IDD codes and carrier names                                                                                |
+| [`examples.csv`](./metadata/62/examples.csv)     | 251 B (6 entries)   | Canonical example NSN for each number type (used in test generation)                                                                     |
+| [`shortcodes.csv`](./metadata/62/shortcodes.csv) | 348 B (5 entries)   | Emergency codes and commercial short numbers with tariff and SMS/carrier flags                                                           |
+| [`comments.csv`](./metadata/62/comments.csv)     | 1.8 KB (12 entries) | Provenance notes, source URLs, and editorial annotations for metadata maintainers                                                        |
 
 ---
 

@@ -11,6 +11,17 @@
 | **Document Creation Date**     | {created_date}       |
 | **Document Last Updated Date** | {updated_date}       |
 
+## References
+
+<!--
+- Web documents.
+- Then code and other related docs, each with what it covers.
+-->
+
+- [{Web document}]({URL}) — {what it covers}
+- [{Code filename}]({path}) — {what it covers}
+- [{Doc title}]({path}) — {what it covers}
+
 ---
 
 ## 1. Overview
@@ -68,6 +79,10 @@ flowchart TD
 | `{type_2}`       | `{path}` | {description} |
 
 ### Common Usage Patterns
+
+<!--
+- For code snippets, include the expected output as comments (e.g., `// Output: ...`).
+-->
 
 #### {pattern_1}: {pattern_title}
 
