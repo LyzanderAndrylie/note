@@ -127,10 +127,10 @@ Conda fetches compiled package archives (`.tar.bz2` or `.conda`) from remote dir
 - **Channel Priority**:
   - `strict`: Conda prioritizes packages from the highest-priority channel regardless of whether a higher version exists in a lower-priority channel. This prevents mixing incompatible binary runtimes (e.g., mixing ABI builds from `defaults` and `conda-forge`).
   - `flexible`: Conda may pull dependencies from lower-priority channels to satisfy constraints.
-- **Safe Mixing Rules with `pip`**:
+- **Safe Mixing Rules with `pip` / `uv pip`**:
   - Always install all binary and C-extension dependencies via `conda` first.
-  - Run `pip install` only inside the activated Conda environment as a secondary step for packages unavailable in `conda-forge`.
-  - Avoid running `conda install` after running `pip install` in the same environment to prevent overriding pip-managed packages.
+  - Run `pip install` (or `uv pip install` for significantly faster resolution and downloads) only inside the activated Conda environment as a secondary step for packages unavailable in `conda-forge`.
+  - Avoid running `conda install` after running `pip` or `uv pip` in the same environment to prevent overriding pip-managed packages.
 
 | Task                          | Command Syntax                               | Description                                        |
 | :---------------------------- | :------------------------------------------- | :------------------------------------------------- |
