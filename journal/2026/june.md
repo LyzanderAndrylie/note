@@ -13,7 +13,7 @@
 - Refined the user personal data amendment flow by removing unnecessary logs from the account team database and auto-fixing fields, enhancing both the developer, back-office, and user experience.
 - Fixed OpenTelemetry duplicated metric and trace span issues for monitoring and observability, resulting in more accurate metrics for the account team.
 
-## What I have learned  
+## What I have learned
 
 - Securities trading account business processes, specifically related to pre and post registration handled by the account team.
 - Reading [Effective Go](https://go.dev/doc/effective_go), [The Uber Go Style Guide](https://github.com/uber-go/guide), and [gRPC Microservices in Go](https://www.manning.com/books/grpc-microservices-in-go).

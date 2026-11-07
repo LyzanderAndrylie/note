@@ -1,12 +1,12 @@
 # Scribing - February 2026
 
-This is my first time journaling. I still feel a little weird writing like this. However, I think this method can help me improve my English, as recommended in the book *The Miracle Morning*, while also immersing myself in the language. For now, I think it will be better for me to organize my journal entries on a monthly basis, as it allows me to reflect on the most important lessons, perspectives, and insights I gain each month. Hopefully, through this, I can grow to become the best version of myself.
+This is my first time journaling. I still feel a little weird writing like this. However, I think this method can help me improve my English, as recommended in the book _The Miracle Morning_, while also immersing myself in the language. For now, I think it will be better for me to organize my journal entries on a monthly basis, as it allows me to reflect on the most important lessons, perspectives, and insights I gain each month. Hopefully, through this, I can grow to become the best version of myself.
 
 ## Problems
 
 ### Potential Gap
 
-One concept that resonates with my current self is the "Potential Gap." It is simply the gap between where you want to be and where you are right now. As simple as it sounds, it is something that many of us overlook. I noticed this when I read *The Miracle Morning* by Hal Elrod and an article titled "How to Fix Your Entire Life in 1 Day" by Dan Koe. In addition, I came across an Instagram reel that describes the same concept. Check out the [[#Appendix]] for more details!
+One concept that resonates with my current self is the "Potential Gap." It is simply the gap between where you want to be and where you are right now. As simple as it sounds, it is something that many of us overlook. I noticed this when I read _The Miracle Morning_ by Hal Elrod and an article titled "How to Fix Your Entire Life in 1 Day" by Dan Koe. In addition, I came across an Instagram reel that describes the same concept. Check out the [[#Appendix]] for more details!
 
 As I understand it, this potential gap is actually a double-edged sword. On the one hand, we often focus on the negative side. On the other hand, it can motivate us to become the best version of ourselves—that is, to get where we want to be. Therefore, I must focus more on the positive aspects, though doing so is not as straightforward as it seems. Maybe the reason for this is exactly as Dan Koe describes:
 
@@ -26,11 +26,11 @@ I have always believed that every problem has its own solution. Thus, I believe 
 
 I once watched a video of Jackie Chan and Muhammad Ali talking about fear. Jackie Chan said that he did not live according to the expectations of others, but according to his own. Muhammad Ali then chimed in, saying, "He who is not courageous enough to take risks will accomplish nothing in life." They then took turns saying, "Fear is a teacher, and I don't skip class."
 
-From this perspective, fear is an emotion that can guide us to become better. However, most of us still view fear as a negative emotion—something we need to eliminate to be in the best state to overcome any problem. This is also true for me. I think that in a *flow* state, people feel tremendous excitement because their skills perfectly match the challenges they face, leaving no room for fear.
+From this perspective, fear is an emotion that can guide us to become better. However, most of us still view fear as a negative emotion—something we need to eliminate to be in the best state to overcome any problem. This is also true for me. I think that in a _flow_ state, people feel tremendous excitement because their skills perfectly match the challenges they face, leaving no room for fear.
 
 So the question is: do top-performing athletes feel no fear when they are about to compete on the world's biggest stage? I once came across a video showing that even elite athletes fear they might not perform well, despite having reached the pinnacle of their sport. However, they use this feeling to their advantage by acknowledging it and pushing through it.
 
-Does taking a deep breath make this feeling disappear? No, but moving forward despite it does. How many times have you been scared of something, gone through it, and afterward wondered why you were so afraid? I think many of us have experienced this. The following passage from *The Miracle Morning* reflects this experience perfectly:
+Does taking a deep breath make this feeling disappear? No, but moving forward despite it does. How many times have you been scared of something, gone through it, and afterward wondered why you were so afraid? I think many of us have experienced this. The following passage from _The Miracle Morning_ reflects this experience perfectly:
 
 > As individuals, each of us struggled with our own fears and self-doubt. But the moment we crossed that finish line, we had given ourselves the gift of freedom from our fears, our self-doubt, and our self-imposed limitations.
 >

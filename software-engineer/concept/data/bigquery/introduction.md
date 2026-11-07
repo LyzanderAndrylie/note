@@ -923,7 +923,7 @@ flowchart LR
 1. **Partition Pruning is Mandatory for Cost Control**:
    - If the target table is partitioned (e.g., by `DATE(created_at)`), a naive `ON T.user_id = S.user_id` will trigger a **full scan of every historical partition** in the target table.
    - **Optimization**: Add partition boundaries to the join condition or target predicate whenever possible:
-  
+
      ```sql
      ON T.user_id = S.user_id
      -- Limit scan to the last 14 days if historical rows never update

@@ -161,4 +161,3 @@ This refers to the accurate and sustained use of a range of phonological feature
 
 1. A candidate must fully fit the positive features of the descriptor at a particular level.
 2. A candidate will be rated on their average performance across all parts of the test.
-

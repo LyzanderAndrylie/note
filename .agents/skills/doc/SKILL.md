@@ -26,11 +26,11 @@ Manage technical documentation across the repository using the canonical templat
 
 Always read the template file before creating, restructuring, or simplifying a document of that type:
 
-| Type      | Template                               | Default Output Path                            | Example                                                    |
-| :-------- | :------------------------------------- | :--------------------------------------------- | :--------------------------------------------------------- |
-| `lib`     | [`lib.md`](./templates/lib.md)         | `software-engineer/lib/<category>/<name>.md`   | `software-engineer/lib/go/retry.md`                        |
-| `concept` | [`concept.md`](./templates/concept.md) | `software-engineer/concept/<topic>/<name>.md`  | `software-engineer/concept/postgres/lock.md`               |
-| `product` | [`product.md`](./templates/product.md) | `software-engineer/product/<name>/<name>.md`   | `software-engineer/product/phonenumbers/phonenumbers.md`   |
+| Type      | Template                               | Default Output Path                           | Example                                                  |
+| :-------- | :------------------------------------- | :-------------------------------------------- | :------------------------------------------------------- |
+| `lib`     | [`lib.md`](./templates/lib.md)         | `software-engineer/lib/<category>/<name>.md`  | `software-engineer/lib/go/retry.md`                      |
+| `concept` | [`concept.md`](./templates/concept.md) | `software-engineer/concept/<topic>/<name>.md` | `software-engineer/concept/postgres/lock.md`             |
+| `product` | [`product.md`](./templates/product.md) | `software-engineer/product/<name>/<name>.md`  | `software-engineer/product/phonenumbers/phonenumbers.md` |
 
 > [!NOTE]
 > If the user provides an explicit file path in `<context>` (even outside `software-engineer/`, such as `english/concepts/...` or `invest/...`), write to that exact path.

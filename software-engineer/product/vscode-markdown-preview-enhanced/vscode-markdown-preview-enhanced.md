@@ -1,15 +1,15 @@
 # Markdown Preview Enhanced (MPE) for Visual Studio Code
 
-| Metadata                       | Value                                                                                                                                                                                                                                                                                          |
-| :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Repository**                 | [https://github.com/shd101wyy/vscode-markdown-preview-enhanced](https://github.com/shd101wyy/vscode-markdown-preview-enhanced)                                                                                                                                                                 |
-| **Product Version**            | 0.8.33                                                                                                                                                                                                                                                                                         |
-| **Category**                   | Visual Studio Code Extension / Markdown & Technical Documentation Tooling                                                                                                                                                                                                                      |
-| **Language & Stack**           | TypeScript 5.2.2, Node.js (v16+), VS Code Extension API (^1.70.0), [crossnote 0.9.33](https://github.com/shd101wyy/crossnote), `@earendil-works/pi-ai`, `async-mutex`, `crypto-js`, `esbuild`, `gulp`, `pnpm`                                                                                  |
-| **Entry Points**               | [`src/extension.ts`](code/src/extension.ts), [`src/extension-web.ts`](code/src/extension-web.ts), [`src/preview-custom-editor-provider.ts`](code/src/preview-custom-editor-provider.ts)                                                                                                        |
+| Metadata                       | Value                                                                                                                                                                                                                                                                                                                                                                                |
+| :----------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Repository**                 | [https://github.com/shd101wyy/vscode-markdown-preview-enhanced](https://github.com/shd101wyy/vscode-markdown-preview-enhanced)                                                                                                                                                                                                                                                       |
+| **Product Version**            | 0.8.33                                                                                                                                                                                                                                                                                                                                                                               |
+| **Category**                   | Visual Studio Code Extension / Markdown & Technical Documentation Tooling                                                                                                                                                                                                                                                                                                            |
+| **Language & Stack**           | TypeScript 5.2.2, Node.js (v16+), VS Code Extension API (^1.70.0), [crossnote 0.9.33](https://github.com/shd101wyy/crossnote), `@earendil-works/pi-ai`, `async-mutex`, `crypto-js`, `esbuild`, `gulp`, `pnpm`                                                                                                                                                                        |
+| **Entry Points**               | [`src/extension.ts`](code/src/extension.ts), [`src/extension-web.ts`](code/src/extension-web.ts), [`src/preview-custom-editor-provider.ts`](code/src/preview-custom-editor-provider.ts)                                                                                                                                                                                              |
 | **Input / Output**             | **Input**: Markdown/Quarto/Prompt documents (`.md`, `.markdown`, `.mdown`, `.mkdn`, `.mkd`, `.rmd`, `.qmd`, `.mdx`; language IDs `markdown`, `quarto`, `prompt`, `instructions`, `chatagent`, `skill`), cursor/scroll events, config (`.crossnote/`, settings). **Output**: Sandboxed Webview DOM, Note Graph View, Document Exports (HTML, PDF, PNG/JPEG, eBook, Pandoc, Markdown). |
-| **Document Creation Date**     | 2026-09-13                                                                                                                                                                                                                                                                                     |
-| **Document Last Updated Date** | 2026-10-18                                                                                                                                                                                                                                                                                     |
+| **Document Creation Date**     | 2026-09-13                                                                                                                                                                                                                                                                                                                                                                           |
+| **Document Last Updated Date** | 2026-10-18                                                                                                                                                                                                                                                                                                                                                                           |
 
 ---
 
@@ -184,23 +184,23 @@ code/
 └── package.json             # Manifest defining commands, menus, views, & dependencies
 ```
 
-| Path                                                                          | Description                                                                                     |
-| :---------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------- |
-| [`src/extension.ts`](code/src/extension.ts)                                   | Desktop entry point initializing local directory watchers (`globalConfigPath`) and host commands. |
-| [`src/extension-web.ts`](code/src/extension-web.ts)                           | Web extension entry point initializing common services without desktop-only dependencies.       |
-| [`src/extension-common.ts`](code/src/extension-common.ts)                     | Shared coordinator registering commands, editor listeners, scroll sync, and language providers. |
-| [`src/preview-provider.ts`](code/src/preview-provider.ts)                     | Manages webview panels, mutex synchronization, render request sequencing, CSP, and exports.     |
-| [`src/notebooks-manager.ts`](code/src/notebooks-manager.ts)                   | Creates and caches crossnote `Notebook` instances, merging VS Code settings with `.crossnote`.  |
-| [`src/vscode-fs.ts`](code/src/vscode-fs.ts)                                   | Implements crossnote's `FileSystemApi` on top of `vscode.workspace.fs` for universal I/O.       |
-| [`src/config.ts`](code/src/config.ts)                                         | Reads MPE settings, defines color scheme enums, and maps properties to `NotebookConfig`.        |
-| [`src/graph-view-provider.ts`](code/src/graph-view-provider.ts)               | Orchestrates the webview-based note relation network visualization.                             |
-| [`src/wikilink-document-link-provider.ts`](code/src/wikilink-document-link-provider.ts) | Provides clickable `DocumentLink` spans for `[[wikilinks]]` in the editor.            |
-| [`src/wikilink-hover-provider.ts`](code/src/wikilink-hover-provider.ts)       | Renders rich hover previews for linked notes, headings, and block IDs.                          |
-| [`src/block-id-completion-provider.ts`](code/src/block-id-completion-provider.ts) | Supplies autocomplete suggestions for notes, headings, block IDs, and body `#tags`.         |
-| [`src/ai-translator.ts`](code/src/ai-translator.ts)                           | Manages LLM translation streaming via `@earendil-works/pi-ai` and secure API key storage.       |
-| [`src/ai-translation-cache.ts`](code/src/ai-translation-cache.ts)             | Persists translated markdown blocks to disk with LRU eviction capped at 5,000 blocks.           |
-| [`src/markdown-blocks.ts`](code/src/markdown-blocks.ts)                       | State-machine line parser that splits markdown on blank lines while preserving code fences.     |
-| [`src/preview-custom-editor-provider.ts`](code/src/preview-custom-editor-provider.ts) | Hooks into the VS Code Custom Editor API to host MPE inside standard document tabs.     |
+| Path                                                                                    | Description                                                                                       |
+| :-------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------ |
+| [`src/extension.ts`](code/src/extension.ts)                                             | Desktop entry point initializing local directory watchers (`globalConfigPath`) and host commands. |
+| [`src/extension-web.ts`](code/src/extension-web.ts)                                     | Web extension entry point initializing common services without desktop-only dependencies.         |
+| [`src/extension-common.ts`](code/src/extension-common.ts)                               | Shared coordinator registering commands, editor listeners, scroll sync, and language providers.   |
+| [`src/preview-provider.ts`](code/src/preview-provider.ts)                               | Manages webview panels, mutex synchronization, render request sequencing, CSP, and exports.       |
+| [`src/notebooks-manager.ts`](code/src/notebooks-manager.ts)                             | Creates and caches crossnote `Notebook` instances, merging VS Code settings with `.crossnote`.    |
+| [`src/vscode-fs.ts`](code/src/vscode-fs.ts)                                             | Implements crossnote's `FileSystemApi` on top of `vscode.workspace.fs` for universal I/O.         |
+| [`src/config.ts`](code/src/config.ts)                                                   | Reads MPE settings, defines color scheme enums, and maps properties to `NotebookConfig`.          |
+| [`src/graph-view-provider.ts`](code/src/graph-view-provider.ts)                         | Orchestrates the webview-based note relation network visualization.                               |
+| [`src/wikilink-document-link-provider.ts`](code/src/wikilink-document-link-provider.ts) | Provides clickable `DocumentLink` spans for `[[wikilinks]]` in the editor.                        |
+| [`src/wikilink-hover-provider.ts`](code/src/wikilink-hover-provider.ts)                 | Renders rich hover previews for linked notes, headings, and block IDs.                            |
+| [`src/block-id-completion-provider.ts`](code/src/block-id-completion-provider.ts)       | Supplies autocomplete suggestions for notes, headings, block IDs, and body `#tags`.               |
+| [`src/ai-translator.ts`](code/src/ai-translator.ts)                                     | Manages LLM translation streaming via `@earendil-works/pi-ai` and secure API key storage.         |
+| [`src/ai-translation-cache.ts`](code/src/ai-translation-cache.ts)                       | Persists translated markdown blocks to disk with LRU eviction capped at 5,000 blocks.             |
+| [`src/markdown-blocks.ts`](code/src/markdown-blocks.ts)                                 | State-machine line parser that splits markdown on blank lines while preserving code fences.       |
+| [`src/preview-custom-editor-provider.ts`](code/src/preview-custom-editor-provider.ts)   | Hooks into the VS Code Custom Editor API to host MPE inside standard document tabs.               |
 
 ---
 
@@ -208,13 +208,13 @@ code/
 
 ### Key Types & Interfaces
 
-| Type / Interface                                                          | Location                                                                  | Description                                                                                                               |
-| :------------------------------------------------------------------------ | :------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------ |
-| [`MarkdownPreviewEnhancedConfig`](code/src/config.ts#L59)                 | [`src/config.ts`](code/src/config.ts)                                     | Typed representation of all VS Code configuration keys implementing crossnote's `NotebookConfig`.                         |
-| [`PreviewColorScheme`](code/src/config.ts#L23)                            | [`src/config.ts`](code/src/config.ts)                                     | Enum (`selectedPreviewTheme`, `systemColorScheme`, `editorColorScheme`) controlling dark/light adaptation.                |
-| [`wrapVSCodeFSAsApi` / `FileSystemApi`](code/src/vscode-fs.ts#L16)        | [`src/vscode-fs.ts`](code/src/vscode-fs.ts)                               | Factory function wrapping `vscode.workspace.fs` into crossnote's `FileSystemApi` interface (`exists`, `readFile`, etc.).  |
-| [`TranslateResult`](code/src/ai-translator.ts#L91)                        | [`src/ai-translator.ts`](code/src/ai-translator.ts)                       | Result type returned by translation streams containing `{ ok: boolean, markdown?: string, error?: string }`.              |
-| [`GraphViewData`](code/src/graph-view-provider.ts#L1)                     | [`src/graph-view-provider.ts`](code/src/graph-view-provider.ts) (imported from `crossnote`) | Crossnote node-link graph data interface representing document entities, cross-references, and tags across the workspace. |
+| Type / Interface                                                   | Location                                                                                    | Description                                                                                                               |
+| :----------------------------------------------------------------- | :------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------ |
+| [`MarkdownPreviewEnhancedConfig`](code/src/config.ts#L59)          | [`src/config.ts`](code/src/config.ts)                                                       | Typed representation of all VS Code configuration keys implementing crossnote's `NotebookConfig`.                         |
+| [`PreviewColorScheme`](code/src/config.ts#L23)                     | [`src/config.ts`](code/src/config.ts)                                                       | Enum (`selectedPreviewTheme`, `systemColorScheme`, `editorColorScheme`) controlling dark/light adaptation.                |
+| [`wrapVSCodeFSAsApi` / `FileSystemApi`](code/src/vscode-fs.ts#L16) | [`src/vscode-fs.ts`](code/src/vscode-fs.ts)                                                 | Factory function wrapping `vscode.workspace.fs` into crossnote's `FileSystemApi` interface (`exists`, `readFile`, etc.).  |
+| [`TranslateResult`](code/src/ai-translator.ts#L91)                 | [`src/ai-translator.ts`](code/src/ai-translator.ts)                                         | Result type returned by translation streams containing `{ ok: boolean, markdown?: string, error?: string }`.              |
+| [`GraphViewData`](code/src/graph-view-provider.ts#L1)              | [`src/graph-view-provider.ts`](code/src/graph-view-provider.ts) (imported from `crossnote`) | Crossnote node-link graph data interface representing document entities, cross-references, and tags across the workspace. |
 
 ### Common Usage Patterns
 
@@ -650,13 +650,13 @@ flowchart LR
     I --> J["postMessage('updateHtml') -> In-Place DOM Diff"]
 ```
 
-| Stage                            | Model / Entity        | Format        | Description                                                                                    |
-| :------------------------------- | :-------------------- | :------------ | :--------------------------------------------------------------------------------------------- |
-| **Stage 1: Ingestion**           | `vscode.TextDocument` | Plain Text    | Source buffer read from disk (when clean) or dirty editor memory.                              |
-| **Stage 2: Block Chunking (AI)** | `string[]` (Blocks)   | String Array  | Top-level blocks split on blank lines while preserving YAML front matter and code fences.      |
-| **Stage 3: Block Hashing (AI)**  | `BlockHash`           | Hex String    | First 16 characters of SHA-256 hash used as the key for `~/.crossnote/ai-translation-cache/`.  |
-| **Stage 4: Incremental Parse**   | `ParsedResult`        | Object (HTML) | Output from `engine.parseMD()` containing `html`, `tocHTML`, `JSAndCssFiles`, and `yamlConfig`.|
-| **Stage 5: Full Bootstrap**      | `HTMLDocument`        | Full HTML5    | Output from `engine.generateHTMLTemplateForPreview()` with CSP, lightbox, and bootstrap JS.    |
+| Stage                            | Model / Entity        | Format        | Description                                                                                     |
+| :------------------------------- | :-------------------- | :------------ | :---------------------------------------------------------------------------------------------- |
+| **Stage 1: Ingestion**           | `vscode.TextDocument` | Plain Text    | Source buffer read from disk (when clean) or dirty editor memory.                               |
+| **Stage 2: Block Chunking (AI)** | `string[]` (Blocks)   | String Array  | Top-level blocks split on blank lines while preserving YAML front matter and code fences.       |
+| **Stage 3: Block Hashing (AI)**  | `BlockHash`           | Hex String    | First 16 characters of SHA-256 hash used as the key for `~/.crossnote/ai-translation-cache/`.   |
+| **Stage 4: Incremental Parse**   | `ParsedResult`        | Object (HTML) | Output from `engine.parseMD()` containing `html`, `tocHTML`, `JSAndCssFiles`, and `yamlConfig`. |
+| **Stage 5: Full Bootstrap**      | `HTMLDocument`        | Full HTML5    | Output from `engine.generateHTMLTemplateForPreview()` with CSP, lightbox, and bootstrap JS.     |
 
 #### `MarkdownPreviewEnhancedConfig`
 
@@ -710,13 +710,13 @@ erDiagram
     }
 ```
 
-| Entity                      | Location                                                 | Lifecycle             | Description                                                                        |
-| :-------------------------- | :------------------------------------------------------- | :-------------------- | :--------------------------------------------------------------------------------- |
-| **Global Config**           | `~/.crossnote/` (Windows) or `$XDG_CONFIG_HOME/crossnote` / `~/.local/state/crossnote` (Unix) | Persistent | User-wide `style.less`, `config.js`, `parser.js`, `head.html`, and `image_history.md`. |
-| **Workspace Config**        | `<workspace>/.crossnote/`                                | Per-Workspace         | Repository-specific overrides for `style.less`, `config.js`, `parser.js`, and `head.html`. |
-| **Block Translation Cache** | `<globalConfigPath>/ai-translation-cache/blocks/`        | Persistent (LRU 5000) | Stores translated markdown chunks (`<hash>.md`) and metadata (`<hash>.meta.json`). |
-| **API Key Secret**          | VS Code `SecretStorage`                                  | Persistent Secure     | Encrypted storage for AI translation API key under `mpe.aiTranslation.apiKey`.     |
-| **Graph View Preferences**  | VS Code `ExtensionContext.globalState`                   | Persistent Global     | Stores `graphViewMode` (`'global' \| 'local'`) and `graphViewColorByFolder` (`boolean`). |
+| Entity                      | Location                                                                                      | Lifecycle             | Description                                                                                |
+| :-------------------------- | :-------------------------------------------------------------------------------------------- | :-------------------- | :----------------------------------------------------------------------------------------- |
+| **Global Config**           | `~/.crossnote/` (Windows) or `$XDG_CONFIG_HOME/crossnote` / `~/.local/state/crossnote` (Unix) | Persistent            | User-wide `style.less`, `config.js`, `parser.js`, `head.html`, and `image_history.md`.     |
+| **Workspace Config**        | `<workspace>/.crossnote/`                                                                     | Per-Workspace         | Repository-specific overrides for `style.less`, `config.js`, `parser.js`, and `head.html`. |
+| **Block Translation Cache** | `<globalConfigPath>/ai-translation-cache/blocks/`                                             | Persistent (LRU 5000) | Stores translated markdown chunks (`<hash>.md`) and metadata (`<hash>.meta.json`).         |
+| **API Key Secret**          | VS Code `SecretStorage`                                                                       | Persistent Secure     | Encrypted storage for AI translation API key under `mpe.aiTranslation.apiKey`.             |
+| **Graph View Preferences**  | VS Code `ExtensionContext.globalState`                                                        | Persistent Global     | Stores `graphViewMode` (`'global' \| 'local'`) and `graphViewColorByFolder` (`boolean`).   |
 
 #### `BlockMeta` (Block Translation Cache Entry)
 
@@ -790,7 +790,7 @@ erDiagram
 ### 2. Levenshtein-Based Block-ID Fuzzy Suggester (`rankByCloseness`)
 
 - **Location**: [`src/wikilink-hover-provider.ts`](code/src/wikilink-hover-provider.ts#L286)
-- **Purpose**: Ranks candidate `^block-id` anchors in a target note when a user hovers over an unresolved block reference (`[[Note^missing-id]]`), powering the *"Did you mean"* suggestions in [`WikilinkHoverProvider.formatNotFound`](code/src/wikilink-hover-provider.ts#L152).
+- **Purpose**: Ranks candidate `^block-id` anchors in a target note when a user hovers over an unresolved block reference (`[[Note^missing-id]]`), powering the _"Did you mean"_ suggestions in [`WikilinkHoverProvider.formatNotFound`](code/src/wikilink-hover-provider.ts#L152).
 - **Complexity**: $O(K \cdot |A| \cdot |B| + K \log K)$ time across $K$ candidates of length $|B|$ against query $|A|$; $O(|B| + K)$ auxiliary memory using two-row dynamic programming.
 
 #### How It Works
@@ -1002,13 +1002,13 @@ flowchart LR
 
 ### Error Types & Propagation
 
-| Error Type                      | Source                                                                     | Propagation Strategy                                                                                         | User-Facing?                             |
-| :------------------------------ | :------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- | :--------------------------------------- |
-| **Filesystem Root Indexing**    | [`NotebooksManager.warnIfFilesystemRoot`](code/src/notebooks-manager.ts#L94) | Guards against root directory indexing (`/` or `C:\`); warns once per root per session.                      | Yes (`vscode.window.showWarningMessage`) |
-| **Stale Render Request**        | [`PreviewProvider.updateMarkdown`](code/src/preview-provider.ts#L812)      | Discards render silently when `renderRequestSeq` or `initRequestSeq` mismatch occurs.                        | No                                       |
-| **AI Translation Failure**      | [`PreviewProvider.translateIncrementally`](code/src/preview-provider.ts#L1092) | Falls back to `translateWholeDocumentStreaming`; surfaces error notification if whole-doc stream also fails. | Yes (`vscode.window.showErrorMessage`)   |
-| **Unresolved Block Reference**  | [`WikilinkHoverProvider.formatNotFound`](code/src/wikilink-hover-provider.ts#L152) | Uses [`rankByCloseness`](code/src/wikilink-hover-provider.ts#L286) Levenshtein ranking to show top 5 *"Did you mean"* `^block-id` suggestions. | Yes (Markdown hover card) |
-| **Unresolved Wikilink Note**    | [`WikilinkHoverProvider.resolveNoteUri`](code/src/wikilink-hover-provider.ts#L214) | Falls back from `notebook.resolveWikilink()` to same-directory `stat` and workspace-wide `findFiles` by basename. | Yes (`*Note not found:*` hover card) |
+| Error Type                     | Source                                                                             | Propagation Strategy                                                                                                                           | User-Facing?                             |
+| :----------------------------- | :--------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------- |
+| **Filesystem Root Indexing**   | [`NotebooksManager.warnIfFilesystemRoot`](code/src/notebooks-manager.ts#L94)       | Guards against root directory indexing (`/` or `C:\`); warns once per root per session.                                                        | Yes (`vscode.window.showWarningMessage`) |
+| **Stale Render Request**       | [`PreviewProvider.updateMarkdown`](code/src/preview-provider.ts#L812)              | Discards render silently when `renderRequestSeq` or `initRequestSeq` mismatch occurs.                                                          | No                                       |
+| **AI Translation Failure**     | [`PreviewProvider.translateIncrementally`](code/src/preview-provider.ts#L1092)     | Falls back to `translateWholeDocumentStreaming`; surfaces error notification if whole-doc stream also fails.                                   | Yes (`vscode.window.showErrorMessage`)   |
+| **Unresolved Block Reference** | [`WikilinkHoverProvider.formatNotFound`](code/src/wikilink-hover-provider.ts#L152) | Uses [`rankByCloseness`](code/src/wikilink-hover-provider.ts#L286) Levenshtein ranking to show top 5 _"Did you mean"_ `^block-id` suggestions. | Yes (Markdown hover card)                |
+| **Unresolved Wikilink Note**   | [`WikilinkHoverProvider.resolveNoteUri`](code/src/wikilink-hover-provider.ts#L214) | Falls back from `notebook.resolveWikilink()` to same-directory `stat` and workspace-wide `findFiles` by basename.                              | Yes (`*Note not found:*` hover card)     |
 
 ### Recovery Mechanisms
 

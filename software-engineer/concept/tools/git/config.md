@@ -28,13 +28,13 @@ Git reads settings across discrete configuration files in order of increasing sp
 - **`--worktree`**: `.git/config.worktree` — Settings isolated to a linked worktree (requires `extensions.worktreeConfig`).
 - **`git -c <key>=<value>`**: In-memory flag that overrides any configuration for a single command execution without writing to disk.
 
-| Scope | Flag | File Path | Precedence | Best Used For |
-| :---- | :--- | :-------- | :--------- | :------------ |
-| **CLI** | `git -c k=v` | None (ephemeral) | 1 (Highest) | One-off overrides (e.g., temporary author or CI flag) |
-| **Worktree** | `--worktree` | `.git/config.worktree` | 2 | Worktree-specific sparse checkout or branches |
-| **Local** | `--local` | `.git/config` | 3 | Remote URLs, branch tracking, project-specific keys |
-| **Global** | `--global` | `~/.gitconfig` | 4 | User identity (`name`, `email`), diff tools, global aliases |
-| **System** | `--system` | `/etc/gitconfig` | 5 (Lowest) | Shared machine or enterprise defaults |
+| Scope        | Flag         | File Path              | Precedence  | Best Used For                                               |
+| :----------- | :----------- | :--------------------- | :---------- | :---------------------------------------------------------- |
+| **CLI**      | `git -c k=v` | None (ephemeral)       | 1 (Highest) | One-off overrides (e.g., temporary author or CI flag)       |
+| **Worktree** | `--worktree` | `.git/config.worktree` | 2           | Worktree-specific sparse checkout or branches               |
+| **Local**    | `--local`    | `.git/config`          | 3           | Remote URLs, branch tracking, project-specific keys         |
+| **Global**   | `--global`   | `~/.gitconfig`         | 4           | User identity (`name`, `email`), diff tools, global aliases |
+| **System**   | `--system`   | `/etc/gitconfig`       | 5 (Lowest)  | Shared machine or enterprise defaults                       |
 
 #### Interaction
 
@@ -68,17 +68,17 @@ Modern Git provides dedicated subcommands (`get`, `set`, `unset`, `list`, `edit`
 - **Write Operations**: Set scalar values using `set`, append array entries using `--append`, or overwrite all matches using `--all`.
 - **Deletions & Edits**: Delete keys via `unset`, or launch `$EDITOR` directly with `edit`.
 
-| Task | Modern Command (Git 2.43+) | Legacy Equivalent |
-| :--- | :------------------------- | :---------------- |
-| **List all settings** | `git config list` | `git config -l` |
-| **List with origin file** | `git config list --show-origin` | `git config -l --show-origin` |
-| **Read a single key** | `git config get <key>` | `git config <key>` |
-| **Read with fallback** | `git config get --default="main" <key>` | `git config <key> \|\| echo "main"` |
-| **Search keys by regex** | `git config get --regexp "^alias\."` | `git config --get-regexp "^alias\."` |
-| **Set a key** | `git config set [--global] <key> <val>` | `git config [--global] <key> <val>` |
-| **Append array value** | `git config set --append <key> <val>` | `git config --add <key> <val>` |
-| **Unset a key** | `git config unset [--global] <key>` | `git config --unset [--global] <key>` |
-| **Open config in editor**| `git config edit [--global]` | `git config -e [--global]` |
+| Task                      | Modern Command (Git 2.43+)              | Legacy Equivalent                     |
+| :------------------------ | :-------------------------------------- | :------------------------------------ |
+| **List all settings**     | `git config list`                       | `git config -l`                       |
+| **List with origin file** | `git config list --show-origin`         | `git config -l --show-origin`         |
+| **Read a single key**     | `git config get <key>`                  | `git config <key>`                    |
+| **Read with fallback**    | `git config get --default="main" <key>` | `git config <key> \|\| echo "main"`   |
+| **Search keys by regex**  | `git config get --regexp "^alias\."`    | `git config --get-regexp "^alias\."`  |
+| **Set a key**             | `git config set [--global] <key> <val>` | `git config [--global] <key> <val>`   |
+| **Append array value**    | `git config set --append <key> <val>`   | `git config --add <key> <val>`        |
+| **Unset a key**           | `git config unset [--global] <key>`     | `git config --unset [--global] <key>` |
+| **Open config in editor** | `git config edit [--global]`            | `git config -e [--global]`            |
 
 #### Interaction
 
@@ -119,11 +119,11 @@ git config edit --global
 - **Trailing `/**`**: Ensures recursive matching for any repository inside the specified directory.
 - **Order Dependency**: Put `includeIf` directives **after** baseline defaults in `~/.gitconfig` so the included file overrides them.
 
-| Match Pattern | Trigger Condition | Common Use Case |
-| :------------ | :---------------- | :-------------- |
-| **`gitdir:~/work/**`** | Repo path is inside `~/work/` | Company email, work SSH key, corporate GPG sign |
-| **`gitdir:~/personal/**`** | Repo path is inside `~/personal/` | Personal email, personal SSH key |
-| **`onbranch:main`** | Active branch is `main` | Strict commit signing on protected branches |
+| Match Pattern              | Trigger Condition                 | Common Use Case                                 |
+| :------------------------- | :-------------------------------- | :---------------------------------------------- |
+| **`gitdir:~/work/**`**     | Repo path is inside `~/work/`     | Company email, work SSH key, corporate GPG sign |
+| **`gitdir:~/personal/**`** | Repo path is inside `~/personal/` | Personal email, personal SSH key                |
+| **`onbranch:main`**        | Active branch is `main`           | Strict commit signing on protected branches     |
 
 #### Interaction
 
@@ -165,16 +165,16 @@ The most critical, high-impact configuration keys and productivity aliases for c
 - **Conflict Resolution**: `merge.conflictStyle = zdiff3` exposes the common ancestor base in conflict markers, and `rerere.enabled = true` remembers and re-applies conflict solutions automatically.
 - **Diff Quality**: `diff.algorithm = histogram` generates significantly cleaner diffs for moved or refactored code.
 
-| Configuration Key | Recommended Value | Impact / Why You Want It |
-| :---------------- | :---------------- | :----------------------- |
-| **`init.defaultBranch`** | `main` | Standardizes default initial branch name |
-| **`pull.rebase`** | `true` | Pulls rebase local commits instead of creating merge bubbles |
-| **`push.autoSetupRemote`**| `true` | Automatically sets `--set-upstream origin <branch>` on first push |
-| **`fetch.prune`** | `true` | Automatically deletes stale local references to deleted remote branches |
-| **`merge.conflictStyle`** | `zdiff3` | Shows ancestor code block in conflict markers (`||||||| base`) |
-| **`rerere.enabled`** | `true` | Automatically remembers and applies merge conflict resolutions |
-| **`diff.algorithm`** | `histogram` | Superior diff output for restructured code and moved blocks |
-| **`core.autocrlf`** | `input` (macOS/Linux) / `true` (Win) | Normalizes line endings to LF and prevents OS line ending churn |
+| Configuration Key          | Recommended Value                    | Impact / Why You Want It                                                |
+| :------------------------- | :----------------------------------- | :---------------------------------------------------------------------- |
+| **`init.defaultBranch`**   | `main`                               | Standardizes default initial branch name                                |
+| **`pull.rebase`**          | `true`                               | Pulls rebase local commits instead of creating merge bubbles            |
+| **`push.autoSetupRemote`** | `true`                               | Automatically sets `--set-upstream origin <branch>` on first push       |
+| **`fetch.prune`**          | `true`                               | Automatically deletes stale local references to deleted remote branches |
+| **`merge.conflictStyle`**  | `zdiff3`                             | Shows ancestor code block in conflict markers (`                        |     |     |     |     |     |     | base`) |
+| **`rerere.enabled`**       | `true`                               | Automatically remembers and applies merge conflict resolutions          |
+| **`diff.algorithm`**       | `histogram`                          | Superior diff output for restructured code and moved blocks             |
+| **`core.autocrlf`**        | `input` (macOS/Linux) / `true` (Win) | Normalizes line endings to LF and prevents OS line ending churn         |
 
 #### Production `~/.gitconfig` Cheatsheet
 
@@ -217,10 +217,10 @@ The most critical, high-impact configuration keys and productivity aliases for c
     st = status -sb
     co = checkout
     br = branch -vv
-    
+
     # Clean decorated one-line history
     lg = log --graph --oneline --decorate --all
-    
+
     # Undo and amends
     unstage = reset HEAD --
     undo = reset --soft HEAD~1

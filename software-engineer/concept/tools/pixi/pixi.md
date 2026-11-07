@@ -31,14 +31,14 @@ Pixi replaces the fragmented Python packaging landscape by merging binary packag
 - **Project-Local Prefixes**: Unlike traditional Conda (which stores environments globally in `~/miniconda3/envs/`), Pixi isolates environments per repository inside `.pixi/envs/<environment-name>/`.
 - **Global Package Cache**: Downloads are deduplicated across projects via hardlinks from a central cache (`~/.cache/rattler/cache`), minimizing disk usage.
 
-| Feature / Dimension | Classic `conda` | `conda-lock` | `uv` alone | `pixi` |
-| :------------------ | :-------------- | :----------- | :--------- | :----- |
-| **Binary Packages (CUDA, C++)** | Yes | Yes | No (PyPI only) | **Yes (via Conda channels)** |
-| **PyPI Packages & Wheels** | Fragile / Secondary | Fragile | Native / Primary | **Native (Embedded `uv`)** |
-| **Lockfile Generation** | None (manual export) | Manual command | Automatic (`uv.lock`) | **Automatic (`pixi.lock`)** |
-| **Host Prerequisites** | Python + Conda runtime | Python + Conda + pip | Standalone binary | **Standalone binary** |
-| **Built-in Task Runner** | No (requires Make/Just) | No | No | **Yes (`pixi run`)** |
-| **Resolution Speed** | Slow (Python SAT) | Slow (invokes solver) | Ultra-fast (Rust) | **Ultra-fast (Rust `libsolv-rs`)** |
+| Feature / Dimension             | Classic `conda`         | `conda-lock`          | `uv` alone            | `pixi`                             |
+| :------------------------------ | :---------------------- | :-------------------- | :-------------------- | :--------------------------------- |
+| **Binary Packages (CUDA, C++)** | Yes                     | Yes                   | No (PyPI only)        | **Yes (via Conda channels)**       |
+| **PyPI Packages & Wheels**      | Fragile / Secondary     | Fragile               | Native / Primary      | **Native (Embedded `uv`)**         |
+| **Lockfile Generation**         | None (manual export)    | Manual command        | Automatic (`uv.lock`) | **Automatic (`pixi.lock`)**        |
+| **Host Prerequisites**          | Python + Conda runtime  | Python + Conda + pip  | Standalone binary     | **Standalone binary**              |
+| **Built-in Task Runner**        | No (requires Make/Just) | No                    | No                    | **Yes (`pixi run`)**               |
+| **Resolution Speed**            | Slow (Python SAT)       | Slow (invokes solver) | Ultra-fast (Rust)     | **Ultra-fast (Rust `libsolv-rs`)** |
 
 #### Interaction
 
@@ -122,11 +122,11 @@ AI/ML workflows frequently encounter platform divergence: development occurs on 
 - **Target Overrides (`[target.<platform>.dependencies]`)**: Modifies dependencies based on the host operating system and CPU architecture without branching Git repositories.
 - **Environment Matrixing (`[environments]`)**: Combines feature sets into distinct isolated sandboxes (e.g., a lightweight `cpu` environment for CI test suites alongside a full `cuda12` environment for model training).
 
-| Target Configuration | Active Environment | Platform | Included Packages |
-| :------------------- | :----------------- | :------- | :---------------- |
-| **`target.osx-arm64`** | `default` | Apple Silicon | CPU PyTorch, Metal acceleration, Apple MPS support |
-| **`target.linux-64`** | `default` | Linux x86_64 | CUDA Toolkit 12.4, cuDNN, Triton compiler |
-| **`environments.test`** | `test` | Any | Pytest, Flake8, Coverage (omits heavy CUDA binaries) |
+| Target Configuration    | Active Environment | Platform      | Included Packages                                    |
+| :---------------------- | :----------------- | :------------ | :--------------------------------------------------- |
+| **`target.osx-arm64`**  | `default`          | Apple Silicon | CPU PyTorch, Metal acceleration, Apple MPS support   |
+| **`target.linux-64`**   | `default`          | Linux x86_64  | CUDA Toolkit 12.4, cuDNN, Triton compiler            |
+| **`environments.test`** | `test`             | Any           | Pytest, Flake8, Coverage (omits heavy CUDA binaries) |
 
 #### Interaction
 
@@ -245,11 +245,11 @@ Hosted platforms like Google Colab and Kaggle ship with fixed kernel drivers and
   - Downloads locked PyTorch binaries on initial setup (~1–2 GB in ~15–25 seconds over datacenter networks).
   - Trades initial setup time for 100% bit-for-bit parity across local workstations, Slurm clusters, and hosted notebooks.
 
-| Execution Mode | Target Runtime | Mechanism | Trade-Off |
-| :------------- | :------------- | :-------- | :-------- |
-| **Script Execution (`pixi run`)** | Colab / Kaggle shell | `!curl -fsSL https://pixi.sh/install.sh \| bash`<br/>`!pixi run python train.py` | 100% reproducible; identical to local machine execution |
-| **Interactive Cell Import** | Colab notebook cells | Install `ipykernel` in Pixi and register kernel, or prepend `sys.path.insert(0, ...)` | Allows interactive `import` in notebook cells using locked packages |
-| **Ephemeral Quick-Test** | Colab pre-installed Python | `!pip install uv && uv pip install --system <pkg>` | Fast startup, but mutates shared host Python state |
+| Execution Mode                    | Target Runtime             | Mechanism                                                                             | Trade-Off                                                           |
+| :-------------------------------- | :------------------------- | :------------------------------------------------------------------------------------ | :------------------------------------------------------------------ |
+| **Script Execution (`pixi run`)** | Colab / Kaggle shell       | `!curl -fsSL https://pixi.sh/install.sh \| bash`<br/>`!pixi run python train.py`      | 100% reproducible; identical to local machine execution             |
+| **Interactive Cell Import**       | Colab notebook cells       | Install `ipykernel` in Pixi and register kernel, or prepend `sys.path.insert(0, ...)` | Allows interactive `import` in notebook cells using locked packages |
+| **Ephemeral Quick-Test**          | Colab pre-installed Python | `!pip install uv && uv pip install --system <pkg>`                                    | Fast startup, but mutates shared host Python state                  |
 
 ```python
 # Setup snippet for Google Colab or Kaggle Notebook cells

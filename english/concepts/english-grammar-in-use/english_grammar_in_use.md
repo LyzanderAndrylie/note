@@ -852,6 +852,7 @@
     - Do you think I could borrow your bike?
   - May is also possible:
     - May I ask you a question?
+
     <aside>
     💡 May is more formal than can or could.
 
@@ -1811,11 +1812,11 @@ irregular (built/done/stolen etc.).
   ![Untitled](<attachments/76. the 4 (the giraffe , the telephone , the old etc.) 2.png>)
     <aside>
     💡 Note that we say: the old (not the olds), the poor (not the poors) etc.
-    
+
     </aside>
-    
-    - The rich, the homeless etc. are plural. For one person, we say:
-        - a rich man (not a rich) a homeless person (not a homeless)
+  - The rich, the homeless etc. are plural. For one person, we say:
+    - a rich man (not a rich) a homeless person (not a homeless)
+
 - the French, the Chinese etc.
   - We use the + a few nationality adjectives that end in -ch or -sh. For example: the French, the Dutch, the British, the English, the Spanish
   - The meaning is plural – the people of that country.

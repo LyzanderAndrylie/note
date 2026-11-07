@@ -169,10 +169,10 @@ Understanding the GPU memory hierarchy is essential to achieve high compute util
 
 #### Memory Space Comparison
 
-| Memory Space | Scope | Lifetime | Location | Access Speed |
-| :--- | :--- | :--- | :--- | :--- |
-| **Registers** | Single Thread | Thread | On-chip | Immediate (~1 cycle) |
-| **Shared Memory** | Thread Block | Block | On-chip | Very Fast (~1–3 cycles) |
-| **Constant Memory** | All Threads | Application | On-chip Cache / Device | Fast when broadcast cached (~1 cycle) |
-| **Global Memory** | All Threads & Host | Application | Off-chip (VRAM) | Slow (~200–400 cycles without cache) |
-| **Unified Memory** | Host & Device | Application | Virtual Managed | Managed paging over PCIe / NVLink |
+| Memory Space        | Scope              | Lifetime    | Location               | Access Speed                          |
+| :------------------ | :----------------- | :---------- | :--------------------- | :------------------------------------ |
+| **Registers**       | Single Thread      | Thread      | On-chip                | Immediate (~1 cycle)                  |
+| **Shared Memory**   | Thread Block       | Block       | On-chip                | Very Fast (~1–3 cycles)               |
+| **Constant Memory** | All Threads        | Application | On-chip Cache / Device | Fast when broadcast cached (~1 cycle) |
+| **Global Memory**   | All Threads & Host | Application | Off-chip (VRAM)        | Slow (~200–400 cycles without cache)  |
+| **Unified Memory**  | Host & Device      | Application | Virtual Managed        | Managed paging over PCIe / NVLink     |

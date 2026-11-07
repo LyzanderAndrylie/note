@@ -632,8 +632,8 @@ func extractIndonesianNumbers(text string) {
 
 ### Source File Inventory
 
-| File                                                                | Size                | Purpose                                                                                                                                  |
-| :------------------------------------------------------------------ | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| File                                             | Size                | Purpose                                                                                                                                  |
+| :----------------------------------------------- | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------- |
 | [`ranges.csv`](./metadata/62/ranges.csv)         | 82 KB (375 entries) | Complete prefix-to-type mapping: every allocated prefix with its type, length, tariff, operator, format, timezone, and bilingual geocode |
 | [`formats.csv`](./metadata/62/formats.csv)       | 1.2 KB (11 formats) | Named formatting templates defining national and international digit grouping patterns                                                   |
 | [`altformats.csv`](./metadata/62/altformats.csv) | 225 B (6 entries)   | Alternative digit grouping patterns accepted during parsing but not used for canonical output                                            |

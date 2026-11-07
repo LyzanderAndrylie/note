@@ -1,10 +1,10 @@
 # {Library Name}
 
-| Metadata      | Value                                          |
-| ------------- | ---------------------------------------------- |
-| Author        | {author1}, {author2}, ...                      |
-| Creation Date | {Jan 2, 2006}                                  |
-| Last Updated  | {Jan 2, 2006}                                  |
+| Metadata      | Value                                         |
+| ------------- | --------------------------------------------- |
+| Author        | {author1}, {author2}, ...                     |
+| Creation Date | {Jan 2, 2006}                                 |
+| Last Updated  | {Jan 2, 2006}                                 |
 | Repositories  | [{repo path}]({repo path}) ({commit hash}), … |
 
 ## References
@@ -44,7 +44,7 @@
 - For a package people call directly, add a short code snippet of the canonical usage.
 -->
 
-### Feature 1: {Title}
+### 1. {feature_1_title}
 
 {description}
 

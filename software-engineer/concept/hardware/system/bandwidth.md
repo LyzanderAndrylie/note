@@ -121,14 +121,14 @@ DDR5 replaces the monolithic 64-bit channel with dual independent sub-channels p
 - **Doubled Burst Length**: DDR5 doubles burst length to BL16 ($16 \times 32\text{ bits} = 64\text{ Bytes}$), maintaining standard 64-byte cache line retrieval over the narrower 32-bit bus.
 - **On-DIMM PMIC**: Moves power regulation from the motherboard to the module, dropping base voltage to 1.1V for improved power efficiency and signal integrity.
 
-| Metric | DDR4 SDRAM | DDR5 SDRAM | Architectural Impact |
-| :--- | :--- | :--- | :--- |
-| **Standard Speeds** | 2133–3600 MT/s | 4800–8500+ MT/s | Higher raw throughput |
-| **Bus Topology** | $1 \times \text{64-bit}$ channel | $2 \times \text{32-bit}$ sub-channels | Concurrent memory operations per stick |
-| **Burst Length** | BL8 (64 Bytes) | BL16 (64 Bytes / sub-channel) | Preserves 64-byte cache line alignment |
-| **Operating Voltage** | $1.2\text{ V}$ | $1.1\text{ V}$ | Lower power and heat |
-| **Single-DIMM Bandwidth** | $17.0\text{–}28.8\text{ GB/s}$ | $38.4\text{–}68.0+\text{ GB/s}$ | $\sim 2\times$ base bandwidth per module |
-| **Dual-DIMM Bandwidth** | $34.0\text{–}57.6\text{ GB/s}$ | $76.8\text{–}136.0+\text{ GB/s}$ | Prevents starvation on high-core CPUs |
+| Metric                    | DDR4 SDRAM                       | DDR5 SDRAM                            | Architectural Impact                     |
+| :------------------------ | :------------------------------- | :------------------------------------ | :--------------------------------------- |
+| **Standard Speeds**       | 2133–3600 MT/s                   | 4800–8500+ MT/s                       | Higher raw throughput                    |
+| **Bus Topology**          | $1 \times \text{64-bit}$ channel | $2 \times \text{32-bit}$ sub-channels | Concurrent memory operations per stick   |
+| **Burst Length**          | BL8 (64 Bytes)                   | BL16 (64 Bytes / sub-channel)         | Preserves 64-byte cache line alignment   |
+| **Operating Voltage**     | $1.2\text{ V}$                   | $1.1\text{ V}$                        | Lower power and heat                     |
+| **Single-DIMM Bandwidth** | $17.0\text{–}28.8\text{ GB/s}$   | $38.4\text{–}68.0+\text{ GB/s}$       | $\sim 2\times$ base bandwidth per module |
+| **Dual-DIMM Bandwidth**   | $34.0\text{–}57.6\text{ GB/s}$   | $76.8\text{–}136.0+\text{ GB/s}$      | Prevents starvation on high-core CPUs    |
 
 #### a. Hardware Transfer Unit: The Cache Line
 

@@ -31,9 +31,9 @@ Tasks are defined declaratively in `.vscode/tasks.json` at the root of a workspa
   - `tasks`: Array of task definitions.
   - `inputs`: Optional array of interactive user prompt definitions.
 
-| Execution Mode (`type`) | Process Spawn Method | Shell Feature Support (`\|`, `>`, `&&`) | Best Used For |
-| :---------------------- | :------------------- | :-------------------------------------- | :------------ |
-| **`shell`**             | Spawned within shell (`/bin/bash -c ...`) | Full support                            | Complex scripts, compound pipelines, redirects, environment setup |
+| Execution Mode (`type`) | Process Spawn Method                      | Shell Feature Support (`\|`, `>`, `&&`) | Best Used For                                                         |
+| :---------------------- | :---------------------------------------- | :-------------------------------------- | :-------------------------------------------------------------------- |
+| **`shell`**             | Spawned within shell (`/bin/bash -c ...`) | Full support                            | Complex scripts, compound pipelines, redirects, environment setup     |
 | **`process`**           | Direct OS binary call (`execve`)          | None (arguments passed as array)        | Direct compiler invocations (`gcc`, `tsc`, `rustc`), strict CLI tools |
 
 #### Interaction
@@ -64,12 +64,12 @@ Developers can formulate task commands either as a single combined string in `"c
 - **The Split Quoting Trap**: If shell operators (`|`, `>`) are placed into the `"args"` array, VS Code passes them as literal string arguments to the binary via CLI escaping. The target binary will fail with unrecognized argument errors because the shell never interprets them as syntax tokens.
 - **Single Commands Benefit from `command` + `args`**: For standard tool invocations, splitting parameters into `"args"` prevents path-escaping bugs when file paths contain spaces (`${file}`), ensures cross-platform consistency between Windows (`cmd`/PowerShell) and POSIX shells (`bash`/`zsh`), and is mandatory when using `type: "process"`.
 
-| Scenario | Recommended Format | Example Pattern | Rationale |
-| :------- | :----------------- | :-------------- | :-------- |
-| **Pipes & Redirects (`\|`, `>`, `>>`)** | **Single `command` string** | `"command": "conda env export ... \| grep -v '^prefix: ' > env.yml"` | Shell operators must be evaluated by the shell parser, not passed as binary arguments |
-| **Command Chaining (`&&`, `\|\|`, `;`)** | **Single `command` string** | `"command": "npm run build && npm test"` | Sequences subshells and controls execution flow based on exit codes |
-| **Paths with Spaces (`${file}`)** | **`command` + `args` array** | `"command": "pytest", "args": ["${file}"]` | VS Code automatically quotes space-delimited paths without manual quote-escaping |
-| **Direct Binary (`type: "process"`)** | **`command` + `args` array** | `"command": "gcc", "args": ["-Wall", "main.c"]` | Process mode bypasses shell interpreter; requires separate binary and argument vector |
+| Scenario                                 | Recommended Format           | Example Pattern                                                      | Rationale                                                                             |
+| :--------------------------------------- | :--------------------------- | :------------------------------------------------------------------- | :------------------------------------------------------------------------------------ |
+| **Pipes & Redirects (`\|`, `>`, `>>`)**  | **Single `command` string**  | `"command": "conda env export ... \| grep -v '^prefix: ' > env.yml"` | Shell operators must be evaluated by the shell parser, not passed as binary arguments |
+| **Command Chaining (`&&`, `\|\|`, `;`)** | **Single `command` string**  | `"command": "npm run build && npm test"`                             | Sequences subshells and controls execution flow based on exit codes                   |
+| **Paths with Spaces (`${file}`)**        | **`command` + `args` array** | `"command": "pytest", "args": ["${file}"]`                           | VS Code automatically quotes space-delimited paths without manual quote-escaping      |
+| **Direct Binary (`type: "process"`)**    | **`command` + `args` array** | `"command": "gcc", "args": ["-Wall", "main.c"]`                      | Process mode bypasses shell interpreter; requires separate binary and argument vector |
 
 ```json
 {
@@ -88,11 +88,7 @@ Developers can formulate task commands either as a single combined string in `"c
       "label": "Standard Invocation: Pytest Single File",
       "type": "shell",
       "command": "pytest",
-      "args": [
-        "-v",
-        "--maxfail=1",
-        "${file}"
-      ],
+      "args": ["-v", "--maxfail=1", "${file}"],
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -119,11 +115,11 @@ The `presentation` property controls how VS Code allocates and reveals terminal 
   - `close`: Closes the terminal panel automatically when the command exits.
 - **Working Directory and Environment**: Configured under the `options` block using `cwd` and `env`.
 
-| Presentation Panel | Behavior Across Runs | Terminal Clutter | Best Used For |
-| :----------------- | :------------------- | :--------------- | :------------ |
-| **`shared`**       | Reuses a single shared task terminal | Lowest           | Quick one-off scripts, lint checks, environment exports |
-| **`dedicated`**    | Reuses one dedicated terminal for this specific task | Medium           | Compilers, continuous test runs |
-| **`new`**          | Spawns a brand new terminal tab every execution | Highest          | Parallel background services, ad-hoc independent runs |
+| Presentation Panel | Behavior Across Runs                                 | Terminal Clutter | Best Used For                                           |
+| :----------------- | :--------------------------------------------------- | :--------------- | :------------------------------------------------------ |
+| **`shared`**       | Reuses a single shared task terminal                 | Lowest           | Quick one-off scripts, lint checks, environment exports |
+| **`dedicated`**    | Reuses one dedicated terminal for this specific task | Medium           | Compilers, continuous test runs                         |
+| **`new`**          | Spawns a brand new terminal tab every execution      | Highest          | Parallel background services, ad-hoc independent runs   |
 
 ```json
 {
@@ -307,13 +303,13 @@ Tasks support dynamic context variables, parameter prompts, and background trigg
 - **Folder Open Automation (`runOptions.runOn`)**:
   - Setting `"runOptions": { "runOn": "folderOpen" }` triggers background services, watch processes, or environment sanity checks automatically whenever the folder is opened in VS Code.
 
-| Variable / Input Type | Resolution Mechanism | Example Value | Common Use Case |
-| :-------------------- | :------------------- | :------------ | :-------------- |
-| **`${workspaceFolder}`** | Path of root directory | `/home/user/project` | Anchoring commands to repository root |
-| **`${file}`**          | Currently active tab | `/home/user/project/test.py` | Running linters/tests on current file |
-| **`${env:CONDA_PREFIX}`** | Current process environment | `/home/user/miniconda3/envs/ml` | Locating active virtual environment paths |
-| **`pickString`**       | Quick Pick modal list | User selects from array | Choosing deployment environments (`dev`, `prod`) |
-| **`promptString`**     | Text input field | User types arbitrary string | Passing custom flags or target URLs |
+| Variable / Input Type     | Resolution Mechanism        | Example Value                   | Common Use Case                                  |
+| :------------------------ | :-------------------------- | :------------------------------ | :----------------------------------------------- |
+| **`${workspaceFolder}`**  | Path of root directory      | `/home/user/project`            | Anchoring commands to repository root            |
+| **`${file}`**             | Currently active tab        | `/home/user/project/test.py`    | Running linters/tests on current file            |
+| **`${env:CONDA_PREFIX}`** | Current process environment | `/home/user/miniconda3/envs/ml` | Locating active virtual environment paths        |
+| **`pickString`**          | Quick Pick modal list       | User selects from array         | Choosing deployment environments (`dev`, `prod`) |
+| **`promptString`**        | Text input field            | User types arbitrary string     | Passing custom flags or target URLs              |
 
 ```json
 {
