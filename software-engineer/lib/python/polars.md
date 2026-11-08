@@ -13,6 +13,7 @@
 - [Polars Rust API Documentation](https://docs.rs/polars/): Underlying Rust engine crate architecture, vector kernels, and memory model
 - [Apache Arrow Columnar Format Specification](https://arrow.apache.org/docs/format/Columnar.html): Physical memory layout standard natively implemented by Polars
 - [pandas.md](./pandas.md): Classical Python DataFrame library built on NumPy and BlockManager
+- [duckdb.md](./duckdb.md): Embedded in-process columnar SQL OLAP database with zero-copy Arrow interop
 - [pathlib.md](./pathlib.md): Object-oriented filesystem path operations used in Parquet and IPC streaming
 - [plotly.md](./plotly.md): Declarative interactive graphing alternative directly accepting Polars DataFrames
 - [matplotlib.md](./matplotlib.md): Foundational 2D/3D plotting engine

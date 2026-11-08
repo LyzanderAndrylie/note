@@ -13,6 +13,7 @@
 - [Pandas Internals and Architecture](https://pandas.pydata.org/docs/development/internals.html): Structural overview of BlockManager, ExtensionArrays, and series indexing
 - [PyArrow Backend Integration](https://pandas.pydata.org/docs/user_guide/pyarrow.html): Apache Arrow memory structures, ArrowDtype, and zero-copy semantics
 - [polars.md](./polars.md): Multi-threaded, vectorized DataFrame library written in Rust and Apache Arrow
+- [duckdb.md](./duckdb.md): Embedded in-process columnar SQL OLAP database with zero-copy Pandas integration
 - [pathlib.md](./pathlib.md): Object-oriented filesystem path operations used in DataFrame serialization and file I/O
 - [matplotlib.md](./matplotlib.md): Foundational object-oriented 2D/3D plotting engine with native Pandas integration
 - [seaborn.md](./seaborn.md): Statistical visualization library accepting tidy Pandas DataFrames
