@@ -8,9 +8,9 @@
 
 ## References
 
-- [Visual Studio Code Tasks Documentation](https://code.visualstudio.com/docs/editor/tasks) — Official guide to configuring tasks, problem matchers, task runners, and schema specifications.
-- [Visual Studio Code Variables Reference](https://code.visualstudio.com/docs/editor/variables-reference) — Predefined workspace, path, and interactive input variables for task and debug configurations.
-- [conda.md](../conda/conda.md) — Package and environment management for Python, binary libraries, and toolchains.
+- [Visual Studio Code Tasks Documentation](https://code.visualstudio.com/docs/editor/tasks): Official guide to configuring tasks, problem matchers, task runners, and schema specifications.
+- [Visual Studio Code Variables Reference](https://code.visualstudio.com/docs/editor/variables-reference): Predefined workspace, path, and interactive input variables for task and debug configurations.
+- [conda.md](../conda/conda.md): Package and environment management for Python, binary libraries, and toolchains.
 
 ## Description
 

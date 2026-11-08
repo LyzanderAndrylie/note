@@ -8,9 +8,9 @@
 
 ## References
 
-- [Memory bandwidth - Wikipedia](https://en.wikipedia.org/wiki/Memory_bandwidth) — Theoretical calculation, DDR memory evolution, and channel architectures
-- [Crucial Memory Speeds and Compatibility](https://www.crucial.com/support/memory-speeds-compatability) — DDR4 and DDR5 memory speed baselines, pinouts, and architectural changes
-- [JEDEC Memory Standards](https://www.jedec.org/) — Specifications for DDR SDRAM signaling, transfer rates, and bus width definitions
+- [Memory bandwidth - Wikipedia](https://en.wikipedia.org/wiki/Memory_bandwidth): Theoretical calculation, DDR memory evolution, and channel architectures
+- [Crucial Memory Speeds and Compatibility](https://www.crucial.com/support/memory-speeds-compatability): DDR4 and DDR5 memory speed baselines, pinouts, and architectural changes
+- [JEDEC Memory Standards](https://www.jedec.org/): Specifications for DDR SDRAM signaling, transfer rates, and bus width definitions
 
 ## Description
 

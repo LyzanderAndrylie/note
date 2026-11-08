@@ -8,10 +8,10 @@
 
 ## References
 
-- [Conda Documentation](https://docs.conda.io/projects/conda/en/latest/) — Official documentation covering installation, configuration, command reference, and release notes.
-- [Conda User Guide & Cheat Sheet](https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html) — Quick-reference syntax for everyday environment and package management commands.
-- [conda-forge Community Channel](https://conda-forge.org/) — Community-driven package repository providing maintained, compatible builds for thousands of software packages.
-- [directory_structure.md](../../linux/directory_structure.md) — Linux filesystem hierarchy detailing binary execution paths, user directories, and environment paths.
+- [Conda Documentation](https://docs.conda.io/projects/conda/en/latest/): Official documentation covering installation, configuration, command reference, and release notes.
+- [Conda User Guide & Cheat Sheet](https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html): Quick-reference syntax for everyday environment and package management commands.
+- [conda-forge Community Channel](https://conda-forge.org/): Community-driven package repository providing maintained, compatible builds for thousands of software packages.
+- [directory_structure.md](../../linux/directory_structure.md): Linux filesystem hierarchy detailing binary execution paths, user directories, and environment paths.
 
 ## Description
 

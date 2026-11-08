@@ -8,9 +8,9 @@
 
 ## References
 
-- [Git Config Manual](https://git-scm.com/docs/git-config) — Official reference for `git config` subcommands, file syntax, and options.
-- [Pro Git: Customizing Git](https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration) — Practical guide to scopes, identity attribution, and formatting.
-- [tasks.md](../vscode/tasks.md) — Automating developer tasks and Git workflows inside Visual Studio Code.
+- [Git Config Manual](https://git-scm.com/docs/git-config): Official reference for `git config` subcommands, file syntax, and options.
+- [Pro Git: Customizing Git](https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration): Practical guide to scopes, identity attribution, and formatting.
+- [tasks.md](../vscode/tasks.md): Automating developer tasks and Git workflows inside Visual Studio Code.
 
 ## Description
 
@@ -23,7 +23,7 @@
 Git reads settings across discrete configuration files in order of increasing specificity; narrower scopes immediately override broader scopes.
 
 - **`--system`**: `/etc/gitconfig` — Host-wide settings applied to all users and repositories.
-- **`--global`**: `~/.gitconfig` (or `~/.config/git/config`) — User-level defaults applied across all your repositories.
+- **`--global`**: `~/.gitconfig` (or `~/.config/git/config`): User-level defaults applied across all your repositories.
 - **`--local`**: `.git/config` — Repository-specific settings; default target for all write operations.
 - **`--worktree`**: `.git/config.worktree` — Settings isolated to a linked worktree (requires `extensions.worktreeConfig`).
 - **`git -c <key>=<value>`**: In-memory flag that overrides any configuration for a single command execution without writing to disk.

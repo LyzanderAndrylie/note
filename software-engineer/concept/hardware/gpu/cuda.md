@@ -8,8 +8,8 @@
 
 ## References
 
-- [NVIDIA CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/) — Official guide covering kernel development, execution configuration, and hardware architecture
-- [NVIDIA CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/) — Strategies for optimizing memory throughput, thread occupancy, and kernel execution
+- [NVIDIA CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/): Official guide covering kernel development, execution configuration, and hardware architecture
+- [NVIDIA CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/): Strategies for optimizing memory throughput, thread occupancy, and kernel execution
 
 ## Description
 

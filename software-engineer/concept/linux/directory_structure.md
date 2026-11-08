@@ -8,9 +8,9 @@
 
 ## References
 
-- [file_permissions.md](./file_permissions.md) — Discretionary access control model, symbolic and octal modes, special bits, and creation masks.
-- [Linux Directory Structure Explained for Beginners](https://linuxhandbook.com/linux-directory-structure/) — Practical introduction to the Linux directory tree, directory responsibilities, and system usage.
-- [Filesystem Hierarchy Standard 3.0](https://refspecs.linuxfoundation.org/FHS_3.0/fhs-3.0.html) — Linux Foundation standard defining directory structures and file locations for Linux distributions.
+- [file_permissions.md](./file_permissions.md): Discretionary access control model, symbolic and octal modes, special bits, and creation masks.
+- [Linux Directory Structure Explained for Beginners](https://linuxhandbook.com/linux-directory-structure/): Practical introduction to the Linux directory tree, directory responsibilities, and system usage.
+- [Filesystem Hierarchy Standard 3.0](https://refspecs.linuxfoundation.org/FHS_3.0/fhs-3.0.html): Linux Foundation standard defining directory structures and file locations for Linux distributions.
 
 ## Description
 

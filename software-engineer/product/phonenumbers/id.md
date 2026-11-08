@@ -6,7 +6,7 @@
 | **ISO 3166-1 Code**   | `ID` (Alpha-2), `IDN` (Alpha-3)                                                                                                                                                |
 | **Country Code (CC)** | `+62`                                                                                                                                                                          |
 | **National Prefix**   | `0` (Domestic trunk prefix)                                                                                                                                                    |
-| **IDD Prefixes**      | `008` (Indosat), `009` (Telkom) — Metadata regex: `00[89]` _(Note: `001` was historically Indosat IDD, but in metadata `001` is reserved for inbound toll-free e.g. `001803`)_ |
+| **IDD Prefixes**      | `008` (Indosat), `009` (Telkom): Metadata regex: `00[89]` _(Note: `001` was historically Indosat IDD, but in metadata `001` is reserved for inbound toll-free e.g. `001803`)_ |
 | **Package**           | `github.com/nyaruka/phonenumbers/v2`                                                                                                                                           |
 | **Upstream Parity**   | Google `libphonenumber` `v9.0.38`                                                                                                                                              |
 | **Applicable Types**  | `MOBILE`, `FIXED_LINE`, `TOLL_FREE`, `SHARED_COST`, `PREMIUM_RATE`, `UAN`, `EMERGENCY`                                                                                         |
@@ -742,8 +742,8 @@ The `ranges.csv` file (375 entries) contains the complete prefix allocation map 
 
 #### Fixed-Line Coverage
 
-- **2-digit area codes** (5 regions): `21` (Greater Jakarta), `22` (Bandung/Cimahi), `24` (Semarang/Demak), `31` (Surabaya), `61` (Medan: `61[0-8]`, `619`) — formatted via `fixed_2/5-9`
-- **3-digit area codes** (305 prefix entries across 290 named regions): PSTN prefixes from `231` (Cirebon) through `986` (Manokwari) — formatted via `fixed_3/5-8`
+- **2-digit area codes** (5 regions): `21` (Greater Jakarta), `22` (Bandung/Cimahi), `24` (Semarang/Demak), `31` (Surabaya), `61` (Medan: `61[0-8]`, `619`): formatted via `fixed_2/5-9`
+- **3-digit area codes** (305 prefix entries across 290 named regions): PSTN prefixes from `231` (Cirebon) through `986` (Manokwari): formatted via `fixed_3/5-8`
 - **Special Jakarta entries**: `2114` (7-digit) and `21500` (8-digit) cover legacy short fixed-line numbers
 
 #### Mobile Prefix-to-Operator Mapping

@@ -8,9 +8,9 @@
 
 ## References
 
-- [directory_structure.md](./directory_structure.md) — Unified filesystem hierarchy, root architecture, and standard system directory roles.
-- [POSIX.1-2017 Standard: File Access Permissions](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html#tag_04_05) — Standardized POSIX discretionary access control model and mode evaluation rules.
-- [GNU Coreutils: File Permissions](https://www.gnu.org/software/coreutils/manual/html_node/File-permissions.html) — Specifications for file mode manipulation, ownership management, and permission masks.
+- [directory_structure.md](./directory_structure.md): Unified filesystem hierarchy, root architecture, and standard system directory roles.
+- [POSIX.1-2017 Standard: File Access Permissions](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html#tag_04_05): Standardized POSIX discretionary access control model and mode evaluation rules.
+- [GNU Coreutils: File Permissions](https://www.gnu.org/software/coreutils/manual/html_node/File-permissions.html): Specifications for file mode manipulation, ownership management, and permission masks.
 
 ## Description
 
@@ -233,8 +233,8 @@ When applications create new files or directories, the Linux kernel determines t
 
 Programs specify initial base permissions upon creation:
 
-- **Default Base for Files**: `0666` (`rw-rw-rw-`) — Programs never request execute permissions by default.
-- **Default Base for Directories**: `0777` (`rwxrwxrwx`) — Directories require execute permission for directory traversal.
+- **Default Base for Files**: `0666` (`rw-rw-rw-`): Programs never request execute permissions by default.
+- **Default Base for Directories**: `0777` (`rwxrwxrwx`): Directories require execute permission for directory traversal.
 
 The system applies the `umask` using bitwise negation and conjunction:
 

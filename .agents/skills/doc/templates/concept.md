@@ -17,9 +17,9 @@
 - Then code and other related docs, each with what it covers.
 -->
 
-- [{Web document}]({URL}) — {what it covers}
-- [{Code filename}]({path}) — {what it covers}
-- [{Doc title}]({path}) — {what it covers}
+- [{Web document}]({URL}): {what it covers}
+- [{Code filename}]({path}): {what it covers}
+- [{Doc title}]({path}): {what it covers}
 
 ## Description
 

@@ -8,11 +8,11 @@
 
 ## References
 
-- [Pixi Documentation](https://pixi.sh/) — Official documentation covering installation, project schema, multi-environment targets, and task execution.
-- [Pixi GitHub Repository](https://github.com/prefix-dev/pixi) — Official open-source repository for Pixi.
-- [Conda Rattler Engine](https://github.com/conda/rattler) — Rust library ecosystem powering Pixi's Conda package resolution, downloading, and prefix generation.
-- [Astral uv Documentation](https://docs.astral.sh/uv/) — High-performance Python package installer and resolver embedded in Pixi for PyPI dependencies.
-- [conda.md](../conda/conda.md) — Package and environment management for Python, binary libraries, and toolchains.
+- [Pixi Documentation](https://pixi.sh/): Official documentation covering installation, project schema, multi-environment targets, and task execution.
+- [Pixi GitHub Repository](https://github.com/prefix-dev/pixi): Official open-source repository for Pixi.
+- [Conda Rattler Engine](https://github.com/conda/rattler): Rust library ecosystem powering Pixi's Conda package resolution, downloading, and prefix generation.
+- [Astral uv Documentation](https://docs.astral.sh/uv/): High-performance Python package installer and resolver embedded in Pixi for PyPI dependencies.
+- [conda.md](../conda/conda.md): Package and environment management for Python, binary libraries, and toolchains.
 
 ## Description
 
