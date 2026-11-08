@@ -4,7 +4,7 @@
 | ------------- | ------------------------------------------------------------- |
 | Author        | Lyzander Marciano Andrylie                                    |
 | Creation Date | Nov 7, 2026                                                   |
-| Last Updated  | Nov 7, 2026                                                   |
+| Last Updated  | Nov 8, 2026                                                   |
 | Repositories  | [cpython](https://github.com/python/cpython) (`Lib/pathlib/`) |
 
 ## References
@@ -14,6 +14,7 @@
 - [pathlib Official Documentation](https://docs.python.org/3/library/pathlib.html): Python standard library documentation for pathlib
 - [os.path Official Documentation](https://docs.python.org/3/library/os.path.html): Reference for legacy procedural path operations
 - [file_io.md](../../concept/python/file_io.md): Comprehensive guide to Python file I/O mechanisms, access modes, and durability
+- [plotly.md](./plotly.md): Declarative interactive charting library with figure export and file serialization
 
 ## Description
 

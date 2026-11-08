@@ -4,7 +4,7 @@
 | ------------- | -------------------------- |
 | Author        | Lyzander Marciano Andrylie |
 | Creation Date | Nov 3, 2026                |
-| Last Updated  | Nov 3, 2026                |
+| Last Updated  | Nov 8, 2026                |
 
 ## References
 
@@ -12,6 +12,8 @@
 - [Conda User Guide & Cheat Sheet](https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html): Quick-reference syntax for everyday environment and package management commands.
 - [conda-forge Community Channel](https://conda-forge.org/): Community-driven package repository providing maintained, compatible builds for thousands of software packages.
 - [directory_structure.md](../../linux/directory_structure.md): Linux filesystem hierarchy detailing binary execution paths, user directories, and environment paths.
+- [pixi.md](../pixi/pixi.md): Modern package management and multi-environment orchestration built on the Conda ecosystem.
+- [tasks.md](../vscode/tasks.md): Automating developer tasks and Conda environment workflows in Visual Studio Code.
 
 ## Description
 

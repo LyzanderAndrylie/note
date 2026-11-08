@@ -4,12 +4,13 @@
 | ------------- | ----------- |
 | Author        | Lyzander    |
 | Creation Date | Nov 6, 2026 |
-| Last Updated  | Nov 6, 2026 |
+| Last Updated  | Nov 8, 2026 |
 
 ## References
 
 - [NVIDIA CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/): Official guide covering kernel development, execution configuration, and hardware architecture
 - [NVIDIA CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/): Strategies for optimizing memory throughput, thread occupancy, and kernel execution
+- [bandwidth.md](../system/bandwidth.md): Theoretical memory bandwidth calculations, DDR bus architectures, and throughput ceilings
 
 ## Description
 

@@ -4,11 +4,12 @@ A production-grade technical reference and deep dive into advanced PostgreSQL qu
 
 ## References
 
-- [PostgreSQL Documentation: Queries - SELECT DISTINCT](https://www.postgresql.org/docs/current/queries-select-lists.html#QUERIES-DISTINCT)
-- [PostgreSQL Documentation: Queries - LATERAL Subqueries](https://www.postgresql.org/docs/current/queries-table-expressions.html#QUERIES-LATERAL)
-- [PostgreSQL Documentation: Queries - WITH Queries (Common Table Expressions)](https://www.postgresql.org/docs/current/queries-with.html)
-- [PostgreSQL Documentation: Aggregate Functions with FILTER Clause](https://www.postgresql.org/docs/current/sql-expressions.html#SYNTAX-AGGREGATES)
-- [PostgreSQL Documentation: SQL INSERT - ON CONFLICT Clause](https://www.postgresql.org/docs/current/sql-insert.html#SQL-ON-CONFLICT)
+- [PostgreSQL Documentation: Queries - SELECT DISTINCT](https://www.postgresql.org/docs/current/queries-select-lists.html#QUERIES-DISTINCT): Syntax and semantics for DISTINCT and DISTINCT ON row deduplication.
+- [PostgreSQL Documentation: Queries - LATERAL Subqueries](https://www.postgresql.org/docs/current/queries-table-expressions.html#QUERIES-LATERAL): Correlated subquery evaluation and cross-join iterations.
+- [PostgreSQL Documentation: Queries - WITH Queries (Common Table Expressions)](https://www.postgresql.org/docs/current/queries-with.html): CTE definitions, recursive evaluation, and data-modifying statements.
+- [PostgreSQL Documentation: Aggregate Functions with FILTER Clause](https://www.postgresql.org/docs/current/sql-expressions.html#SYNTAX-AGGREGATES): Selective row aggregation using conditional FILTER clauses.
+- [PostgreSQL Documentation: SQL INSERT - ON CONFLICT Clause](https://www.postgresql.org/docs/current/sql-insert.html#SQL-ON-CONFLICT): Atomic upsert and conflict arbitration mechanics.
+- [mvcc.md](./mvcc.md): Snapshot isolation, tuple visibility, and concurrency control underlying query execution.
 
 ---
 

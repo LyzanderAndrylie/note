@@ -4,13 +4,14 @@ A comprehensive, engineering-grade technical guide to **Transport Layer Security
 
 ## References
 
-- [RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3](https://datatracker.ietf.org/doc/html/rfc8446)
-- [RFC 5246: The Transport Layer Security (TLS) Protocol Version 1.2](https://datatracker.ietf.org/doc/html/rfc5246)
-- [RFC 5280: Internet X.509 Public Key Infrastructure Certificate and CRL Profile](https://datatracker.ietf.org/doc/html/rfc5280)
-- [RFC 8555: Automatic Certificate Management Environment (ACME)](https://datatracker.ietf.org/doc/html/rfc8555)
-- [RFC 6962: Certificate Transparency](https://datatracker.ietf.org/doc/html/rfc6962)
-- [RFC 8659: DNS Certification Authority Authorization (CAA) Resource Record](https://datatracker.ietf.org/doc/html/rfc8659)
-- [Mozilla SSL Configuration Generator & Server Side TLS Guidelines](https://wiki.mozilla.org/Security/Server_Side_TLS)
+- [RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3](https://datatracker.ietf.org/doc/html/rfc8446): Cryptographic protocol providing communications security over the Internet.
+- [RFC 5246: The Transport Layer Security (TLS) Protocol Version 1.2](https://datatracker.ietf.org/doc/html/rfc5246): Legacy transport layer security protocol specification.
+- [RFC 5280: Internet X.509 Public Key Infrastructure Certificate and CRL Profile](https://datatracker.ietf.org/doc/html/rfc5280): Format and semantics for certificates and certificate revocation lists.
+- [RFC 8555: Automatic Certificate Management Environment (ACME)](https://datatracker.ietf.org/doc/html/rfc8555): Automated certificate issuance and domain validation protocol.
+- [RFC 6962: Certificate Transparency](https://datatracker.ietf.org/doc/html/rfc6962): Public append-only log architecture for monitoring certificate issuance.
+- [RFC 8659: DNS Certification Authority Authorization (CAA) Resource Record](https://datatracker.ietf.org/doc/html/rfc8659): DNS resource record for specifying authorized CAs.
+- [Mozilla SSL Configuration Generator & Server Side TLS Guidelines](https://wiki.mozilla.org/Security/Server_Side_TLS): Recommended cryptographic cipher suites and web server configurations.
+- [oauth.md](./oauth.md): Mutual TLS (mTLS) client authentication and certificate-bound access tokens.
 
 ---
 

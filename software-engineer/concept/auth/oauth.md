@@ -4,14 +4,16 @@ A technical guide and engineering reference on the OAuth authorization framework
 
 ## References
 
-- [RFC 6749: The OAuth 2.0 Authorization Framework](https://datatracker.ietf.org/doc/html/rfc6749)
-- [RFC 6750: The OAuth 2.0 Authorization Framework - Bearer Token Usage](https://datatracker.ietf.org/doc/html/rfc6750)
-- [RFC 7636: Proof Key for Code Exchange (PKCE)](https://datatracker.ietf.org/doc/html/rfc7636)
-- [RFC 8252: OAuth 2.0 for Native Apps (AppAuth)](https://datatracker.ietf.org/doc/html/rfc8252)
-- [RFC 8628: OAuth 2.0 Device Authorization Grant](https://datatracker.ietf.org/doc/html/rfc8628)
-- [RFC 9449: Demonstrating Proof-of-Possession (DPoP)](https://datatracker.ietf.org/doc/html/rfc9449)
-- [The OAuth 2.1 Authorization Framework (Draft)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1)
-- [OpenID Connect Core 1.0 Specification](https://openid.net/specs/openid-connect-core-1_0.html)
+- [RFC 6749: The OAuth 2.0 Authorization Framework](https://datatracker.ietf.org/doc/html/rfc6749): Core authorization framework, roles, client types, and authorization grants.
+- [RFC 6750: The OAuth 2.0 Authorization Framework - Bearer Token Usage](https://datatracker.ietf.org/doc/html/rfc6750): HTTP header, request body, and URI query parameter bearer token usage.
+- [RFC 7636: Proof Key for Code Exchange (PKCE)](https://datatracker.ietf.org/doc/html/rfc7636): Mitigating authorization code interception attacks on public clients.
+- [RFC 8252: OAuth 2.0 for Native Apps (AppAuth)](https://datatracker.ietf.org/doc/html/rfc8252): Best practices for native application authorization.
+- [RFC 8628: OAuth 2.0 Device Authorization Grant](https://datatracker.ietf.org/doc/html/rfc8628): Authorization flow for browserless and input-constrained devices.
+- [RFC 9449: Demonstrating Proof-of-Possession (DPoP)](https://datatracker.ietf.org/doc/html/rfc9449): Application-level sender-constraining for OAuth tokens.
+- [The OAuth 2.1 Authorization Framework (Draft)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1): Consolidation of OAuth 2.0 security best current practices.
+- [OpenID Connect Core 1.0 Specification](https://openid.net/specs/openid-connect-core-1_0.html): Identity federation and profile retrieval on top of OAuth 2.0.
+- [jwt.md](./jwt.md): Compact JSON claims representations, JOSE signatures (JWS), and encryption (JWE).
+- [tls.md](./tls.md): Transport Layer Security, mTLS sender-constrained tokens, and certificate validation.
 
 ---
 

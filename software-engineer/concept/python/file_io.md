@@ -4,14 +4,17 @@
 | ------------- | -------------------------- |
 | Author        | Lyzander Marciano Andrylie |
 | Creation Date | Nov 7, 2026                |
-| Last Updated  | Nov 7, 2026                |
+| Last Updated  | Nov 8, 2026                |
 
 ## References
 
 - [Python Built-in open() Function](https://docs.python.org/3/library/functions.html#open): Specification for file opening, modes, buffering, and encoding
 - [PEP 3116 – New I/O – The io Module](https://peps.python.org/pep-3116/): Three-tier Python I/O stack specification (Raw, Buffered, Text)
 - [Python io Module Documentation](https://docs.python.org/3/library/io.html): Concrete classes and abstract base classes for stream handling
+- [file_descriptors.md](../linux/file_descriptors.md): Linux kernel file descriptor architecture, lifecycle syscalls, and stream redirection
+- [inodes.md](../linux/inodes.md): Filesystem inode metadata layout, link counting, and storage allocation
 - [pathlib.md](../../lib/python/pathlib.md): Object-oriented filesystem path operations and integrated I/O helpers
+- [plotly.md](../../lib/python/plotly.md): Declarative interactive charting library with figure export and file serialization
 
 ## Description
 

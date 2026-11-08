@@ -4,13 +4,15 @@
 | ------------- | -------------------------- |
 | Author        | Lyzander Marciano Andrylie |
 | Creation Date | Nov 1, 2026                |
-| Last Updated  | Nov 1, 2026                |
+| Last Updated  | Nov 8, 2026                |
 
 ## References
 
-- [directory_structure.md](./directory_structure.md): Unified filesystem hierarchy, root architecture, and standard system directory roles.
 - [POSIX.1-2017 Standard: File Access Permissions](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html#tag_04_05): Standardized POSIX discretionary access control model and mode evaluation rules.
 - [GNU Coreutils: File Permissions](https://www.gnu.org/software/coreutils/manual/html_node/File-permissions.html): Specifications for file mode manipulation, ownership management, and permission masks.
+- [directory_structure.md](./directory_structure.md): Unified filesystem hierarchy, root architecture, and standard system directory roles.
+- [inodes.md](./inodes.md): Filesystem inode metadata layout, link counting, and storage allocation.
+- [file_descriptors.md](./file_descriptors.md): Kernel file descriptor tables, open file description states, and system I/O handles.
 
 ## Description
 
