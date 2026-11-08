@@ -16,6 +16,8 @@
 - [matplotlib.md](./matplotlib.md): Foundational static and publication-quality plotting engine
 - [seaborn.md](./seaborn.md): High-level statistical visualization library built on Matplotlib
 - [plotly.md](./plotly.md): Declarative interactive web graphing alternative powered by Plotly.js
+- [pandas.md](./pandas.md): Labeled tabular data structures readily ingested by Bokeh ColumnDataSource
+- [polars.md](./polars.md): Vectorized Arrow DataFrame library convertible to Bokeh ColumnDataSource
 
 ## Description
 

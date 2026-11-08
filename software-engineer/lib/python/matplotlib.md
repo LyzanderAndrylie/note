@@ -16,6 +16,8 @@
 - [seaborn.md](./seaborn.md): High-level statistical visualization library built directly on top of Matplotlib
 - [plotly.md](./plotly.md): Declarative interactive web graphing alternative powered by Plotly.js
 - [bokeh.md](./bokeh.md): Interactive browser-based visualization engine utilizing HTML5 Canvas and WebGL
+- [pandas.md](./pandas.md): Tabular data structures with built-in plotting wrappers delegating to Matplotlib
+- [polars.md](./polars.md): Multi-threaded columnar DataFrame library with fast NumPy and Matplotlib export
 
 ## Description
 

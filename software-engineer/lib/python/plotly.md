@@ -19,6 +19,8 @@
 - [matplotlib.md](./matplotlib.md): Foundational object-oriented 2D/3D plotting engine and Artist hierarchy
 - [seaborn.md](./seaborn.md): High-level statistical visualization library built on Matplotlib
 - [bokeh.md](./bokeh.md): Interactive browser-based visualization engine utilizing HTML5 Canvas and WebGL
+- [pandas.md](./pandas.md): Tabular data structures integrated with Plotly Express
+- [polars.md](./polars.md): Vectorized Apache Arrow DataFrame library natively accepted by Plotly Express
 
 ## Description
 

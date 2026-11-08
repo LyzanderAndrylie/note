@@ -16,6 +16,8 @@
 - [matplotlib.md](./matplotlib.md): Foundational low-level plotting engine and Artist hierarchy powering Seaborn
 - [plotly.md](./plotly.md): Declarative interactive web graphing alternative powered by Plotly.js
 - [bokeh.md](./bokeh.md): Interactive browser-based visualization engine utilizing HTML5 Canvas and WebGL
+- [pandas.md](./pandas.md): Labeled DataFrame structures powering Seaborn's tidy data and categorical aggregations
+- [polars.md](./polars.md): High-performance Arrow-native DataFrame library convertible to Seaborn input
 
 ## Description
 
