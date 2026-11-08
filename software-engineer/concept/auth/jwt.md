@@ -2,6 +2,17 @@
 
 A comprehensive technical guide to **JSON Web Tokens (JWT)**, the **JOSE (Javascript Object Signing and Encryption)** framework, and related specifications including **JWS**, **JWE**, **JWK**, and **JWA**. This document covers token structures, cryptographic mechanisms, communication flows, security pitfalls, and production best practices.
 
+## References
+
+- [RFC 7519: JSON Web Token (JWT)](https://datatracker.ietf.org/doc/html/rfc7519)
+- [RFC 7515: JSON Web Signature (JWS)](https://datatracker.ietf.org/doc/html/rfc7515)
+- [RFC 7516: JSON Web Encryption (JWE)](https://datatracker.ietf.org/doc/html/rfc7516)
+- [RFC 7517: JSON Web Key (JWK)](https://datatracker.ietf.org/doc/html/rfc7517)
+- [RFC 7518: JSON Web Algorithms (JWA)](https://datatracker.ietf.org/doc/html/rfc7518)
+- [RFC 8725: JSON Web Token Best Current Practices](https://datatracker.ietf.org/doc/html/rfc8725)
+- [RFC 8037: CFRG Elliptic Curve Diffie-Hellman (ECDH) and Signatures in JOSE](https://datatracker.ietf.org/doc/html/rfc8037)
+- [OpenID Connect Core 1.0 Specification](https://openid.net/specs/openid-connect-core-1_0.html)
+
 ---
 
 ## 1. Overview & The JOSE Ecosystem
@@ -239,12 +250,10 @@ Private claims make JWTs **self-contained**, allowing resource servers and API g
 ##### Architectural Considerations & Pitfalls
 
 1. **Token Bloat & HTTP Header Limits**:
-
    - Because access tokens are sent with every HTTP request in the `Authorization: Bearer <token>` header, stuffing large arrays of permissions or deep nested objects inflates network overhead and risks hitting server/reverse proxy header limits (e.g., 8KB–16KB in Nginx, Apache, or AWS ALB).
    - _Mitigation_: Store only coarse roles or tenant IDs in the token, or use compact bitmasks / short scope identifiers.
 
 1. **Stale Authorization State**:
-
    - Claims are an immutable snapshot captured at token issuance. If an administrator revokes a user's role or permissions in the database, the private claims in the existing access token remain active until the token reaches its `exp`.
    - _Mitigations_:
      - **Short TTL + Refresh Rotation**: Enforce short access token lifetimes (e.g., 5–15 minutes) to bound the staleness window.
@@ -252,7 +261,6 @@ Private claims make JWTs **self-contained**, allowing resource servers and API g
      - **Phantom Token Pattern**: Use opaque reference tokens at the public edge and translate them into ultra-short-lived internal JWTs (30–60s) at the API Gateway (see [§6.4 The Token Revocation Problem](#64-the-token-revocation-problem)).
 
 1. **Collision Avoidance**:
-
    - Private claim names must not shadow or redefine standardized registered claims (`sub`, `iss`, `aud`, `exp`, `nbf`, `iat`, `jti`) or public claims.
 
 ### 2.4 Signature Generation & Verification
@@ -695,7 +703,6 @@ sequenceDiagram
 #### Strategy B: Immediate Revocation via Denylist + Refresh Handshake
 
 - **Mechanism**: When privileges change or a token is revoked:
-
   1. The authorization server writes the token's unique identifier (`jti`) into a fast in-memory store (e.g., Redis) with a TTL equal to the token's remaining lifetime:
 
      ```text
@@ -986,16 +993,3 @@ async function runJWEDemo() {
 | **JWK / JWKS** | JSON key representations and set lists      | RFC 7517      | Public key sharing, automated key rotation             |
 | **JWA**        | Cryptographic identifier catalog            | RFC 7518      | Algorithm negotiation specifications                   |
 | **Nested JWT** | JWS signed inside JWE encrypted wrapper     | RFC 7519 §7.1 | Authenticated origin + strict confidentiality          |
-
----
-
-## References & Further Reading
-
-- [RFC 7519: JSON Web Token (JWT)](https://datatracker.ietf.org/doc/html/rfc7519)
-- [RFC 7515: JSON Web Signature (JWS)](https://datatracker.ietf.org/doc/html/rfc7515)
-- [RFC 7516: JSON Web Encryption (JWE)](https://datatracker.ietf.org/doc/html/rfc7516)
-- [RFC 7517: JSON Web Key (JWK)](https://datatracker.ietf.org/doc/html/rfc7517)
-- [RFC 7518: JSON Web Algorithms (JWA)](https://datatracker.ietf.org/doc/html/rfc7518)
-- [RFC 8725: JSON Web Token Best Current Practices](https://datatracker.ietf.org/doc/html/rfc8725)
-- [RFC 8037: CFRG Elliptic Curve Diffie-Hellman (ECDH) and Signatures in JOSE](https://datatracker.ietf.org/doc/html/rfc8037)
-- [OpenID Connect Core 1.0 Specification](https://openid.net/specs/openid-connect-core-1_0.html)

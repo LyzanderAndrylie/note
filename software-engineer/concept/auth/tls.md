@@ -2,6 +2,16 @@
 
 A comprehensive, engineering-grade technical guide to **Transport Layer Security (TLS 1.2 & TLS 1.3)**, **Mutual TLS (mTLS)**, **Public Key Infrastructure (PKI)**, **X.509 Digital Certificates**, and **Certificate Authorities (CAs)**. This guide covers cryptographic foundations, handshake protocols, certificate chains, attack surfaces, and production implementations.
 
+## References
+
+- [RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3](https://datatracker.ietf.org/doc/html/rfc8446)
+- [RFC 5246: The Transport Layer Security (TLS) Protocol Version 1.2](https://datatracker.ietf.org/doc/html/rfc5246)
+- [RFC 5280: Internet X.509 Public Key Infrastructure Certificate and CRL Profile](https://datatracker.ietf.org/doc/html/rfc5280)
+- [RFC 8555: Automatic Certificate Management Environment (ACME)](https://datatracker.ietf.org/doc/html/rfc8555)
+- [RFC 6962: Certificate Transparency](https://datatracker.ietf.org/doc/html/rfc6962)
+- [RFC 8659: DNS Certification Authority Authorization (CAA) Resource Record](https://datatracker.ietf.org/doc/html/rfc8659)
+- [Mozilla SSL Configuration Generator & Server Side TLS Guidelines](https://wiki.mozilla.org/Security/Server_Side_TLS)
+
 ---
 
 ## 1. Overview & Foundational Principles
@@ -786,15 +796,3 @@ flowchart TD
 | **mTLS (2-way)**          | Server Cert + Client Cert           | Bidirectional validation at Layer 4/6                   | Both peers cryptographically proven                     | Service Mesh, Inter-service RPC, Open Banking    |
 | **TLS + JWT / OAuth**     | Server Cert + Bearer Token          | Server validates Token signature at Layer 7             | Server trusts Identity Provider (IdP); Token can leak   | User sessions, Multi-tenant Web APIs             |
 | **mTLS + JWT (Combined)** | Transport Certs + Application Token | mTLS establishes secure tunnel; JWT carries user claims | Defense-in-depth: Zero-trust network + granular RBAC    | Enterprise Microservices, High-assurance Finance |
-
----
-
-## References & Further Reading
-
-- [RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3](https://datatracker.ietf.org/doc/html/rfc8446)
-- [RFC 5246: The Transport Layer Security (TLS) Protocol Version 1.2](https://datatracker.ietf.org/doc/html/rfc5246)
-- [RFC 5280: Internet X.509 Public Key Infrastructure Certificate and CRL Profile](https://datatracker.ietf.org/doc/html/rfc5280)
-- [RFC 8555: Automatic Certificate Management Environment (ACME)](https://datatracker.ietf.org/doc/html/rfc8555)
-- [RFC 6962: Certificate Transparency](https://datatracker.ietf.org/doc/html/rfc6962)
-- [RFC 8659: DNS Certification Authority Authorization (CAA) Resource Record](https://datatracker.ietf.org/doc/html/rfc8659)
-- [Mozilla SSL Configuration Generator & Server Side TLS Guidelines](https://wiki.mozilla.org/Security/Server_Side_TLS)

@@ -2,6 +2,17 @@
 
 A technical guide and engineering reference on the OAuth authorization framework, grant flows, cryptographic extensions (PKCE, DPoP), OpenID Connect (OIDC) identity federation, security threat models, and architectural patterns.
 
+## References
+
+- [RFC 6749: The OAuth 2.0 Authorization Framework](https://datatracker.ietf.org/doc/html/rfc6749)
+- [RFC 6750: The OAuth 2.0 Authorization Framework - Bearer Token Usage](https://datatracker.ietf.org/doc/html/rfc6750)
+- [RFC 7636: Proof Key for Code Exchange (PKCE)](https://datatracker.ietf.org/doc/html/rfc7636)
+- [RFC 8252: OAuth 2.0 for Native Apps (AppAuth)](https://datatracker.ietf.org/doc/html/rfc8252)
+- [RFC 8628: OAuth 2.0 Device Authorization Grant](https://datatracker.ietf.org/doc/html/rfc8628)
+- [RFC 9449: Demonstrating Proof-of-Possession (DPoP)](https://datatracker.ietf.org/doc/html/rfc9449)
+- [The OAuth 2.1 Authorization Framework (Draft)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1)
+- [OpenID Connect Core 1.0 Specification](https://openid.net/specs/openid-connect-core-1_0.html)
+
 ---
 
 ## 1. High-Level Concept: The Delegation Problem
@@ -590,16 +601,3 @@ A standard OAuth 2.0 / OIDC identity provider exposes the following well-defined
 | `/revoke`                           | `POST`         | Token revocation endpoint ([RFC 7009](https://datatracker.ietf.org/doc/html/rfc7009)) to invalidate access or refresh tokens. | `token`, `token_type_hint`                                                                                |
 | `/introspect`                       | `POST`         | Token introspection endpoint ([RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)) for opaque tokens.                   | `token`, `token_type_hint`                                                                                |
 | `/.well-known/jwks.json`            | `GET`          | JSON Web Key Set (JWKS) containing public keys for validating JWT signatures.                                                 | None                                                                                                      |
-
----
-
-## References & Further Reading
-
-- [RFC 6749: The OAuth 2.0 Authorization Framework](https://datatracker.ietf.org/doc/html/rfc6749)
-- [RFC 6750: The OAuth 2.0 Authorization Framework - Bearer Token Usage](https://datatracker.ietf.org/doc/html/rfc6750)
-- [RFC 7636: Proof Key for Code Exchange (PKCE)](https://datatracker.ietf.org/doc/html/rfc7636)
-- [RFC 8252: OAuth 2.0 for Native Apps (AppAuth)](https://datatracker.ietf.org/doc/html/rfc8252)
-- [RFC 8628: OAuth 2.0 Device Authorization Grant](https://datatracker.ietf.org/doc/html/rfc8628)
-- [RFC 9449: Demonstrating Proof-of-Possession (DPoP)](https://datatracker.ietf.org/doc/html/rfc9449)
-- [The OAuth 2.1 Authorization Framework (Draft)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1)
-- [OpenID Connect Core 1.0 Specification](https://openid.net/specs/openid-connect-core-1_0.html)

@@ -2,6 +2,14 @@
 
 A production-grade technical reference and deep dive into advanced PostgreSQL query patterns: `DISTINCT ON`, `LATERAL` joins, Common Table Expressions (`WITH RECURSIVE` and Writable CTEs), conditional aggregations (`FILTER`), multidimensional rollups (`GROUPING SETS`, `ROLLUP`, `CUBE`), atomic upserts (`INSERT ... ON CONFLICT`), and query optimization mechanics.
 
+## References
+
+- [PostgreSQL Documentation: Queries - SELECT DISTINCT](https://www.postgresql.org/docs/current/queries-select-lists.html#QUERIES-DISTINCT)
+- [PostgreSQL Documentation: Queries - LATERAL Subqueries](https://www.postgresql.org/docs/current/queries-table-expressions.html#QUERIES-LATERAL)
+- [PostgreSQL Documentation: Queries - WITH Queries (Common Table Expressions)](https://www.postgresql.org/docs/current/queries-with.html)
+- [PostgreSQL Documentation: Aggregate Functions with FILTER Clause](https://www.postgresql.org/docs/current/sql-expressions.html#SYNTAX-AGGREGATES)
+- [PostgreSQL Documentation: SQL INSERT - ON CONFLICT Clause](https://www.postgresql.org/docs/current/sql-insert.html#SQL-ON-CONFLICT)
+
 ---
 
 ## 1. High-Level Taxonomy of Advanced PostgreSQL Querying
@@ -745,13 +753,3 @@ GROUP BY ROLLUP (region, department);
 INSERT INTO counters (key, val) VALUES ('hits', 1)
 ON CONFLICT (key) DO UPDATE SET val = counters.val + EXCLUDED.val;
 ```
-
----
-
-## References & Further Reading
-
-- [PostgreSQL Documentation: Queries - SELECT DISTINCT](https://www.postgresql.org/docs/current/queries-select-lists.html#QUERIES-DISTINCT)
-- [PostgreSQL Documentation: Queries - LATERAL Subqueries](https://www.postgresql.org/docs/current/queries-table-expressions.html#QUERIES-LATERAL)
-- [PostgreSQL Documentation: Queries - WITH Queries (Common Table Expressions)](https://www.postgresql.org/docs/current/queries-with.html)
-- [PostgreSQL Documentation: Aggregate Functions with FILTER Clause](https://www.postgresql.org/docs/current/sql-expressions.html#SYNTAX-AGGREGATES)
-- [PostgreSQL Documentation: SQL INSERT - ON CONFLICT Clause](https://www.postgresql.org/docs/current/sql-insert.html#SQL-ON-CONFLICT)

@@ -2,6 +2,13 @@
 
 A technical reference and deep dive into PostgreSQL's Multi-Version Concurrency Control (MVCC) engine, snapshot mechanics, visibility rules, tuple headers, and implementation behavior across all transaction isolation levels.
 
+## References
+
+- [Eyo Chen: A Straightforward Guide for MVCC in Postgres](https://dev.to/eyochen/a-straightforward-guide-for-mvcc-in-postgres-15b4)
+- [PostgreSQL Official Documentation: Chapter 13. Concurrency Control](https://www.postgresql.org/docs/current/mvcc.html)
+- [H. Berenson et al.: A Critique of ANSI SQL Isolation Levels (SIGMOD 1995)](https://www.microsoft.com/en-us/research/publication/a-critique-of-ansi-sql-isolation-levels/)
+- [PostgreSQL Internal: EvalPlanQual (EPQ) Mechanism](https://www.postgresql.org/docs/current/transaction-iso.html#XACT-READ-COMMITTED)
+
 ---
 
 ## 1. High-Level Concept of MVCC
@@ -358,12 +365,3 @@ In 2016, Uber published their transition from PostgreSQL to MySQL (InnoDB). The 
 ### Notion: Database Sharding
 
 Notion scaled their primary PostgreSQL cluster to support hundreds of millions of users by horizontally sharding into dozens of physical PostgreSQL databases. Sharding kept individual table sizes within thresholds where `autovacuum` workers could clean dead tuples without falling behind high write velocity and triggering table bloat spikes.
-
----
-
-## References & Further Reading
-
-- [Eyo Chen: A Straightforward Guide for MVCC in Postgres](https://dev.to/eyochen/a-straightforward-guide-for-mvcc-in-postgres-15b4)
-- [PostgreSQL Official Documentation: Chapter 13. Concurrency Control](https://www.postgresql.org/docs/current/mvcc.html)
-- [H. Berenson et al.: A Critique of ANSI SQL Isolation Levels (SIGMOD 1995)](https://www.microsoft.com/en-us/research/publication/a-critique-of-ansi-sql-isolation-levels/)
-- [PostgreSQL Internal: EvalPlanQual (EPQ) Mechanism](https://www.postgresql.org/docs/current/transaction-iso.html#XACT-READ-COMMITTED)
