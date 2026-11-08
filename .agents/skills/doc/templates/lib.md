@@ -28,7 +28,7 @@
 - 1–2 sentences: what it is (with the code module path for a repo), what it wraps, why it exists, and who uses it.
 - Then one `###` per responsibility, such as Bootstrap, Authentication, Rate Limiting, Configuration; entry points (main, module, public interface) come first.
   - Open with a simple description of the responsibility: what it does and its main abstractions.
-  - Then its related files, each with ` — what it holds`. A file serving several responsibilities goes under its main one.
+  - Then its related files, each with "what it holds". A file serving several responsibilities goes under its main one.
 -->
 
 {description}
@@ -42,7 +42,7 @@
 ## Features
 
 <!--
-- One `###` per feature, as `### Feature N: {Title}`.
+- One `###` per feature, as `### N. {feature_N_title}`.
 - Bullets for behaviour, config keys, defaults, and gotchas; a table for enumerable options.
 - `#### Interaction`: `sequenceDiagram` between components, or `flowchart` for decision logic.
 - For a package people call directly, add a short code snippet of the canonical usage.
