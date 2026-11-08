@@ -16,6 +16,9 @@
 - [plotly.graph_objects API](https://plotly.com/python-api-reference/plotly.graph_objects.html): Class hierarchy and schema validation reference
 - [file_io.md](../../concept/python/file_io.md): Comprehensive guide to Python file I/O mechanisms, access modes, and durability
 - [pathlib.md](./pathlib.md): Object-oriented filesystem path operations and integrated I/O helpers
+- [matplotlib.md](./matplotlib.md): Foundational object-oriented 2D/3D plotting engine and Artist hierarchy
+- [seaborn.md](./seaborn.md): High-level statistical visualization library built on Matplotlib
+- [bokeh.md](./bokeh.md): Interactive browser-based visualization engine utilizing HTML5 Canvas and WebGL
 
 ## Description
 
