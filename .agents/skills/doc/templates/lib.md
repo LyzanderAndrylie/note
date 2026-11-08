@@ -1,8 +1,12 @@
 # {Library Name}
 
+<!--
+- Author: Document creator (e.g., git config user.name), NOT the library author/creator.
+-->
+
 | Metadata      | Value                                         |
 | ------------- | --------------------------------------------- |
-| Author        | {author1}, {author2}, ...                     |
+| Author        | {doc_author1}, {doc_author2}, ...             |
 | Creation Date | {Jan 2, 2006}                                 |
 | Last Updated  | {Jan 2, 2006}                                 |
 | Repositories  | [{repo path}]({repo path}) ({commit hash}), … |
