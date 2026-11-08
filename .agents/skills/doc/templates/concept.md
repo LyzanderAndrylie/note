@@ -13,12 +13,13 @@
 ## References
 
 <!--
-- Web documents.
-- Then code and other related docs, each with what it covers.
+- Web documents, codes and other related docs, each with what it covers.
+- Follow the above order when adding references.
+- When adding related docs, make sure to update other related docs' references too.
 -->
 
 - [{Web document}]({URL}): {what it covers}
-- [{Code filename}]({path}): {what it covers}
+- [{Code filename}]({URL}): {what it covers}
 - [{Doc title}]({path}): {what it covers}
 
 ## Description
