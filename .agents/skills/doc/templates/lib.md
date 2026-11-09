@@ -43,20 +43,15 @@
 ## Features
 
 <!--
-- One `###` per feature, as `### N. {feature_N_title}`.
-- Bullets for behaviour, config keys, defaults, and gotchas; attach a code snippet (with output comments or tables) directly to any bullet that is easier to describe with code; use a table for enumerable options.
-- `#### Interaction`: `sequenceDiagram` between components, or `flowchart` for decision logic.
-- For a package people call directly, add a short code snippet of the canonical usage (not necessary if the feature is already described with code snippets).
+- One `###` per feature, ordered so each builds on the one before; the title is its one-line takeaway.
+- Bullets for behaviour, config keys, defaults, trade-offs, and gotchas; a table for options or comparisons.
+- Add a code block for canonical usage or for anything easier to describe with code.
+- `#### Interaction`: `sequenceDiagram` when components talk to each other, `flowchart` for a decision or lifecycle. Drop it when nothing interacts.
 -->
 
 ### 1. {feature_1_title}
 
-{description}
-
-- **{point}**: {explanation}
-  ```{language}
-  {code_snippet}
-  ```
+{simple_feature_description}
 
 #### Interaction
 
@@ -68,4 +63,22 @@ sequenceDiagram
 
     App->>Lib: {call}
     Lib->>Dep: {call}
+```
+
+#### a. {subfeature_1_title}
+
+<!--
+- Add subfeatures as appropriate when a feature breaks down into distinct parts, variants, or strategies; omit when not needed.
+-->
+
+{simple_subfeature_description}
+
+##### Interaction
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant Lib as {Library}
+
+    App->>Lib: {call}
 ```
