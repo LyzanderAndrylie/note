@@ -15,7 +15,7 @@ Manage technical documentation across the repository using the canonical templat
 ```text
 /doc create <lib|concept|product> <context>            - write a new doc
 /doc update <doc path or topic> <what changed>         - refresh a doc
-/doc check [doc path | type]                           - report broken links, stale claims, incorrect and inconsistent facts
+/doc check [doc path | type]                           - report incorrect facts, inconsistencies, stale claims, and broken links
 /doc simplify <doc path>                               - the same facts in fewer words, bullets first
 /doc refresh <doc paths | folder | type | topic | all> - update, check, and simplify each doc in turn
 ```
@@ -65,7 +65,7 @@ Refresh an existing document to reflect code changes, new scope, or updated know
 4. **Apply Updates**:
    - Update affected sections, tables, code examples, file references, and Mermaid diagrams.
    - If modified sections deviate from the current template conventions, bring them into alignment with the template.
-   - Update the `Last Updated` / `Document Last Updated Date` metadata field (and `Product Version` or `Repositories` commit hash if applicable).
+   - Update metadata.
 
 ---
 
@@ -79,22 +79,22 @@ Audit documentation and report issues without modifying the files (unless explic
    - Topic or folder → audit all `.md` files in that directory.
    - Omitted → audit all docs under `software-engineer/`.
 2. **Run Checks**:
-   - **Broken Links**:
-     - Verify every markdown link `[text](path)` resolves to an existing file on disk relative to the document's directory.
-     - Verify `#heading-anchor` fragments match actual headings in the target file.
-     - Flag any root-relative (`/path/...`), `file://`, or non-filename-labeled file links that violate [`links.md`](../../rules/links.md).
-   - **Stale Claims**:
-     - For `lib` and `product` docs, check referenced source paths, package names, function/type signatures, CLI flags, config defaults, versions, and commit hashes against the codebase.
-     - Flag deprecated APIs, renamed files, or outdated version numbers.
-   - **Incorrect Facts**:
-     - Verify technical statements, formulas, complexity claims, protocol flows, SQL/code syntax, and commented `Output:` values.
-   - **Inconsistent Facts**:
-     - Check internal consistency across metadata tables, prose, code snippets, and Mermaid diagrams within the same document.
-     - Check cross-document consistency across related notes in the same topic folder.
-   - **Template & Formatting Hygiene**:
-     - Check for leftover `{placeholder}` tokens, unremoved `<!-- ... -->` template comments, or invalid Mermaid syntax (e.g., `;` or unquoted labels containing `()`, `[]`, or `{}`).
+   1. **Incorrect Facts**:
+      - Verify technical statements, formulas, complexity claims, protocol flows, SQL/code syntax, and commented `Output:` values.
+   2. **Inconsistencies**:
+      - Check internal consistency across metadata tables, prose, code snippets, and Mermaid diagrams within the same document.
+      - Check cross-document consistency across related notes in the same topic folder.
+   3. **Stale Claims**:
+      - For `lib` and `product` docs, check referenced source paths, package names, function/type signatures, CLI flags, config defaults, versions, and commit hashes against the codebase.
+      - Flag deprecated APIs, renamed files, or outdated version numbers.
+   4. **Broken Links**:
+      - Verify every markdown link `[text](path)` resolves to an existing file on disk relative to the document's directory.
+      - Verify `#heading-anchor` fragments match actual headings in the target file.
+      - Flag any file links that violate [`markdown.md`](../../rules/markdown.md).
+   5. **Template/Formatting Issues**:
+      - Check for leftover `{placeholder}` tokens, unremoved `<!-- ... -->` template comments, or any formatting/Mermaid/code-block violations of [`markdown.md`](../../rules/markdown.md).
 3. **Report Findings**:
-   - Output a concise report grouped by document and category: **Broken Links**, **Stale Claims**, **Incorrect Facts**, **Inconsistencies**, and **Template/Formatting Issues**.
+   - Output a concise report grouped by document and category: **Incorrect Facts**, **Inconsistencies**, **Stale Claims**, **Broken Links**, and **Template/Formatting Issues**.
    - Cite exact `file:line` locations and provide the concrete fix for each finding.
 
 ---
@@ -123,9 +123,6 @@ Run **`update` → `check` → `simplify`** on each target document in turn.
 1. **Resolve Target List**:
    - Expand `<doc paths | folder | type | topic | all>` into an ordered list of markdown files.
 2. **Process Each Document Sequentially**:
-   For each document in the list, execute all three stages before moving to the next document:
-   - **Stage 1 (`update`)**: Refresh stale content against the codebase/current context, align structure with its template in [`templates`](./templates/), and update `Last Updated` metadata where present.
-   - **Stage 2 (`check`)**: Verify all relative links, anchors, code paths, technical claims, and internal/cross-doc consistency. Fix every broken link, stale reference, or inconsistency directly in the file.
-   - **Stage 3 (`simplify`)**: Condense prose into bullets-first, high-density technical notes while preserving all facts, tables, code blocks, and diagrams.
+   - For each document in the list, run `/doc update`, `/doc check` (and fix any issues found), and `/doc simplify` in order before moving to the next document.
 3. **Summarize**:
    - After processing all target files, report a brief per-file summary of what was updated, fixed, and simplified.

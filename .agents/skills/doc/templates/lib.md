@@ -44,14 +44,19 @@
 
 <!--
 - One `###` per feature, as `### N. {feature_N_title}`.
-- Bullets for behaviour, config keys, defaults, and gotchas; a table for enumerable options.
+- Bullets for behaviour, config keys, defaults, and gotchas; attach a code snippet (with output comments or tables) directly to any bullet that is easier to describe with code; use a table for enumerable options.
 - `#### Interaction`: `sequenceDiagram` between components, or `flowchart` for decision logic.
-- For a package people call directly, add a short code snippet of the canonical usage.
+- For a package people call directly, add a short code snippet of the canonical usage (not necessary if the feature is already described with code snippets).
 -->
 
 ### 1. {feature_1_title}
 
 {description}
+
+- **{point}**: {explanation}
+  ```{language}
+  {code_snippet}
+  ```
 
 #### Interaction
 
