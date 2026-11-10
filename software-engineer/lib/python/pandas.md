@@ -23,13 +23,14 @@
 
 `pandas` is the foundational, open-source data manipulation and analysis library for Python. It provides high-performance, labeled, heterogeneous tabular data structures (`DataFrame`, `Series`) built on top of NumPy, Cython, and Apache Arrow. It exists to provide an expressive, indexed data manipulation layer for computational statistics, financial modeling, machine learning preprocessing, and ad-hoc exploratory analytics across the PyData ecosystem.
 
-### Tabular Data Structures and Indexing Engine (`pandas.core.frame`, `pandas.core.series`, `pandas.core.indexes`)
+### Tabular Data Structures and Indexing Engine (`pandas.core.frame`, `pandas.core.series`, `pandas.core.indexes`, `pandas.core.computation`)
 
-The primary container layer providing 2D `DataFrame` and 1D `Series` objects. It coordinates label-based (`loc`) and position-based (`iloc`) data selection, hierarchical indexing (`MultiIndex`), and automatic index alignment across operations.
+The primary container layer providing 2D `DataFrame` and 1D `Series` objects. It coordinates label-based (`loc`), position-based (`iloc`), boolean mask (`df[mask]`), and AST expression-parsed (`query`, `eval`) data selection, hierarchical indexing (`MultiIndex`), and automatic index alignment across operations.
 
 - [pandas.core.frame](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html): The two-dimensional, size-mutable, potentially heterogeneous tabular data structure
 - [pandas.core.series](https://pandas.pydata.org/docs/reference/api/pandas.Series.html): One-dimensional labeled array capable of holding any data type
 - [pandas.core.indexes](https://pandas.pydata.org/docs/reference/indexing.html): Immutable coordinate systems managing row/column axis labels and fast hash lookups
+- [pandas.core.computation](https://pandas.pydata.org/docs/user_guide/enhancingperf.html#expression-evaluation-via-eval): AST-based string expression evaluator powering `df.query()` and `pd.eval()`
 
 ### Memory Storage and Block Management (`pandas.core.internals.managers`, `pandas.core.arrays`)
 
@@ -224,7 +225,274 @@ sorted_df.loc[idx["East":"West", :], :]
 | `df.loc[idx[:, "Q1"], :]`           | `Region`, `Quarter`           | East Q1 (`100.5`), West Q1 (`85.2`)  |
 | `df.xs("Q1", level="Quarter")`      | `Region` (`["East", "West"]`) | East (`100.5`), West (`85.2`)        |
 
-### 2. In-Memory Storage Architecture: BlockManager vs. Arrow ExtensionArrays
+### 2. Conditional Filtering, Boolean Masking, and SQL-Style Querying (`df[mask]`, `query`, `duckdb.sql`)
+
+Pandas provides multiple interfaces to filter rows satisfying specific conditions, ranging from vectorized boolean masks (`df[df["col"] > 1]`) and SQL-like string expressions (`df.query()`) to zero-copy ANSI SQL queries (`duckdb.sql()`).
+
+| Interface                           | SQL Equivalent                              | Evaluation Engine                 | Example Call                                      | Primary Use Case                                         |
+| :---------------------------------- | :------------------------------------------ | :-------------------------------- | :------------------------------------------------ | :------------------------------------------------------- |
+| `df[df["col"] > 1]`                 | `SELECT * FROM df WHERE col > 1`            | Vectorized NumPy / Arrow bitmask  | `df[(df["rev"] > 100) & (df["cost"] < 70)]`       | Standard row filtering across all columns                |
+| `df.loc[mask, ["c1", "c2"]]`        | `SELECT c1, c2 FROM df WHERE ...`           | Boolean mask + label projection   | `df.loc[df["rev"] > 100, ["region", "rev"]]`      | Combined row filtering, column selection, or mutation    |
+| `df[lambda x: x["col"] > 1]`        | `WHERE` inside CTE / pipeline               | Deferred callable on current `df` | `df.assign(net=...).loc[lambda x: x["net"] > 50]` | Method chaining without intermediate DataFrame variables |
+| `df.query("...")`                   | Native SQL-like `WHERE` clause              | Python AST or `numexpr` bytecode  | `df.query("rev > @min_rev and region == 'East'")` | Readable multi-condition filtering without bracket noise |
+| `s.isin([...])` / `s.between(a, b)` | `WHERE col IN (...)` / `BETWEEN a AND b`    | Hash-table lookup / dual bound    | `df[df["region"].isin(["East", "West"])]`         | Set membership and inclusive range predicates            |
+| `df.where(cond, other)`             | `CASE WHEN cond THEN val ELSE other END`    | Shape-preserving elementwise mask | `df["rev"].where(df["rev"] > 100, other=0.0)`     | Conditional value replacement while keeping index shape  |
+| `duckdb.sql("SELECT ... FROM df")`  | Full ANSI SQL (`WHERE`, `QUALIFY`, `GROUP`) | DuckDB vectorized OLAP engine     | `duckdb.sql("SELECT * FROM df WHERE rev > 100")`  | Complex SQL queries directly over in-memory DataFrames   |
+
+#### Interaction
+
+```mermaid
+flowchart TD
+    Input["Source DataFrame (df)"] --> Path{"Selection Interface"}
+    Path -->|"Boolean Mask: df[(df['rev'] > 100) & (df['cost'] < 70)]"| EvalMask["Evaluate Vectorized Comparisons & Bitwise AND (&)"]
+    EvalMask --> BoolSeries["1D Boolean Series Mask (True / False / <NA>)"]
+    Path -->|"Expression API: df.query('rev > 100 and cost < 70')"| ParseAST["Parse String into AST via pandas.core.computation"]
+    ParseAST --> EngineCheck{"DataFrame > 10k Rows & numexpr Installed?"}
+    EngineCheck -->|Yes| NumExpr["Evaluate in Chunked Multi-Threaded C Kernel (No Temp Arrays)"]
+    EngineCheck -->|No| EvalMask
+    NumExpr --> BoolSeries
+    BoolSeries --> Filter["Slice Underlying BlockManager / Arrow Arrays at True Offsets"]
+    Path -->|"ANSI SQL: duckdb.sql('SELECT * FROM df WHERE ...').df()"| ZeroCopy["Zero-Copy Arrow / Pointer Scan in DuckDB Engine"]
+    Filter --> Result["Filtered Sub-DataFrame"]
+    ZeroCopy --> Result
+```
+
+#### Example Dataset
+
+All conditional selection examples below operate on this shared `orders` DataFrame:
+
+```python
+import pandas as pd
+
+orders = pd.DataFrame(
+    {
+        "order_id": [101, 102, 103, 104, 105],
+        "region": ["East", "West", "East", "North", "West"],
+        "revenue": [150.0, 80.0, 220.0, 95.0, 130.0],
+        "discount_code": ["VIP20", None, "SPRING10", "VIP15", None],
+    }
+)
+```
+
+| Row Offset | `order_id` | `region` | `revenue` | `discount_code` |
+| :--------- | ---------: | :------- | --------: | :-------------- |
+| 0          |        101 | `East`   |     150.0 | `VIP20`         |
+| 1          |        102 | `West`   |      80.0 | `None`          |
+| 2          |        103 | `East`   |     220.0 | `SPRING10`      |
+| 3          |        104 | `North`  |      95.0 | `VIP15`         |
+| 4          |        105 | `West`   |     130.0 | `None`          |
+
+#### a. Vectorized Boolean Masking (`df[mask]` and `df.loc[mask, cols]`)
+
+##### 1. Single-Condition Mask (`df[df["col"] > val]`)
+
+Comparing a column against a scalar executes a vectorized C/Arrow comparison that returns a 1D boolean `Series` (`True`/`False`) aligned with `df.index`. Passing that mask to `df[...]` retains only the `True` rows (equivalent to `SELECT * FROM orders WHERE revenue > 100`).
+
+```python
+mask = orders["revenue"] > 100
+# 0     True
+# 1    False
+# 2     True
+# 3    False
+# 4     True
+# Name: revenue, dtype: bool
+
+high_rev = orders[mask]  # Or inline: orders[orders["revenue"] > 100]
+```
+
+| `order_id` | `region` | `revenue` | `discount_code` |
+| ---------: | :------- | --------: | :-------------- |
+|        101 | `East`   |     150.0 | `VIP20`         |
+|        103 | `East`   |     220.0 | `SPRING10`      |
+|        105 | `West`   |     130.0 | `None`          |
+
+##### 2. Compound Conditions & Bitwise Operator Precedence (`&`, `|`, `~`)
+
+Python's `and`, `or`, and `not` keywords cannot evaluate elementwise arrays and raise `ValueError: The truth value of a Series is ambiguous`. Combine conditions using bitwise `&` (`AND`), `|` (`OR`), and `~` (`NOT`), and **wrap every comparison in parentheses** because `&` and `|` have higher operator precedence than `>`, `<`, and `==`.
+
+```python
+# Wrong: orders["revenue"] > 100 & orders["region"] == "East" -> Raises TypeError
+# Correct: wrap each comparison in parentheses
+east_high = orders[(orders["revenue"] > 100) & (orders["region"] == "East")]
+
+# Negation (~): SELECT * FROM orders WHERE NOT (region = 'North')
+non_north = orders[~(orders["region"] == "North")]
+```
+
+##### 3. Combined Row Filtering and Column Projection (`df.loc[mask, cols]`)
+
+Passing a row boolean mask and a list of column names to `df.loc[mask, cols]` filters rows and projects columns in a single atomic operation (`SELECT order_id, revenue FROM orders WHERE ...`). It is also the required pattern for conditional in-place updates to avoid `ChainedAssignmentError`.
+
+```python
+# Project specific columns for matching rows
+east_summary = orders.loc[
+    (orders["revenue"] > 100) & (orders["region"] == "East"),
+    ["order_id", "revenue"],
+]
+
+# Safe conditional mutation (SET tier = 'gold' WHERE revenue >= 150)
+orders.loc[orders["revenue"] >= 150, "tier"] = "gold"
+```
+
+| `order_id` | `revenue` | Note (`east_summary`)                          |
+| ---------: | --------: | :--------------------------------------------- |
+|        101 |     150.0 | Matches `revenue > 100` and `region == "East"` |
+|        103 |     220.0 | Matches `revenue > 100` and `region == "East"` |
+
+#### b. SQL-Equivalent Predicate Helpers (`isin`, `between`, `isna`, `str`, `lambda`)
+
+##### 1. Set Membership (`isin` / `~isin` — SQL `IN` / `NOT IN`)
+
+`s.isin([...])` tests membership against a collection using $O(1)$ hash-table lookups instead of chaining multiple `|` (`OR`) comparisons.
+
+```python
+# Equivalent to: WHERE region IN ('East', 'North')
+coastal = orders[orders["region"].isin(["East", "North"])]
+
+# Negate with ~ for SQL NOT IN
+not_west = orders[~orders["region"].isin(["West"])]
+```
+
+##### 2. Inclusive Range Filtering (`between` — SQL `BETWEEN`)
+
+`s.between(low, high, inclusive="both")` checks both lower and upper bounds in one call (`inclusive` accepts `"both"`, `"neither"`, `"left"`, or `"right"`).
+
+```python
+# Equivalent to: WHERE revenue BETWEEN 90 AND 160
+mid_tier = orders[orders["revenue"].between(90, 160, inclusive="both")]
+# Matches order_id 101 (150.0), 104 (95.0), and 105 (130.0)
+```
+
+##### 3. Null Checks and String Matching (`isna`, `notna`, `str` — SQL `IS NULL` & `LIKE`)
+
+Use `.isna()` / `.notna()` to filter missing values, and `.str.startswith()` / `.str.contains()` for substring or regex matching. Pass `na=False` to string methods so missing values evaluate to `False` instead of propagating `NaN` into the boolean mask.
+
+```python
+# Equivalent to: WHERE discount_code IS NOT NULL AND discount_code LIKE 'VIP%'
+vip_orders = orders[
+    orders["discount_code"].notna()
+    & orders["discount_code"].str.startswith("VIP", na=False)
+]
+```
+
+| `order_id` | `region` | `revenue` | `discount_code` |
+| ---------: | :------- | --------: | :-------------- |
+|        101 | `East`   |     150.0 | `VIP20`         |
+|        104 | `North`  |      95.0 | `VIP15`         |
+
+##### 4. Callable Indexing in Method Chains (`lambda`)
+
+Passing a `lambda` to `df[...]` or `df.loc[...]` evaluates the condition against the current DataFrame state in a pipeline without needing an intermediate variable.
+
+```python
+chained = (
+    orders.assign(net_revenue=orders["revenue"] * 0.9)
+    .loc[lambda x: x["net_revenue"] > 100, ["order_id", "net_revenue"]]
+)
+# Matches order_id 101 (135.0), 103 (198.0), and 105 (117.0)
+```
+
+#### c. SQL-Style Expression Querying (`df.query` and `df.eval`)
+
+##### 1. String Predicate Filtering (`df.query`)
+
+`df.query(expr)` parses SQL `WHERE`-like string expressions using standard keywords (`and`, `or`, `not`, `in`, and chained inequalities like `80 <= revenue <= 150`). On DataFrames with $>10{,}000$ rows (when `numexpr` is installed), it compiles the expression into multi-threaded C bytecode without allocating temporary boolean arrays in RAM.
+
+```python
+# Chained inequality + null check without bracket clutter
+mid_no_discount = orders.query("80 <= revenue <= 150 and discount_code.isna()")
+# Matches order_id 102 (80.0, None) and 105 (130.0, None)
+```
+
+##### 2. Python Variable Injection (`@var`) and Backtick Escaping
+
+Prefix an identifier with `@` to reference local or global Python variables inside the query string. Wrap column names containing spaces or special characters in backticks (`` `col name` ``).
+
+```python
+min_rev = 100.0
+allowed_regions = ["East", "West"]
+
+query_res = orders.query("revenue > @min_rev and region in @allowed_regions")
+# Matches order_id 101, 103, and 105
+```
+
+##### 3. Expression Column Computation (`df.eval`)
+
+`df.eval()` uses the same expression engine to compute new boolean flags or arithmetic columns from string formulas.
+
+```python
+orders_with_flag = orders.eval("is_large_east = (revenue >= 150) and (region == 'East')")
+print(orders_with_flag[["order_id", "is_large_east"]])
+# order_id 101 -> True, 103 -> True; all others -> False
+```
+
+#### d. Direct ANSI SQL Interface over DataFrames (`duckdb.sql` & `pd.read_sql_query`)
+
+##### 1. In-Process Zero-Copy SQL ([duckdb.md](./duckdb.md))
+
+`duckdb.sql()` automatically detects local Pandas `DataFrame` variables by name and runs full ANSI SQL (`SELECT`, `WHERE`, `GROUP BY`, window `QUALIFY`) directly over their Arrow/NumPy memory buffers with zero copying. Calling `.df()` returns the result as a Pandas `DataFrame`.
+
+```python
+import duckdb
+
+sql_filtered = duckdb.sql(
+    """
+    SELECT order_id, region, revenue
+    FROM orders
+    WHERE revenue > 100
+      AND region IN ('East', 'West')
+    ORDER BY revenue DESC
+    """
+).df()
+```
+
+| `order_id` | `region` | `revenue` |
+| ---------: | :------- | --------: |
+|        103 | `East`   |     220.0 |
+|        101 | `East`   |     150.0 |
+|        105 | `West`   |     130.0 |
+
+##### 2. External Database SQL Pushdown (`pd.read_sql_query`)
+
+When data resides in an external relational database (PostgreSQL, SQLite, Snowflake), `pd.read_sql_query()` pushes the `WHERE` filter down to the database engine and only materializes matching rows into Pandas memory.
+
+```python
+import sqlite3
+
+with sqlite3.connect(":memory:") as conn:
+    orders.to_sql("orders_tbl", conn, index=False)
+    db_filtered = pd.read_sql_query(
+        "SELECT order_id, region, revenue FROM orders_tbl WHERE revenue > :min_rev",
+        conn,
+        params={"min_rev": 100.0},
+        dtype_backend="pyarrow",
+    )
+```
+
+#### e. Shape-Preserving Conditional Replacement (`df.where` and `df.mask`)
+
+Unlike `df[mask]` and `df.query()` (which drop non-matching rows), `df.where()` and `df.mask()` keep the original DataFrame shape and index (equivalent to SQL `CASE WHEN cond THEN val ELSE other END`):
+
+- **`df.where(cond, other)`**: Keeps original values where `cond` is `True` and replaces `False` entries with `other`.
+- **`df.mask(cond, other)`**: Replaces values where `cond` is `True` with `other` and keeps `False` entries.
+
+```python
+# Keep revenues > 100; replace lower revenues with 0.0 (all 5 rows preserved)
+orders["qualified_rev"] = orders["revenue"].where(orders["revenue"] > 100, other=0.0)
+
+# Cap revenues > 200.0 at 200.0
+orders["capped_rev"] = orders["revenue"].mask(orders["revenue"] > 200, other=200.0)
+```
+
+| `order_id` | `revenue` (Original) | `qualified_rev` (`where(rev > 100, 0.0)`) | `capped_rev` (`mask(rev > 200, 200.0)`) |
+| ---------: | -------------------: | ----------------------------------------: | --------------------------------------: |
+|        101 |                150.0 |                          150.0 (Retained) |                        150.0 (Retained) |
+|        102 |                 80.0 |                            0.0 (Replaced) |                         80.0 (Retained) |
+|        103 |                220.0 |                          220.0 (Retained) |                        200.0 (Replaced) |
+|        104 |                 95.0 |                            0.0 (Replaced) |                         95.0 (Retained) |
+|        105 |                130.0 |                          130.0 (Retained) |                        130.0 (Retained) |
+
+### 3. In-Memory Storage Architecture: BlockManager vs. Arrow ExtensionArrays
 
 Historically, Pandas stored all DataFrame columns inside the **`BlockManager`** by consolidating multiple contiguous columns of the same NumPy dtype into single 2D NumPy arrays. Starting in **Pandas 2.0**, Pandas introduced the opt-in **Apache Arrow Backend** (`dtype_backend="pyarrow"`), which stores columns as 1D `ArrowExtensionArray` blocks inside the `BlockManager`.
 
@@ -291,7 +559,7 @@ print(df_pyarrow.dtypes)
 print(df_pyarrow.loc[2, "transaction_id"])  # Output: <NA>
 ```
 
-### 3. Copy-on-Write (CoW) Memory Model
+### 4. Copy-on-Write (CoW) Memory Model
 
 Introduced in Pandas 2.0 and established as default in modern releases, **Copy-on-Write (CoW)** fundamentally changes DataFrame mutation semantics.
 
@@ -345,7 +613,7 @@ print(original.iloc[0, 0])      # Output: 10 (unmodified)
 print(derived_view.iloc[0, 0])  # Output: 999
 ```
 
-### 4. Relational Joins, Merges, and Split-Apply-Combine (`groupby`)
+### 5. Relational Joins, Merges, and Split-Apply-Combine (`groupby`)
 
 Pandas implements relational algebra operators for combining datasets (`pd.merge`, `pd.concat`) and executing partitioned aggregations (`df.groupby`).
 
@@ -475,7 +743,7 @@ print(all_counts)
 | `Sales`               | 2 rows              |                                     2 |                                 2 |
 | `Marketing`           | 0 rows (Unobserved) |       _**Omitted**_ (3 rows returned) |           **0** (4 rows returned) |
 
-### 5. Reshaping, Pivoting, and Tidy Data Transformation
+### 6. Reshaping, Pivoting, and Tidy Data Transformation
 
 Pandas provides transformations to convert between **wide-format** (metrics stored across columns) and **long-format** (tidy observations stacked in rows).
 
@@ -656,7 +924,7 @@ contingency_table = pd.crosstab(
 | `D2`        |        1 |         1 |       2 | Row subtotal for `D2`                       |
 | `Total`     |        4 |         1 |       5 | Column totals and grand total ($3 + 2 = 5$) |
 
-### 6. High-Precision Time Series and Window Operations
+### 7. High-Precision Time Series and Window Operations
 
 Pandas was originally developed for quantitative financial time series, providing temporal frequency generation, timezone conversion, and moving window calculations.
 
@@ -735,3 +1003,141 @@ hourly_bars["rolling_mean_24h"] = hourly_bars["close"].rolling(window=24, min_pe
 hourly_bars["rolling_volatility"] = hourly_bars["close"].rolling(window=24, min_periods=12).std()
 hourly_bars["ema_12h"] = hourly_bars["close"].ewm(span=12, adjust=False).mean()
 ```
+
+### 8. Exploratory Data Profiling and Missing Value Diagnostics (`info`, `describe`, `isna`)
+
+Pandas provides built-in inspection idioms to profile schema types, memory footprints, statistical distributions, and missing value (`NaN` / `<NA>`) ratios across a DataFrame.
+
+| Diagnostic Idiom                  | Scope                    | Output Summary                                                    |
+| :-------------------------------- | :----------------------- | :---------------------------------------------------------------- |
+| `df.isna().mean()`                | Per column (`Series`)    | Fraction of missing values ($0.0$ to $1.0$) per column            |
+| `df.isna().sum().sum() / df.size` | Entire DataFrame (float) | Overall missing cell ratio across all rows and columns            |
+| `df.info(memory_usage="deep")`    | Schema & RAM             | Column dtypes, non-null counts, and exact heap memory footprint   |
+| `df.describe()`                   | Numeric columns          | Count, mean, std, min, quartiles ($25\%, 50\%, 75\%$), and max    |
+| `df.describe(include="all")`      | All columns              | Numeric stats plus categorical `unique`, `top` (mode), and `freq` |
+
+#### Example Dataset
+
+```python
+import pandas as pd
+
+df = pd.DataFrame(
+    {
+        "user_id": [1, 2, 3, 4],
+        "plan": ["pro", "free", None, "pro"],
+        "spend": [120.0, None, None, 80.0],
+    }
+)
+```
+
+| Row Offset | `user_id` | `plan` | `spend` |
+| :--------- | --------: | :----- | ------: |
+| 0          |         1 | `pro`  |   120.0 |
+| 1          |         2 | `free` |  `None` |
+| 2          |         3 | `None` |  `None` |
+| 3          |         4 | `pro`  |    80.0 |
+
+#### a. Fraction of Missing Values (`df.isna().mean()`)
+
+##### 1. Per-Column Missing Fraction and Percentage
+
+Because boolean `True` evaluates to `1` and `False` to `0`, calling `.mean()` on the boolean mask `df.isna()` directly computes the missing value fraction ($0.0$ to $1.0$) for each column.
+
+```python
+# Fraction of missing values per column (0.0 to 1.0)
+df.isna().mean()
+# user_id    0.00
+# plan       0.25
+# spend      0.50
+# dtype: float64
+
+# As a percentage (0% to 100%)
+df.isna().mean() * 100
+
+# Sorted in descending order to inspect the worst offenders first
+df.isna().mean().sort_values(ascending=False)
+# spend      0.50
+# plan       0.25
+# user_id    0.00
+# dtype: float64
+```
+
+##### 2. Entire DataFrame Missing Fraction
+
+Chain `.mean().mean()` (for equally weighted columns) or divide total missing cells (`df.isna().sum().sum()`) by total cells (`df.size`).
+
+```python
+# Overall fraction of missing cells across the entire DataFrame (3 missing / 12 total cells)
+df.isna().mean().mean()           # -> 0.25
+df.isna().sum().sum() / df.size   # -> 0.25
+```
+
+#### b. General DataFrame Summaries (`info` and `describe`)
+
+##### 1. Schema, Non-Null Counts, and Memory Usage (`df.info`)
+
+Prints column names, non-null value counts, data types, and total RAM consumption (`memory_usage="deep"` inspects underlying string/object heap allocations).
+
+```python
+df.info(memory_usage="deep")
+```
+
+##### 2. Numeric Descriptive Statistics (`df.describe`)
+
+Computes summary statistics (`count`, `mean`, `std`, `min`, `25%`, `50%`, `75%`, `max`) across numeric columns, automatically excluding missing values.
+
+```python
+df.describe()
+```
+
+| Statistic | `user_id` | `spend` |
+| :-------- | --------: | ------: |
+| `count`   |       4.0 |     2.0 |
+| `mean`    |       2.5 |   100.0 |
+| `std`     |      1.29 |   28.28 |
+| `min`     |       1.0 |    80.0 |
+| `25%`     |      1.75 |    90.0 |
+| `50%`     |       2.5 |   100.0 |
+| `75%`     |      3.25 |   110.0 |
+| `max`     |       4.0 |   120.0 |
+
+##### 3. Mixed Numeric and Categorical Statistics (`df.describe(include="all")`)
+
+Passing `include="all"` adds categorical/text metrics (`unique` count, `top` most frequent value, and `freq` occurrence count of the top value) alongside numeric statistics.
+
+```python
+df.describe(include="all")
+```
+
+| Statistic | `user_id` | `plan` | `spend` |
+| :-------- | --------: | :----- | ------: |
+| `count`   |       4.0 | 3      |     2.0 |
+| `unique`  |     `NaN` | 2      |   `NaN` |
+| `top`     |     `NaN` | `pro`  |   `NaN` |
+| `freq`    |     `NaN` | 2      |   `NaN` |
+| `mean`    |       2.5 | `NaN`  |   100.0 |
+| `min`     |       1.0 | `NaN`  |    80.0 |
+| `max`     |       4.0 | `NaN`  |   120.0 |
+
+#### c. Comprehensive Missing Value Summary Table
+
+Combine `.isna().sum()`, `.isna().mean()`, and `df.dtypes` into a single diagnostic DataFrame sorted by missing count to inspect counts, fractions, percentages, and types side-by-side.
+
+```python
+missing_summary = pd.DataFrame(
+    {
+        "Missing Values": df.isna().sum(),
+        "Fraction": df.isna().mean(),
+        "Percent (%)": (df.isna().mean() * 100).round(2),
+        "Dtype": df.dtypes,
+    }
+).sort_values(by="Missing Values", ascending=False)
+
+print(missing_summary)
+```
+
+| Column Index | `Missing Values` | `Fraction` | `Percent (%)` | `Dtype`   |
+| :----------- | ---------------: | ---------: | ------------: | :-------- |
+| `spend`      |                2 |       0.50 |         50.00 | `float64` |
+| `plan`       |                1 |       0.25 |         25.00 | `str`     |
+| `user_id`    |                0 |       0.00 |          0.00 | `int64`   |
