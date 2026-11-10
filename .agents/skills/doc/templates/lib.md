@@ -45,8 +45,6 @@
 <!--
 - One `###` per feature, ordered so each builds on the one before; the title is its one-line takeaway.
 - Bullets for behaviour, config keys, defaults, trade-offs, and gotchas; a table for options or comparisons.
-- Add a code block for canonical usage or for anything easier to describe with code.
-- `#### Interaction`: `sequenceDiagram` when components talk to each other, `flowchart` for a decision or lifecycle. Drop it when nothing interacts.
 -->
 
 ### 1. {feature_1_title}
@@ -54,6 +52,11 @@
 {simple_feature_description}
 
 #### Interaction
+
+<!--
+- Add interaction if needed; omit when nothing interacts.
+- `sequenceDiagram` when components talk to each other, `flowchart` for a decision or lifecycle.
+-->
 
 ```mermaid
 sequenceDiagram
@@ -63,6 +66,17 @@ sequenceDiagram
 
     App->>Lib: {call}
     Lib->>Dep: {call}
+```
+
+#### Example
+
+<!--
+- Add example if needed; omit when not needed.
+- Add a code block for canonical usage or for anything easier to describe with code.
+-->
+
+```{language}
+{example_code}
 ```
 
 #### a. {subfeature_1_title}
@@ -81,4 +95,15 @@ sequenceDiagram
     participant Lib as {Library}
 
     App->>Lib: {call}
+```
+
+##### Example
+
+<!--
+- Add example if needed; omit when not needed.
+- Add a code block for canonical usage or for anything easier to describe with code.
+-->
+
+```{language}
+{example_code}
 ```
