@@ -96,6 +96,8 @@ sequenceDiagram
     JS->>DOM: Render SVG / WebGL Canvas Elements
 ```
 
+#### Example
+
 ```python
 import plotly.graph_objects as go
 
@@ -125,7 +127,7 @@ fig = go.Figure(figure_dict)
 
 # Inspect serialized JSON representation sent to plotly.js
 json_payload = fig.to_json()
-assert '"type":"scatter"' in json_payload
+print('"type":"scatter"' in json_payload)  # Output: True
 ```
 
 ---
@@ -164,6 +166,8 @@ flowchart TD
     BuildFig --> Mutate["Optional Post-Processing via fig.update_layout()"]
     Mutate --> Ready["Renderable go.Figure"]
 ```
+
+#### Example
 
 ```python
 import pandas as pd
@@ -232,6 +236,8 @@ flowchart TD
     Chain --> Axes["fig.update_yaxes(secondary_y=True)"]
     Axes --> FinalFig["Composite Financial Dashboard Figure"]
 ```
+
+#### Example
 
 ```python
 import plotly.graph_objects as go
@@ -310,6 +316,8 @@ flowchart TD
     GenAxes --> Route5["add_trace(Histogram, row=2, col=2)"]
     Route1 & Route2 & Route3 & Route4 & Route5 --> Merge["Single go.Figure Canvas"]
 ```
+
+#### Example
 
 ```python
 import plotly.graph_objects as go
@@ -415,6 +423,8 @@ sequenceDiagram
     Kal-->>PIO: Stream Raw Image Bytes
     PIO->>Disk: Persist image.png to File
 ```
+
+#### Example
 
 ```python
 from pathlib import Path

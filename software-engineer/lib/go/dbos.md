@@ -143,6 +143,8 @@ sequenceDiagram
     Main->>DBOS: defer dbos.Shutdown(dbosCtx, 5*time.Second)
 ```
 
+#### Example
+
 ```go
 package main
 
@@ -264,6 +266,8 @@ sequenceDiagram
 
 Passing `dbos.WithWorkflowID(idempotencyKey)` ensures that duplicate requests (such as webhook retries or double-clicked checkout buttons) never execute the workflow twice:
 
+##### Example
+
 ```go
 package main
 
@@ -378,6 +382,8 @@ func main() {
 #### b. Atomic Application Transactions via `DataSource` and `RunAsTransaction`
 
 While `RunAsStep` offers **at-least-once** execution (if the process crashes after the external side effect succeeds but before the checkpoint commits to `dbos.operation_outputs`, the step re-runs on recovery), `dbos.RunAsTransaction` provides **exactly-once** database mutation semantics by committing the application query and the DBOS `transaction_completion` checkpoint row inside the **same database transaction**.
+
+##### Example
 
 ```go
 package main
@@ -505,6 +511,8 @@ flowchart TD
     CheckLimits -->|"Within Limits"| Claim["UPDATE status = 'PENDING' & Dispatch Goroutine"]
     Claim --> Complete["Execute Steps & UPDATE status = 'SUCCESS'"]
 ```
+
+#### Example
 
 ```go
 package main
@@ -646,6 +654,8 @@ sequenceDiagram
     WF->>PG: CloseStream(ctx, "output_stream")
     Client->>PG: ReadStream(ctx, wfID, "output_stream", WithReadStreamFromOffset(0))
 ```
+
+#### Example
 
 ```go
 package main
@@ -789,6 +799,8 @@ sequenceDiagram
     WF->>SysDB: Complete workflow & record status = 'SUCCESS'
 ```
 
+#### Example
+
 ```go
 package main
 
@@ -895,6 +907,8 @@ flowchart TD
     Resume --> ReExec2["Skip Steps 0 & 1; Re-execute Step 2 on 'wf-orig'"]
     Fork --> Copy0["Copy Step 0 Checkpoint to 'wf-forked' & Execute Step 1+ Live"]
 ```
+
+#### Example
 
 ```go
 package main

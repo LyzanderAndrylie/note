@@ -106,6 +106,8 @@ sequenceDiagram
     BJS->>Canvas: Paint glyphs onto HTML5 Canvas / WebGL context
 ```
 
+#### Example
+
 ```python
 from bokeh.embed import components
 from bokeh.models import ColumnDataSource, HoverTool
@@ -146,8 +148,6 @@ p.add_tools(HoverTool(renderers=[renderer], tooltips=[("Name", "@label"), ("Valu
 
 # Extract embeddable JavaScript and HTML snippet for web templates
 script, div = components(p, CDN)
-assert "<script" in script
-assert "<div" in div
 ```
 
 ---
@@ -185,6 +185,8 @@ flowchart TD
     Glyph --> ModelTree["Materialize GlyphRenderer into Document"]
     ModelTree --> View["BokehJS Paints Geometry on Canvas"]
 ```
+
+#### Example
 
 ```python
 from bokeh.io import output_file, save
@@ -279,6 +281,8 @@ sequenceDiagram
     end
 ```
 
+#### Example
+
 ```python
 import numpy as np
 from bokeh.models import ColumnDataSource
@@ -310,7 +314,7 @@ def update_telemetry(current_step: int):
 for step in range(1, 10):
     update_telemetry(step)
 
-assert len(source.data["time"]) == 10
+print(f"Streamed observations: {len(source.data['time'])}")  # Output: Streamed observations: 10
 ```
 
 ---
@@ -344,6 +348,8 @@ flowchart LR
     Emit --> Plot2["Plot 2 Automatically Highlights Points [2, 5, 8]"]
     Emit --> JS["CustomJS Callback Executes Custom Client Logic"]
 ```
+
+#### Example
 
 ```python
 from bokeh.io import output_file, save
@@ -428,6 +434,8 @@ sequenceDiagram
     User->>User: BokehJS repaints HTML5 Canvas
 ```
 
+#### Example
+
 ```python
 """
 Standalone Bokeh Server Application Script
@@ -501,6 +509,8 @@ sequenceDiagram
     Browser->>Browser: Paint raster image in browser instantaneously
 ```
 
+#### Example
+
 ```python
 """
 Datashader + Bokeh Integration Pipeline
@@ -537,5 +547,5 @@ p = figure(
 # points = hv.Points(df, ['x', 'y'])
 # interactive_plot = hv.render(datashade(points), backend='bokeh')
 
-assert len(df) == 1_000_000
+print(f"Total points ready for aggregation: {len(df):,}")  # Output: Total points ready for aggregation: 1,000,000
 ```

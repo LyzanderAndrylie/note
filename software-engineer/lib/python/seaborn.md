@@ -107,6 +107,8 @@ flowchart TD
     Align --> ReturnGrid["Return FacetGrid Instance"]
 ```
 
+#### Example
+
 ```python
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -190,6 +192,8 @@ sequenceDiagram
     SNS->>MPL: ax.plot(times, point_estimates)
     SNS->>MPL: ax.fill_between(times, ci_lower, ci_upper, alpha=0.2)
 ```
+
+#### Example
 
 ```python
 import matplotlib.pyplot as plt
@@ -279,6 +283,8 @@ flowchart LR
     Collide --> SwarmPlot["Render Non-Overlapping Categorical Markers"]
 ```
 
+#### Example
+
 ```python
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -364,6 +370,8 @@ sequenceDiagram
     CG-->>App: Return ClusterGrid Instance
 ```
 
+#### Example
+
 ```python
 import matplotlib.pyplot as plt
 import numpy as np
@@ -439,6 +447,8 @@ flowchart TD
     Upper & Diag & Lower --> Legend["g.add_legend()"]
 ```
 
+#### Example
+
 ```python
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -503,6 +513,8 @@ sequenceDiagram
     Comp->>Fig: Instantiate Figure and Axes and draw Line2D and PathCollection artists
     Fig-->>App: Rendered Matplotlib Figure
 ```
+
+#### Example
 
 ```python
 import seaborn as sns

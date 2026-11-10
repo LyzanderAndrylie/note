@@ -103,6 +103,8 @@ sequenceDiagram
     Conn->>Engine: Release locks & flush dirty buffers
 ```
 
+#### Example
+
 ```python
 import duckdb
 from pathlib import Path
@@ -139,7 +141,7 @@ conn.execute(
 # Spawn independent thread-safe cursor for read operations
 cursor = conn.cursor()
 result = cursor.execute("SELECT device_id, AVG(reading) FROM device_readings GROUP BY device_id;").fetchall()
-assert len(result) == 2
+print(result)  # Output: [('dev-01', 23.75), ('dev-02', 19.8)]
 
 conn.close()
 db_path.unlink()
@@ -181,6 +183,8 @@ flowchart TD
     Agg --> Result["Combined Query Result DataChunk"]
 ```
 
+#### Example
+
 ```python
 import duckdb
 
@@ -204,7 +208,7 @@ plan_result = conn.execute(profile_query).fetchall()
 plan_text = plan_result[0][1]
 
 # Verify vectorized operators are present in the physical plan
-assert "HASH_GROUP_BY" in plan_text
+print("HASH_GROUP_BY" in plan_text)  # Output: True
 ```
 
 ---
@@ -256,6 +260,8 @@ sequenceDiagram
     Duck-->>Py: Materialize new Polars DataFrame
 ```
 
+#### Example
+
 ```python
 import duckdb
 import pandas as pd
@@ -281,8 +287,7 @@ relation = duckdb.sql(
 
 # 3. Seamless zero-copy materialization back to Polars
 final_polars = relation.pl()
-assert isinstance(final_polars, pl.DataFrame)
-assert len(final_polars) == 2
+print(final_polars)
 ```
 
 ---
@@ -319,6 +324,8 @@ flowchart TD
     Exec --> Out["Materialize Output Record"]
 ```
 
+#### Example
+
 ```python
 import duckdb
 from pathlib import Path
@@ -346,8 +353,7 @@ result = duckdb.sql(
 """
 ).fetchall()
 
-assert len(result) == 1
-assert result[0][0] == "us_east"
+print(result)  # Output: [('us_east', 'dev-A', 100)]
 
 # Teardown
 import shutil
@@ -394,6 +400,8 @@ flowchart LR
     FilterCol --> LogicalPlan["Compile Clean Logical Projection Plan"]
 ```
 
+#### Example
+
 ```python
 import duckdb
 
@@ -422,9 +430,7 @@ query = """
 """
 
 top_dept_sales = conn.execute(query).df()
-
-assert "ssn" not in top_dept_sales.columns
-assert "total_revenue" in top_dept_sales.columns
+print(top_dept_sales)
 ```
 
 ---
@@ -470,6 +476,8 @@ sequenceDiagram
     Worker->>Disk: Stream spilled partition back into RAM for final merge
 ```
 
+#### Example
+
 ```python
 import duckdb
 from pathlib import Path
@@ -494,7 +502,7 @@ query = """
 """
 
 result = conn.execute(query).fetchall()
-assert len(result) == 1000
+print(f"Aggregated groups: {len(result)}")  # Output: Aggregated groups: 1000
 
 conn.close()
 

@@ -109,6 +109,8 @@ sequenceDiagram
     Canvas-->>App: Write Image Bytes to Disk
 ```
 
+#### Example
+
 ```python
 import matplotlib.pyplot as plt
 import numpy as np
@@ -182,6 +184,8 @@ flowchart TD
         O5 --> O6["plt.close(fig)"]
     end
 ```
+
+#### Example
 
 ```python
 import matplotlib.pyplot as plt
@@ -263,6 +267,8 @@ sequenceDiagram
     MPL->>File: Encode PNG compression and flush to disk
 ```
 
+#### Example
+
 ```python
 import os
 
@@ -270,12 +276,11 @@ import os
 os.environ["MPLBACKEND"] = "Agg"
 
 import matplotlib
-
-# Verify backend configuration programmatically
-assert matplotlib.get_backend().lower() == "agg"
-
 import matplotlib.pyplot as plt
 import numpy as np
+
+# Verify backend configuration programmatically
+print(f"Active backend: {matplotlib.get_backend()}")  # Output: Active backend: agg
 
 fig, ax = plt.subplots(figsize=(6, 4))
 ax.plot(np.random.randn(100).cumsum(), color="#d32f2f", lw=1.5)
@@ -320,6 +325,8 @@ flowchart LR
     ViewLimits --> BBox["Axes Position Transform (Axes -> Figure Pixels)"]
     BBox --> Pixel["Final Device Display Pixels (px_x, px_y)"]
 ```
+
+#### Example
 
 ```python
 import matplotlib.pyplot as plt
@@ -397,6 +404,8 @@ flowchart TD
     Engine --> Padding["Calculate Spine Padding & Axis Label Heights"]
     Padding --> Render["Render Collision-Free Layout"]
 ```
+
+#### Example
 
 ```python
 import matplotlib.pyplot as plt
@@ -476,6 +485,8 @@ sequenceDiagram
     DVI-->>TeXManager: Materialized glyph outlines
     TeXManager-->>TextArtist: Rendered TeX typography primitives
 ```
+
+#### Example
 
 ```python
 import matplotlib.pyplot as plt

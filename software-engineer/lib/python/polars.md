@@ -99,6 +99,8 @@ flowchart TD
     Barrier --> OutputDF["Materialize Final Polars DataFrame"]
 ```
 
+#### Example
+
 ```python
 import polars as pl
 
@@ -127,8 +129,7 @@ result = df.select(
     pl.col("category").str.to_uppercase().alias("category_upper"),
 )
 
-assert "amount_with_tax" in result.columns
-assert result["tier"][0] == "High Value"
+print(result)
 ```
 
 ---
@@ -175,6 +176,8 @@ flowchart TD
     end
 ```
 
+#### Example
+
 ```python
 import polars as pl
 from pathlib import Path
@@ -197,12 +200,11 @@ lazy_query = (
 )
 
 # Inspect query plan to confirm projection and predicate pushdown
-plan_string = lazy_query.explain()
-assert "SELECTION: [\"device_id\", \"metric_val\"]" in plan_string or "PROJECT" in plan_string
+print(lazy_query.explain())
 
 # Materialize optimized result
 collected_df = lazy_query.collect()
-assert "unused_large_col" not in collected_df.columns
+print(collected_df)
 
 data_path.unlink()
 ```
@@ -249,6 +251,8 @@ sequenceDiagram
     Note over DuckDB: Directly queries shared RAM without disk or network I/O
 ```
 
+#### Example
+
 ```python
 import polars as pl
 import pyarrow as pa
@@ -261,17 +265,14 @@ df = pl.DataFrame(
     }
 )
 
-# Verify integer column retains Int64 type despite nulls
-assert df["id"].dtype == pl.Int64
-assert df["id"].null_count() == 1
+# Verify schema and null count across types
+print(df.schema)
+# Output: OrderedDict([('id', Int64), ('label', String)])
 
-# Zero-copy export to Apache Arrow Table
+# Zero-copy export to Apache Arrow Table and back into Polars
 arrow_table = df.to_arrow()
-assert isinstance(arrow_table, pa.Table)
-
-# Zero-copy import back into Polars
 restored_df = pl.from_arrow(arrow_table)
-assert restored_df.equals(df)
+print(restored_df)
 ```
 
 ---
@@ -313,6 +314,8 @@ flowchart TD
     InGroup --> Merge["Combine Thread Buckets into Final DataFrame"]
 ```
 
+#### Example
+
 ```python
 import polars as pl
 
@@ -337,8 +340,7 @@ aggregated = sales.group_by(["region", "product"]).agg(
     (pl.col("revenue").sum() / pl.col("quantity").sum()).alias("unit_price"),
 )
 
-assert "total_rev" in aggregated.columns
-assert "bulk_rev" in aggregated.columns
+print(aggregated)
 ```
 
 ---
@@ -380,6 +382,8 @@ sequenceDiagram
     Sink-->>Stream: Final Consolidated Result
 ```
 
+#### Example
+
 ```python
 import polars as pl
 from pathlib import Path
@@ -407,8 +411,7 @@ streaming_pipeline = (
 
 # Execute query using the bounded-memory streaming engine
 streaming_result = streaming_pipeline.collect(streaming=True)
-
-assert streaming_result["status"][0] == "OK"
+print(streaming_result)
 parquet_file.unlink()
 ```
 
@@ -452,6 +455,8 @@ flowchart LR
     Match --> Result["Enriched Record: Trade 100 AAPL matched to Ask 150.05"]
 ```
 
+#### Example
+
 ```python
 import polars as pl
 
@@ -483,6 +488,5 @@ enriched_trades = trades.join_asof(
     tolerance=100,        # Maximum allowable time delta in ms
 )
 
-assert "bid" in enriched_trades.columns
-assert enriched_trades["bid"][0] == 150.20
+print(enriched_trades)
 ```
