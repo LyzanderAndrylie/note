@@ -9,6 +9,7 @@ A technical reference and deep dive into PostgreSQL's Multi-Version Concurrency 
 - [H. Berenson et al.: A Critique of ANSI SQL Isolation Levels (SIGMOD 1995)](https://www.microsoft.com/en-us/research/publication/a-critique-of-ansi-sql-isolation-levels/): Formal analysis of concurrency anomalies and isolation level definitions.
 - [PostgreSQL Internal: EvalPlanQual (EPQ) Mechanism](https://www.postgresql.org/docs/current/transaction-iso.html#XACT-READ-COMMITTED): Concurrency handling for concurrent row modifications under Read Committed.
 - [advance_query.md](./advance_query.md): Advanced query patterns, CTE execution, and conflict handling under MVCC.
+- [dbos.md](../../../lib/go/dbos.md): Durable workflow orchestration library leveraging PostgreSQL MVCC and transactional checkpoints.
 
 ---
 
