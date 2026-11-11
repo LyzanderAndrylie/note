@@ -4,7 +4,7 @@
 | ------------- | --------------------------------------------------------------------- |
 | Author        | Lyzander Marciano Andrylie                                            |
 | Creation Date | Nov 8, 2026                                                           |
-| Last Updated  | Nov 10, 2026                                                          |
+| Last Updated  | Nov 11, 2026                                                          |
 | Repositories  | [pandas-dev/pandas](https://github.com/pandas-dev/pandas) (`pandas/`) |
 
 ## References
@@ -25,7 +25,7 @@
 
 ### Tabular Data Structures and Indexing Engine (`pandas.core.frame`, `pandas.core.series`, `pandas.core.indexes`, `pandas.core.computation`)
 
-The primary container layer providing 2D `DataFrame` and 1D `Series` objects. It coordinates label-based (`loc`), position-based (`iloc`), boolean mask (`df[mask]`), and AST expression-parsed (`query`, `eval`) data selection, hierarchical indexing (`MultiIndex`), and automatic index alignment across operations.
+The primary container layer providing 2D `DataFrame` and 1D `Series` objects. It coordinates label-based (`loc`), position-based (`iloc`), boolean mask (`df[mask]`), and AST expression-parsed (`query`, `eval`) data selection, hierarchical indexing (`MultiIndex`), column derivation (`assign`, `insert`), value transformation (`map`, `apply`, `case_when`), and automatic index alignment across operations.
 
 - [pandas.core.frame](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html): The two-dimensional, size-mutable, potentially heterogeneous tabular data structure
 - [pandas.core.series](https://pandas.pydata.org/docs/reference/api/pandas.Series.html): One-dimensional labeled array capable of holding any data type
@@ -355,12 +355,33 @@ not_west = orders[~orders["region"].isin(["West"])]
 
 ##### 2. Inclusive Range Filtering (`between` — SQL `BETWEEN`)
 
-`s.between(low, high, inclusive="both")` checks both lower and upper bounds in one call (`inclusive` accepts `"both"`, `"neither"`, `"left"`, or `"right"`).
+`s.between(low, high, inclusive="both")` checks both lower and upper bounds in a single vectorized call. The `inclusive` parameter defines boundary inclusiveness, matching open, closed, or half-open intervals:
+
+| `inclusive` Value  | Mathematical Interval | Boolean Logic Equivalent   | Boundary Behavior                                                 |
+| :----------------- | :-------------------- | :------------------------- | :---------------------------------------------------------------- |
+| `"both"` (default) | $[low, high]$         | `(s >= low) & (s <= high)` | Includes both $low$ and $high$ endpoints (standard SQL `BETWEEN`) |
+| `"neither"`        | $(low, high)$         | `(s > low) & (s < high)`   | Strictly excludes both endpoints                                  |
+| `"left"`           | $[low, high)$         | `(s >= low) & (s < high)`  | Includes $low$ endpoint; excludes $high$ endpoint                 |
+| `"right"`          | $(low, high]$         | `(s > low) & (s <= high)`  | Excludes $low$ endpoint; includes $high$ endpoint                 |
 
 ```python
-# Equivalent to: WHERE revenue BETWEEN 90 AND 160
-mid_tier = orders[orders["revenue"].between(90, 160, inclusive="both")]
+# Evaluated on orders dataset where revenues are: [150.0, 80.0, 220.0, 95.0, 130.0]
+
+# 1. "both" (default): 95.0 <= revenue <= 150.0 (includes both 95.0 and 150.0)
+mid_both = orders[orders["revenue"].between(95, 150, inclusive="both")]
 # Matches order_id 101 (150.0), 104 (95.0), and 105 (130.0)
+
+# 2. "neither": 95.0 < revenue < 150.0 (excludes both endpoints)
+mid_neither = orders[orders["revenue"].between(95, 150, inclusive="neither")]
+# Matches order_id 105 (130.0)
+
+# 3. "left": 95.0 <= revenue < 150.0 (includes 95.0, excludes 150.0)
+mid_left = orders[orders["revenue"].between(95, 150, inclusive="left")]
+# Matches order_id 104 (95.0) and 105 (130.0)
+
+# 4. "right": 95.0 < revenue <= 150.0 (excludes 95.0, includes 150.0)
+mid_right = orders[orders["revenue"].between(95, 150, inclusive="right")]
+# Matches order_id 101 (150.0) and 105 (130.0)
 ```
 
 ##### 3. Null Checks and String Matching (`isna`, `notna`, `str` — SQL `IS NULL` & `LIKE`)
@@ -454,12 +475,13 @@ sql_filtered = duckdb.sql(
 
 ##### 2. External Database SQL Pushdown (`pd.read_sql_query`)
 
-When data resides in an external relational database (PostgreSQL, SQLite, Snowflake), `pd.read_sql_query()` pushes the `WHERE` filter down to the database engine and only materializes matching rows into Pandas memory.
+When data resides in an external relational database (PostgreSQL, SQLite, Snowflake), `pd.read_sql_query()` pushes the `WHERE` filter down to the database engine and only materializes matching rows into Pandas memory. In the example below, `orders.to_sql()` creates a temporary in-memory SQL table within the SQLite connection to simulate a remote database table:
 
 ```python
 import sqlite3
 
 with sqlite3.connect(":memory:") as conn:
+    # Materialize DataFrame into a temporary in-memory SQL table for the session
     orders.to_sql("orders_tbl", conn, index=False)
     db_filtered = pd.read_sql_query(
         "SELECT order_id, region, revenue FROM orders_tbl WHERE revenue > :min_rev",
@@ -492,7 +514,441 @@ orders["capped_rev"] = orders["revenue"].mask(orders["revenue"] > 200, other=200
 |        104 |                 95.0 |                            0.0 (Replaced) |                         95.0 (Retained) |
 |        105 |                130.0 |                          130.0 (Retained) |                        130.0 (Retained) |
 
-### 3. In-Memory Storage Architecture: BlockManager vs. Arrow ExtensionArrays
+### 3. Column Creation, Derivation, and Transformation (`assign`, Direct Assignment, `map`, `case_when`, `cut`)
+
+Pandas provides multiple paradigms to create new columns and transform existing ones: in-place direct assignment (`df["col"] = ...`), positional insertion (`df.insert()`), functional method chaining (`df.assign()`), discrete lookup mapping (`map` vs. `replace`), vectorized conditional branching (`Series.case_when`, `np.select`, `np.where`), element-wise function application (`apply` and vectorized `.str` / `.dt` accessors), and continuous-to-discrete binning (`pd.cut`, `pd.qcut`).
+
+| Paradigm / Method               | Syntax Pattern                             | In-Place Mutation?              | Execution Engine                       | Best Use Case                                                                                      |
+| :------------------------------ | :----------------------------------------- | :------------------------------ | :------------------------------------- | :------------------------------------------------------------------------------------------------- |
+| **Direct Assignment**           | `df["col"] = s`                            | Yes (mutates `df`)              | Vectorized C / NumPy / Arrow           | Simple arithmetic, scalar broadcasting, immediate column updates                                   |
+| **Positional Insertion**        | `df.insert(loc, "col", val)`               | Yes (mutates `df`)              | BlockManager reindex                   | Inserting a column at an explicit positional index (e.g., column index 0)                          |
+| **Functional Pipeline**         | `df.assign(c1=..., c2=lambda x: ...)`      | No (returns new DataFrame)      | Deferred lambda on chained frame       | Method chaining pipelines (`pipe`, `query`, `assign`) without temp variables                       |
+| **Discrete Mapping**            | `s.map(dict_or_func)`                      | No (returns new Series)         | Hash-table lookup / Python loop        | Strict dictionary translation where unmapped keys should become `NaN`                              |
+| **Value Replacement**           | `s.replace(to_replace, val)`               | Optional (`inplace=False`)      | Exact or regex substitution            | Replacing specific outliers, sentinels, or errors while keeping all other values                   |
+| **Multi-Condition Branching**   | `s.case_when(caselist)`                    | No (returns new Series)         | Native Pandas 2.2+ conditional kernel  | SQL `CASE WHEN ... THEN ... ELSE` logic across multiple boolean conditions                         |
+| **Vectorized Selection**        | `np.select(condlist, choicelist, default)` | No (returns NumPy array)        | C-speed multi-branch selector          | Complex multi-column condition branching with maximum throughput                                   |
+| **Binary Conditional**          | `np.where(cond, then_val, else_val)`       | No (returns NumPy array)        | C-speed binary multiplexer             | Simple two-branch vectorized `IF-THEN-ELSE` derivations                                            |
+| **Custom Function Application** | `df.apply(fn, axis=1)` or `s.apply(fn)`    | No (returns new Series/DF)      | Python interpreter loop (Unvectorized) | Complex arbitrary Python logic spanning multiple columns when vectorization is impossible          |
+| **Continuous Binning**          | `pd.cut(s, bins)` / `pd.qcut(s, q)`        | No (returns Categorical Series) | Numeric interval categorization        | Discretizing numeric features into uniform intervals (`cut`) or equal-frequency quantiles (`qcut`) |
+
+#### Interaction
+
+```mermaid
+flowchart TD
+    Input["Input DataFrame / Series"] --> Strategy{"Transformation Paradigm"}
+    Strategy -->|"Direct: df['c'] = df['a'] * df['b']"| VectorOps["Vectorized NumPy / Arrow SIMD Kernel"]
+    VectorOps --> InPlaceUpdate["Mutate Underlying BlockManager In-Place"]
+    Strategy -->|"Chaining: df.assign(c=lambda df: ...)"| LambdaEval["Evaluate Lambdas Sequentially on Chained Frame"]
+    LambdaEval --> NewDFCopy["Return New DataFrame Copy (CoW Optimized)"]
+    Strategy -->|"Lookup: s.map(dict) vs. s.replace()"| MapHash["Hash Table Key Lookup"]
+    MapHash -->|"Unmapped -> NaN"| MapResult["Series.map Output"]
+    MapHash -->|"Unmapped -> Keep Original"| ReplaceResult["Series.replace Output"]
+    Strategy -->|"Multi-Branch: s.case_when(caselist)"| CondEval["Evaluate Boolean Masks Sequentially"]
+    CondEval --> CaseResult["Multiplexed Values via Arrow / NumPy Kernels"]
+    Strategy -->|"Binning: pd.cut() / pd.qcut()"| BinEval["Compute Interval Edges (Uniform Width or Quantile Frequencies)"]
+    BinEval --> CatCol["Ordered Categorical Series"]
+```
+
+#### Example Dataset
+
+All column creation and transformation examples below operate on this base `orders` DataFrame:
+
+```python
+import numpy as np
+import pandas as pd
+
+orders = pd.DataFrame(
+    {
+        "order_id": [101, 102, 103, 104, 105],
+        "region": ["East", "West", "East", "North", "West"],
+        "quantity": [2, 4, 1, 5, 2],
+        "unit_price": [75.0, 20.0, 220.0, 19.0, 65.0],
+        "discount_code": ["VIP20", None, "SPRING10", "VIP15", None],
+        "created_at": [
+            "2026-03-01 09:30:00",
+            "2026-03-02 14:15:00",
+            "2026-03-02 18:45:00",
+            "2026-03-03 11:20:00",
+            "2026-03-04 16:50:00",
+        ],
+    }
+)
+```
+
+| Row Offset | `order_id` | `region` | `quantity` | `unit_price` | `discount_code` | `created_at`          |
+| :--------- | ---------: | :------- | ---------: | -----------: | :-------------- | :-------------------- |
+| 0          |        101 | `East`   |          2 |         75.0 | `VIP20`         | `2026-03-01 09:30:00` |
+| 1          |        102 | `West`   |          4 |         20.0 | `None`          | `2026-03-02 14:15:00` |
+| 2          |        103 | `East`   |          1 |        220.0 | `SPRING10`      | `2026-03-02 18:45:00` |
+| 3          |        104 | `North`  |          5 |         19.0 | `VIP15`         | `2026-03-03 11:20:00` |
+| 4          |        105 | `West`   |          2 |         65.0 | `None`          | `2026-03-04 16:50:00` |
+
+#### a. Direct Column Assignment and Positional Insertion (`df[...] =`, `df.insert`)
+
+##### 1. Vectorized Arithmetic and Scalar Broadcasting
+
+Direct assignment (`df["new_col"] = ...`) modifies the DataFrame in place. Assigning a scalar automatically broadcasts that value to all rows. Mathematical operations between existing columns execute in compiled C/NumPy/Arrow SIMD kernels without Python interpreter loop overhead.
+
+```python
+# 1. Scalar broadcasting: sets every row to "completed"
+orders["status"] = "completed"
+
+# 2. Vectorized multi-column calculation: computes revenue per line item
+orders["revenue"] = orders["quantity"] * orders["unit_price"]
+# Computed values: [150.0, 80.0, 220.0, 95.0, 130.0]
+```
+
+##### 2. Explicit Positional Insertion (`df.insert`)
+
+Direct assignment always appends new columns to the far right (`df.shape[1] - 1`). Use `df.insert(loc, column, value, allow_duplicates=False)` to insert a column at an explicit zero-based integer index, shifting existing columns to the right.
+
+- **`loc`**: Integer position for the new column (`0` for leftmost).
+- **`column`**: String label for the new column.
+- **`value`**: Scalar, Series, or array.
+- **`allow_duplicates`**: Defaults to `False`. When `False`, raises `ValueError` if the column already exists, preventing silent duplicate column bugs.
+
+```python
+# Insert "priority" at column index 1 (between order_id and region)
+orders.insert(1, "priority", "standard", allow_duplicates=False)
+
+orders.columns.tolist()
+# [
+#     'order_id',
+#     'priority',       <- Inserted at index 1
+#     'region',         <- Shifted from index 1 to 2
+#     'quantity',       <- Shifted from index 2 to 3
+#     'unit_price',     <- Shifted from index 3 to 4
+#     'discount_code',  <- Shifted from index 4 to 5
+#     'created_at',     <- Shifted from index 5 to 6
+#     'status',         <- Shifted from index 6 to 7
+#     'revenue',        <- Shifted from index 7 to 8
+# ]
+```
+
+| New Position | Column Name     | Placement / Shift Behavior    |
+| -----------: | :-------------- | :---------------------------- |
+|            0 | `order_id`      | Unchanged at position 0       |
+|        **1** | **`priority`**  | **Newly inserted at `loc=1`** |
+|            2 | `region`        | Shifted right ($1 \to 2$)     |
+|            3 | `quantity`      | Shifted right ($2 \to 3$)     |
+|            4 | `unit_price`    | Shifted right ($3 \to 4$)     |
+|            5 | `discount_code` | Shifted right ($4 \to 5$)     |
+|            6 | `created_at`    | Shifted right ($5 \to 6$)     |
+|            7 | `status`        | Shifted right ($6 \to 7$)     |
+|            8 | `revenue`       | Shifted right ($7 \to 8$)     |
+
+##### 3. Index Alignment Mechanics and Assignment Pitfalls
+
+When assigning a `pd.Series` to `df["new_col"]`, Pandas **aligns on the index labels**, not the positional order. If the assigned Series has index labels that do not match `df.index`, unmatched rows receive `NaN` (or `pd.NA`).
+
+```python
+# Series with custom index labels (e.g., from an external table or filtered subset)
+s_misaligned = pd.Series(["ground", "air", "express"], index=[101, 102, 103])
+
+# Pitfall: Direct assignment fails to align with orders.index [0, 1, 2, 3, 4]
+orders["shipping_bad"] = s_misaligned
+# Output: [NaN, NaN, NaN, NaN, NaN] (no overlapping index labels)
+
+# Pattern 1: Reset Series index to 0-based RangeIndex (must use drop=True)
+orders["shipping_reset"] = s_misaligned.reset_index(drop=True)
+# Output: ['ground', 'air', 'express', NaN, NaN]
+# Indices 0, 1, 2 match and are populated; unmatched indices 3, 4 safely receive NaN.
+# Gotcha: Omitting drop=True returns a 2-column DataFrame, raising ValueError.
+
+# Pattern 2: Bypass index alignment positionally via NumPy array
+# Requires exact length match (5 elements for 5 DataFrame rows)
+s_full = pd.Series(["express", "ground", "air", "ground", "express"], index=[10, 20, 30, 40, 50])
+orders["shipping_pos"] = s_full.to_numpy()
+# Output: ['express', 'ground', 'air', 'ground', 'express']
+
+# Pattern 3: Key-based join via Series mapping when index matches a column
+orders["shipping_by_order_id"] = orders["order_id"].map(s_misaligned)
+# Output: ['ground', 'air', 'express', NaN, NaN]
+# Matches order_id 101 -> 'ground', 102 -> 'air', 103 -> 'express'
+```
+
+| Strategy             | Syntax                                | Alignment Basis               | Length Mismatch Handling                       | Unmatched Rows                |
+| :------------------- | :------------------------------------ | :---------------------------- | :--------------------------------------------- | :---------------------------- |
+| **Reset Index**      | `s.reset_index(drop=True)`            | Converted to `0..N-1` range   | Allowed (partial index alignment)              | Populated with `NaN` / `<NA>` |
+| **Positional Array** | `s.to_numpy()` or `list(s)`           | Positional order              | Strict (raises `ValueError` if lengths differ) | N/A (must match `len(df)`)    |
+| **Column Key Map**   | `df["col"].map(s)`                    | Column values $\to$ `s.index` | Allowed (lookup dictionary behavior)           | Populated with `NaN` / `<NA>` |
+| **Explicit Index**   | `pd.Series(s.values, index=df.index)` | Target `df.index`             | Strict (raises `ValueError` if lengths differ) | N/A (exact label match)       |
+
+#### b. Functional Method Chaining (`df.assign`)
+
+##### 1. Non-Mutating Derivations and Lambda Chaining
+
+`df.assign(**kwargs)` returns a new DataFrame (or view under Copy-on-Write) with added or replaced columns, leaving the original DataFrame untouched. This makes it the standard idiom for method-chaining pipelines (`df.query(...).assign(...).groupby(...)`).
+
+When a newly created column depends on another column created within the **same** `.assign()` call, pass a callable (`lambda df: ...`). The lambda receives the intermediate DataFrame as evaluated up to that point:
+
+```python
+# Compute discount percentage and discounted amount in a single chained call
+transformed = (
+    orders
+    .assign(
+        discount_rate=0.10,
+        # lambda df accesses the discount_rate column created in the line above
+        discount_amount=lambda df: df["revenue"] * df["discount_rate"],
+        net_amount=lambda df: df["revenue"] - df["discount_amount"],
+    )
+    .query("net_amount > 100.0")
+)
+```
+
+| `order_id` | `revenue` | `discount_rate` | `discount_amount` | `net_amount` |
+| ---------: | --------: | --------------: | ----------------: | -----------: |
+|        101 |     150.0 |            0.10 |              15.0 |        135.0 |
+|        103 |     220.0 |            0.10 |              22.0 |        198.0 |
+|        105 |     130.0 |            0.10 |              13.0 |        117.0 |
+
+##### 2. Dynamic Column Names via Keyword Unpacking
+
+When column names are determined at runtime, pass a Python dictionary using `**` unpacking:
+
+```python
+metric_name = "tax_2026"
+tax_rate = 0.0825
+
+df_dynamic = orders.assign(**{metric_name: lambda df: df["revenue"] * tax_rate})
+```
+
+#### c. Discrete Value Translation and Mapping (`Series.map` vs. `Series.replace`)
+
+##### 1. Strict Mapping with Dictionaries (`Series.map`)
+
+`s.map(mapping_dict_or_series)` translates categorical values using a dictionary or Series.
+
+> [!IMPORTANT]
+> `Series.map()` converts **unmapped values to `NaN`** (or `<NA>`). This makes `map` ideal for strict categorical normalization where unmatched keys indicate data anomalies.
+
+Pass `na_action="ignore"` to leave existing missing values untouched without passing them to the mapping function.
+
+```python
+region_abbreviations = {"East": "E", "West": "W", "North": "N"}
+
+# Unmapped values (e.g., if a region was 'South') become NaN
+orders["region_code"] = orders["region"].map(region_abbreviations)
+# Output: ['E', 'W', 'E', 'N', 'W']
+```
+
+##### 2. Selective Replacement (`Series.replace`)
+
+`s.replace(to_replace, value)` substitutes specified values while **retaining all unmapped original values**.
+
+```python
+# Clean misnamed regions; unmentioned regions ('East', 'West') remain unchanged
+orders["region_normalized"] = orders["region"].replace({"North": "North-East"})
+# Output: ['East', 'West', 'East', 'North-East', 'West']
+```
+
+##### 3. Comparison of Mapping Mechanics
+
+| Characteristic             | `Series.map()`                               | `Series.replace()`                                |
+| :------------------------- | :------------------------------------------- | :------------------------------------------------ |
+| **Unmapped Values**        | Converted to `NaN` / `<NA>`                  | Preserved as original values                      |
+| **Input Types**            | Dictionary, `Series`, or 1-argument callable | Scalar, list, tuple, dictionary, or regex pattern |
+| **Regex Support**          | No (use `s.str.replace()`)                   | Yes (`regex=True`)                                |
+| **Missing Value Handling** | Maps `NaN` unless `na_action="ignore"`       | Ignores `NaN` unless `NaN` is in `to_replace`     |
+| **Primary Use Case**       | Strict code lookup / domain translation      | Sentinel cleanup / outlier replacement            |
+
+#### d. Conditional Column Creation and SQL CASE WHEN (`case_when`, `np.select`, `np.where`)
+
+##### 1. Native Pandas Multi-Branching (`Series.case_when`)
+
+Starting in **Pandas 2.2.0**, `Series.case_when(caselist)` provides native, type-safe SQL `CASE WHEN ... THEN ... ELSE` logic without requiring NumPy imports:
+
+$$\text{tier} = \begin{cases} \text{"Platinum"}, & \text{revenue} \ge 200 \\ \text{"Gold"}, & \text{revenue} \ge 100 \\ \text{"Silver"}, & \text{revenue} \ge 90 \\ \text{"Bronze"}, & \text{otherwise} \end{cases}$$
+
+- **`caselist`**: A list of `(condition, replacement)` tuples.
+- **Evaluation order**: Conditions are evaluated sequentially; the first condition evaluating to `True` assigns the corresponding replacement.
+- **Default branch**: Unmatched rows retain the original values of the caller Series (serving as the `ELSE` fallback).
+
+```python
+# Initialize default Series representing the ELSE fallback branch
+default_tier = pd.Series("Bronze", index=orders.index)
+
+orders["tier"] = default_tier.case_when(
+    [
+        (orders["revenue"] >= 200.0, "Platinum"),
+        (orders["revenue"] >= 100.0, "Gold"),
+        (orders["revenue"] >= 90.0, "Silver"),
+    ]
+)
+```
+
+| `order_id` | `revenue` | `tier` (`case_when`) | Rule Matched            |
+| ---------: | --------: | :------------------- | :---------------------- |
+|        101 |     150.0 | `Gold`               | `revenue >= 100.0`      |
+|        102 |      80.0 | `Bronze`             | Fallback `ELSE` default |
+|        103 |     220.0 | `Platinum`           | `revenue >= 200.0`      |
+|        104 |      95.0 | `Silver`             | `revenue >= 90.0`       |
+|        105 |     130.0 | `Gold`               | `revenue >= 100.0`      |
+
+##### 2. Vectorized Multi-Condition Branching (`np.select` and `np.where`)
+
+For high-throughput multi-condition branching across large datasets, use NumPy's compiled C kernels:
+
+- **`np.where(cond, then_val, else_val)`**: Fast binary `IF-THEN-ELSE` branching.
+- **`np.select(condlist, choicelist, default=...)`**: Multi-condition evaluation matching SQL `CASE WHEN`.
+
+```python
+import numpy as np
+
+# 1. Binary condition: flag high-volume orders (quantity >= 4)
+orders["is_bulk"] = np.where(orders["quantity"] >= 4, True, False)
+
+# 2. Multi-condition branching: assign customer tier
+conditions = [
+    orders["revenue"] >= 200.0,
+    orders["revenue"] >= 100.0,
+    orders["revenue"] >= 90.0,
+]
+choices = ["Platinum", "Gold", "Silver"]
+
+orders["tier_np"] = np.select(conditions, choices, default="Bronze")
+```
+
+##### 3. Selective Conditional Assignment (`df.loc[mask, col] = val`)
+
+To conditionally update or initialize values for a subset of rows without modifying the remaining rows:
+
+```python
+# Initialize empty column with a default
+orders["review_required"] = False
+
+# Selectively flag rows matching multiple conditions
+orders.loc[(orders["quantity"] >= 4) & (orders["revenue"] < 100.0), "review_required"] = True
+# Matches order_id 102 (quantity=4, revenue=80.0) and order_id 104 (quantity=5, revenue=95.0)
+```
+
+#### e. Element-Wise and Custom Transformations (`apply` vs. Vectorized Methods)
+
+##### 1. Vectorized String and Datetime Accessors (`.str`, `.dt`)
+
+Always prefer Pandas' built-in vectorized accessors (`.str` and `.dt`) over `apply(lambda x: ...)`. Accessors operate in compiled C/Cython loops, bypassing Python object wrapping and function dispatch overhead.
+
+```python
+# String transformations via .str accessor
+orders["region_upper"] = orders["region"].str.upper()
+orders["has_vip"] = orders["discount_code"].str.startswith("VIP", na=False)
+
+# Datetime transformations via .dt accessor
+orders["timestamp"] = pd.to_datetime(orders["created_at"])
+orders["order_hour"] = orders["timestamp"].dt.hour
+orders["order_day"] = orders["timestamp"].dt.day_name()
+```
+
+##### 2. Custom Functions via `Series.apply()` and `DataFrame.apply(axis=1)`
+
+When an operation cannot be vectorized (e.g., calling external libraries or complex multi-column logic), use `apply()`:
+
+- **`Series.apply(func)`**: Applies a 1-argument Python function element-wise across a single column.
+- **`DataFrame.apply(func, axis=1)`**: Iterates row by row, passing each row as a `pd.Series` to `func`.
+
+> [!WARNING]
+> `df.apply(func, axis=1)` carries severe performance penalties. It reconstructs a new `pd.Series` object for every single row in Python, making it **50x to 500x slower** than vectorized arithmetic or `np.select`. Always profile and explore vectorized alternatives (`np.where`, `np.select`, `.str`, arithmetic) before resorting to row-wise `apply(axis=1)`.
+
+```python
+# 1. Series.apply for single-column custom formatting
+orders["discount_normalized"] = orders["discount_code"].apply(
+    lambda code: f"CODE_{code}" if pd.notna(code) else "NO_DISCOUNT"
+)
+
+# 2. DataFrame.apply(axis=1) for complex cross-column row logic
+def calculate_shipping_surcharge(row):
+    if row["region"] == "North" and row["quantity"] > 3:
+        return 25.0
+    if row["revenue"] >= 150.0:
+        return 0.0  # Free shipping threshold
+    return 10.0
+
+orders["shipping_surcharge"] = orders.apply(calculate_shipping_surcharge, axis=1)
+```
+
+#### f. Continuous-to-Discrete Binning (`pd.cut` and `pd.qcut`)
+
+##### 1. Fixed-Boundary Interval Binning (`pd.cut`)
+
+`pd.cut(x, bins, labels=..., right=True, include_lowest=False)` categorizes continuous numeric data into discrete bins based on explicit boundary values or equal-width interval counts:
+
+- **`bins`**: List of scalar boundary values defining intervals, or integer count of equal-width intervals.
+- **`right`**: Defaults to `True` (half-open intervals `(low, high]`). Set `False` for `[low, high)`.
+- **`include_lowest`**: Defaults to `False`. When `True`, the first bin includes the lowest boundary value.
+- **`labels`**: Optional list of string labels for the resulting categorical categories.
+
+```python
+# Discretize revenue into three defined financial tiers
+orders["revenue_tier"] = pd.cut(
+    orders["revenue"],
+    bins=[0.0, 100.0, 200.0, float("inf")],
+    labels=["Low", "Medium", "High"],
+    right=True,
+    include_lowest=True,
+)
+```
+
+| `order_id` | `revenue` | `revenue_tier` (`pd.cut`) | Interval Match                                |
+| ---------: | --------: | :------------------------ | :-------------------------------------------- |
+|        101 |     150.0 | `Medium`                  | `(100.0, 200.0]`                              |
+|        102 |      80.0 | `Low`                     | `[0.0, 100.0]` (due to `include_lowest=True`) |
+|        103 |     220.0 | `High`                    | `(200.0, inf]`                                |
+|        104 |      95.0 | `Low`                     | `[0.0, 100.0]`                                |
+|        105 |     130.0 | `Medium`                  | `(100.0, 200.0]`                              |
+
+##### 2. Quantile and Equal-Frequency Binning (`pd.qcut`)
+
+`pd.qcut(x, q, labels=..., retbins=False, duplicates="raise")` discretizes continuous data into equal-frequency quantile buckets so each bin holds an approximately equal number of sample observations. This prevents empty or overloaded bins caused by skewed data distributions:
+
+- **`q`**: Integer number of quantiles (e.g., `4` for quartiles, `10` for deciles) or an explicit list of quantile probabilities (e.g., `[0.0, 0.5, 0.9, 1.0]`).
+- **`labels`**: Array of categorical string labels. If omitted, returns string `Interval` representations showing exact computed boundaries.
+- **`retbins`**: When `True`, returns a tuple `(categorical_series, bin_edges)` exposing the dynamic boundary cuts.
+- **`duplicates`**: Defaults to `"raise"`. Set to `"drop"` to merge identical boundary edges when ties or repeated values cause quantiles to collapse.
+
+```python
+# 1. Discretize revenue into 4 equal-frequency quartiles with descriptive labels
+orders["revenue_quartile"], bin_edges = pd.qcut(
+    orders["revenue"],
+    q=4,
+    labels=["Q1_Budget", "Q2_Regular", "Q3_High", "Q4_Enterprise"],
+    retbins=True,
+)
+
+# Inspected quantile bin boundaries:
+# bin_edges -> array([ 79.999,  95.   , 130.   , 150.   , 220.   ])
+
+# 2. Custom percentile boundaries: Bottom 50% (Standard), 50%-90% (Premium), Top 10% (Elite)
+orders["customer_segment"] = pd.qcut(
+    orders["revenue"],
+    q=[0.0, 0.5, 0.9, 1.0],
+    labels=["Standard", "Premium", "Elite"],
+)
+
+# 3. Handling repeated/duplicate values (avoids ValueError: Bin edges must be unique)
+skewed_series = pd.Series([0, 0, 0, 0, 5, 25, 100])
+skewed_binned = pd.qcut(skewed_series, q=4, duplicates="drop")
+# Merged unique intervals: (-0.001, 0.0], (0.0, 15.0], (15.0, 100.0]
+```
+
+| `order_id` | `revenue` | `revenue_quartile` (`q=4`) | Calculated Quantile Interval | Quantile Range         |
+| ---------: | --------: | :------------------------- | :--------------------------- | :--------------------- |
+|        102 |      80.0 | `Q1_Budget`                | `(79.999, 95.0]`             | 0%–25% (Min to Q1)     |
+|        104 |      95.0 | `Q1_Budget`                | `(79.999, 95.0]`             | 0%–25% (Min to Q1)     |
+|        105 |     130.0 | `Q2_Regular`               | `(95.0, 130.0]`              | 25%–50% (Q1 to Median) |
+|        101 |     150.0 | `Q3_High`                  | `(130.0, 150.0]`             | 50%–75% (Median to Q3) |
+|        103 |     220.0 | `Q4_Enterprise`            | `(150.0, 220.0]`             | 75%–100% (Q3 to Max)   |
+
+##### 3. Comparison of Binning Mechanics (`pd.cut` vs. `pd.qcut`)
+
+| Feature                      | `pd.cut()`                                                 | `pd.qcut()`                                                  |
+| :--------------------------- | :--------------------------------------------------------- | :----------------------------------------------------------- |
+| **Binning Basis**            | Equal-width numeric intervals or fixed boundary values     | Equal-frequency quantiles (equal sample count per bin)       |
+| **Distribution Sensitivity** | Sensitive to outliers (extreme outliers create empty bins) | Robust to outliers and heavily skewed distributions          |
+| **Bin Widths**               | Uniform or manually hardcoded                              | Dynamic (wider in sparse regions, narrower in dense regions) |
+| **Sample Count per Bin**     | Variable (depends on underlying data density)              | Approximately equal across all bins ($N / q$)                |
+| **Primary Use Case**         | Fixed business thresholds (e.g. tax brackets, age groups)  | Statistical segmentation (quartiles, deciles, percentiles)   |
+
+### 4. In-Memory Storage Architecture: BlockManager vs. Arrow ExtensionArrays
 
 Historically, Pandas stored all DataFrame columns inside the **`BlockManager`** by consolidating multiple contiguous columns of the same NumPy dtype into single 2D NumPy arrays. Starting in **Pandas 2.0**, Pandas introduced the opt-in **Apache Arrow Backend** (`dtype_backend="pyarrow"`), which stores columns as 1D `ArrowExtensionArray` blocks inside the `BlockManager`.
 
@@ -559,7 +1015,7 @@ print(df_pyarrow.dtypes)
 print(df_pyarrow.loc[2, "transaction_id"])  # Output: <NA>
 ```
 
-### 4. Copy-on-Write (CoW) Memory Model
+### 5. Copy-on-Write (CoW) Memory Model
 
 Introduced in Pandas 2.0 and established as default in modern releases, **Copy-on-Write (CoW)** fundamentally changes DataFrame mutation semantics.
 
@@ -613,7 +1069,7 @@ print(original.iloc[0, 0])      # Output: 10 (unmodified)
 print(derived_view.iloc[0, 0])  # Output: 999
 ```
 
-### 5. Relational Joins, Merges, and Split-Apply-Combine (`groupby`)
+### 6. Relational Joins, Merges, and Split-Apply-Combine (`groupby`)
 
 Pandas implements relational algebra operators for combining datasets (`pd.merge`, `pd.concat`) and executing partitioned aggregations (`df.groupby`).
 
@@ -743,7 +1199,7 @@ print(all_counts)
 | `Sales`               | 2 rows              |                                     2 |                                 2 |
 | `Marketing`           | 0 rows (Unobserved) |       _**Omitted**_ (3 rows returned) |           **0** (4 rows returned) |
 
-### 6. Reshaping, Pivoting, and Tidy Data Transformation
+### 7. Reshaping, Pivoting, and Tidy Data Transformation
 
 Pandas provides transformations to convert between **wide-format** (metrics stored across columns) and **long-format** (tidy observations stacked in rows).
 
@@ -924,7 +1380,7 @@ contingency_table = pd.crosstab(
 | `D2`        |        1 |         1 |       2 | Row subtotal for `D2`                       |
 | `Total`     |        4 |         1 |       5 | Column totals and grand total ($3 + 2 = 5$) |
 
-### 7. High-Precision Time Series and Window Operations
+### 8. High-Precision Time Series and Window Operations
 
 Pandas was originally developed for quantitative financial time series, providing temporal frequency generation, timezone conversion, and moving window calculations.
 
@@ -1004,7 +1460,7 @@ hourly_bars["rolling_volatility"] = hourly_bars["close"].rolling(window=24, min_
 hourly_bars["ema_12h"] = hourly_bars["close"].ewm(span=12, adjust=False).mean()
 ```
 
-### 8. Exploratory Data Profiling and Missing Value Diagnostics (`info`, `describe`, `isna`)
+### 9. Exploratory Data Profiling and Missing Value Diagnostics (`info`, `describe`, `isna`)
 
 Pandas provides built-in inspection idioms to profile schema types, memory footprints, statistical distributions, and missing value (`NaN` / `<NA>`) ratios across a DataFrame.
 
