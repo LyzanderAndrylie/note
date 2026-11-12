@@ -746,17 +746,17 @@ flowchart TD
     subgraph Node1 ["Kubernetes Node 1"]
         AppA1["App Pod A"]
         AppB1["App Pod B"]
-        Agent1["Node Agent (DaemonSet)<br/>• Local batching & memory limiter<br/>• Attaches k8s pod/node metadata"]
-        AppA1 -->|"OTLP (hostIP:4317)"| Agent1
-        AppB1 -->|"OTLP (hostIP:4317)"| Agent1
+        Agent1["Node Agent (DaemonSet)<br/>• Node multi-pod batching & memory limiter<br/>• Attaches k8s pod/node metadata"]
+        AppA1 -->|"Async Batched OTLP (hostIP:4317)"| Agent1
+        AppB1 -->|"Async Batched OTLP (hostIP:4317)"| Agent1
     end
 
     subgraph Node2 ["Kubernetes Node 2"]
         AppA2["App Pod A"]
         AppC1["App Pod C"]
-        Agent2["Node Agent (DaemonSet)<br/>• Local batching & memory limiter<br/>• Attaches k8s pod/node metadata"]
-        AppA2 -->|"OTLP (hostIP:4317)"| Agent2
-        AppC1 -->|"OTLP (hostIP:4317)"| Agent2
+        Agent2["Node Agent (DaemonSet)<br/>• Node multi-pod batching & memory limiter<br/>• Attaches k8s pod/node metadata"]
+        AppA2 -->|"Async Batched OTLP (hostIP:4317)"| Agent2
+        AppC1 -->|"Async Batched OTLP (hostIP:4317)"| Agent2
     end
 
     subgraph GatewayTier ["Centralized Gateway Cluster (Deployment Behind Service)"]
@@ -769,8 +769,8 @@ flowchart TD
         Loki[("Grafana Loki (Logs)")]
     end
 
-    Agent1 -->|"Batched OTLP (gRPC)"| GW
-    Agent2 -->|"Batched OTLP (gRPC)"| GW
+    Agent1 -->|"Multi-Pod Batched OTLP (gRPC)"| GW
+    Agent2 -->|"Multi-Pod Batched OTLP (gRPC)"| GW
     GW --> Tempo
     GW --> Prom
     GW --> Loki
@@ -782,9 +782,9 @@ flowchart TD
 ```
 
 - **Tier 1 (DaemonSet Agent)**:
-  - **Zero-Latency Ingestion**: Application pods send OTLP to `status.hostIP:4317` on the local node.
-  - **Local Metadata Enrichment**: Uses the `k8sattributes` processor to automatically extract and attach `k8s.pod.name`, `k8s.namespace.name`, and `k8s.node.name` to all telemetry without application code involvement.
-  - **Fast In-Memory Batching**: Compresses and batches telemetry before sending it over the cluster network.
+  - **Zero-Latency Ingestion via SDK Batching**: Telemetry is **always sent via batching**. Inside the application pod, the OpenTelemetry SDK enqueues finished spans, metrics, and logs into an in-memory ring buffer (e.g., `sdktrace.WithBatcher`). Application request handlers never block on telemetry I/O (0 ms hot-path overhead). A background SDK worker asynchronously flushes batches over a persistent local gRPC stream to `status.hostIP:4317` on the node.
+  - **Local Metadata Enrichment**: Uses the `k8sattributes` processor to query local kubelet endpoints and attach `k8s.pod.name`, `k8s.namespace.name`, and `k8s.node.name` to telemetry without requiring pods to know their own metadata.
+  - **Node-Level Multi-Pod Re-Batching**: The DaemonSet aggregates batched streams across *all* pods sharing the node, applies memory limiters, and merges them into large, compressed payloads (via the collector `batch` processor) before forwarding over the Kubernetes cluster network.
 - **Tier 2 (Gateway Deployment)**:
   - **Cluster-Wide Tail-Based Sampling**: Buffers all spans of a distributed trace across multiple nodes to ensure 100% of errors and high-latency requests are preserved while safely discarding redundant 200 OK traces.
   - **Centralized Metrics & Scrubbing**: Computes `spanmetrics` and scrubs sensitive PII/tokens before data leaves infrastructure.
