@@ -321,7 +321,9 @@ func initMetrics() (*MetricsMiddleware, error) {
 		sdkmetric.WithReader(exporter),
 	)
 
-	// 3. Acquire named Meter for this component
+	// 3. Acquire named Meter (Instrumentation Scope):
+	// Identifies the package/subsystem emitting metrics (conventionally the Go package path).
+	// Stamped as 'otel.scope.name' metadata to distinguish library vs application metrics.
 	meter := meterProvider.Meter("http-service-metrics")
 
 	// 4. Register RED 'Rate' & 'Errors' instrument: Monotonically increasing counter
@@ -420,12 +422,45 @@ func main() {
 
 Loki does not build an inverted full-text index across message bodies; it indexes low-cardinality metadata labels to identify log streams and parses structured payloads dynamically at query time.
 
-- **Loki Stream Indexing Model**:
-  - A stream is defined by a unique set of key-value labels (e.g., `{app="order-service", env="prod", region="us-east-1"}`).
-  - Log lines belonging to the same stream are compressed into chunks (using Snappy or Gzip) and saved into object storage (AWS S3, Google Cloud Storage, or MinIO).
-  - Queries first select chunks via label selectors (`{app="order-service"}`), then stream and decompress chunks through parallel LogQL pipeline filters.
+- **Unindexed Log Payloads**:
+  - The log message body and structured JSON fields are **not indexed at ingestion time**.
+  - Unlike Elasticsearch/OpenSearch (which tokenizes all fields into inverted index posting lists), Loki treats payloads as raw, unindexed byte streams.
+  - Payloads are compressed into chunks (using Snappy or Gzip) and saved directly into object storage (AWS S3, Google Cloud Storage, or MinIO). This minimizes RAM usage, slashes storage costs by 5x–10x, and ensures high ingestion throughput.
+- **Loki 3.0+ Structured Metadata**:
+  - In Loki 3.0+, a feature called **Structured Metadata** allows attaching high-cardinality keys (like `trace_id`, `span_id`, or `user_id`) directly to a log line without creating new streams or indexing them.
+  - Structured metadata is stored alongside compressed chunk lines, enabling instant filtering in LogQL without expensive JSON deserialization and without the catastrophic memory cost of stream label explosions.
+#### Interaction
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as "Grafana / User"
+    participant QF as "Loki Query Frontend"
+    participant TSDB as "TSDB Index"
+    participant S3 as "Object Storage (S3 / GCS)"
+    participant Q as "Parallel Querier Workers"
+
+    User ->> QF: LogQL: {app="orders"} |= "timeout" | json | duration > 500ms
+    QF ->> TSDB: 1. Lookup chunks by stream labels & time range
+    TSDB -->> QF: Return matching chunk references
+    QF ->> Q: 2. Shard & distribute chunks (Scatter)
+    Q ->> S3: 3. Stream compressed chunks into RAM
+    S3 -->> Q: Return Snappy compressed chunks
+    Q ->> Q: 4a. Decompress Snappy chunks in RAM
+    Q ->> Q: 4b. Line Filter: |= "timeout" (drops ~99%)
+    Q ->> Q: 4c. JSON Parser & Label Filter (| duration > 500ms)
+    Q -->> QF: 5. Return filtered matching log records (Gather)
+    QF ->> QF: 6. Deduplicate & sort chronologically
+    QF -->> User: 7. Stream final log results
+```
+
+- **Query Execution Key Points**:
+  - **Index Lookup**: Stream selectors (`{app="orders"}`) resolve chunk locations in the TSDB index without touching raw log bodies.
+  - **Parallel Sharding**: Query Frontend splits the chunk list across Querier workers, decompressing Snappy chunks in RAM on the fly.
+  - **Filter Ordering**: Always put raw substring filters (`|= "text"`) before parsers (`| json`); `bytes.Contains` discards ~99% of lines before CPU-heavy JSON parsing runs.
+  - **Gather & Stream**: The Query Frontend deduplicates, chronologically sorts, and streams the surviving records back to Grafana.
 - **Trace Context Extraction (`trace_id` & `span_id`)**:
-  - To bridge logs and traces, the active trace ID and span ID must be extracted from `context.Context` and appended to the JSON log payload.
+  - To bridge logs and traces, the active trace ID and span ID must be extracted from `context.Context` and appended to the JSON log payload or Structured Metadata.
   - In Grafana, configuring a **Derived Field** or data link on `trace_id` enables a one-click transition from any log line directly to the full distributed trace waterfall in Tempo.
 - **The LogQL Query Language**:
   - Stream Selector: `{app="order-service", env="prod"}`
@@ -435,13 +470,17 @@ Loki does not build an inverted full-text index across message bodies; it indexe
 
 | Aspect | Grafana Loki | Elasticsearch / OpenSearch |
 | :--- | :--- | :--- |
-| **Index Mechanism** | Indexes only stream label sets; zero indexing on log content | Inverted index across all parsed tokens in every field |
+| **Index Mechanism** | Indexes only stream label sets; zero indexing on log payload | Inverted index across all parsed tokens in every field |
 | **Memory & Storage Footprint** | Small index footprint; raw logs compressed 5x–10x in object storage | Large index footprint (often exceeds raw data volume) |
 | **Write Throughput** | Very high; append-only streaming chunks | Moderate; inverted index mutations require CPU and IOPS |
-| **Trace Correlation** | Fast lookup when filtered by stream labels + `trace_id` regex/JSON parser | Fast lookup via indexed `trace_id` term query |
+| **High-Cardinality Fields** | Attached to JSON payload or Loki 3.0+ Structured Metadata (unindexed) | Tokenized into global inverted index posting lists |
+| **Trace Correlation** | Fast lookup via stream labels + `trace_id` regex, JSON filter, or structured metadata | Fast lookup via indexed `trace_id` term query |
 
-> [!CAUTION]
-> **Do NOT use `trace_id`, `user_id`, or `order_id` as Loki stream labels**. Loki stream labels must strictly be low-cardinality identifiers (application name, environment, namespace). Adding a unique ID per request as a stream label creates millions of streams, exhausting the Loki ingester's chunk memory and stalling the ring.
+> [!IMPORTANT]
+> **Configuring Stream Labels, Structured Metadata, and JSON Payload Fields**:
+> - **Stream Labels (Indexed in TSDB)**: Added via process-level **Resource Attributes** at startup (e.g., `semconv.ServiceNameKey.String("order-service")`, `attribute.String("environment", "production")`) or agent static configs. *Must strictly be low-cardinality*; adding dynamic request IDs (`trace_id`, `user_id`) as stream labels creates millions of streams and crashes Loki ingester memory.
+> - **Structured Metadata (Loki 3.0+, Native Key-Values)**: Added as per-record attributes via `record.AddAttrs(...)` in Go `slog` or OTel Log Record attributes. When shipped via the OTel Collector `otlphttp/loki` exporter, high-cardinality keys are stored alongside chunk lines without creating new streams, queryable directly in LogQL without parsers (`{app="orders"} | trace_id = "..."`).
+> - **JSON Payload Fields (Unindexed Body String)**: Added as standard log attributes formatted by `slog.NewJSONHandler`. Keys are serialized directly into the raw log message body string, queryable dynamically at search time using LogQL's JSON parser (`{app="orders"} | json | user_id = "..."`).
 
 #### a. Context-Aware Structured Logging with `log/slog` in Go
 
@@ -477,9 +516,10 @@ func (h *OTelContextHandler) Handle(ctx context.Context, record slog.Record) err
 	if span.SpanContext().IsValid() {
 		sc := span.SpanContext()
 
-		// [Operation Step 3: Inject Trace Identifiers into JSON Payload]
-		// Crucial: These are emitted inside the JSON body (NOT as Loki stream labels).
-		// This avoids Loki cardinality explosions while enabling one-click trace jumps in Grafana.
+		// [Operation Step 3: Inject Trace Identifiers into JSON Payload / Structured Metadata]
+		// In Loki 3.0+, these fields map directly to Structured Metadata or top-level JSON fields (NOT stream labels).
+		// This avoids Loki stream cardinality explosions while allowing zero-parsing filtering in LogQL
+		// (e.g., | trace_id = "...") and one-click trace jumps in Grafana.
 		record.AddAttrs(
 			slog.String("trace_id", sc.TraceID().String()),
 			slog.String("span_id", sc.SpanID().String()),
@@ -551,33 +591,54 @@ The OpenTelemetry Collector standardizes data ingestion, batching, scrubbing, an
     - `memory_limiter`: Drops or backpressures data when host RAM hits configured thresholds.
     - `batch`: Flushes data in batches (e.g., every 5s or 8192 items) to minimize network IOPS.
     - `tail_sampling`: Samples traces intelligently after spans complete.
-    - `transform` (OTTLL): Mutates or redacts PII before telemetry leaves infrastructure.
+    - `transform` (OTTL): Mutates or redacts PII before telemetry leaves infrastructure.
   - **Exporters (Egress)**: Ships data to Prometheus/Mimir (metrics), Grafana Tempo (traces), and Grafana Loki (logs).
-  - **Connectors**: Bridges signals within the collector, such as `spanmetrics` (generating RED metric timeseries automatically from distributed trace spans).
+  - **Connectors (`spanmetrics`)**: Bridges signals within the collector to automatically derive RED metric timeseries from incoming distributed trace spans.
+    - **Eliminates Double Instrumentation**: Removes the redundancy of writing both tracing (`tracer.Start`) and metric recording (`counter.Add`, `histogram.Record`) in application handlers.
+    - **Inherent RED Data**: Every span inherently contains rate (event count), errors (`status.code == Error` or `http.status_code`), and duration (`end_time - start_time`).
+    - **Bounded Cardinality on Duration**: Duration is recorded as a numerical observation incrementing pre-configured histogram bucket counters (`le="100ms"`), never as a metric label. The timeseries count remains strictly constant regardless of traffic volume (danger only exists if high-cardinality attributes like `user_id` are configured as connector `dimensions`).
+      ```text
+      # Fixed bucket boundaries configured in spanmetrics:
+      # buckets: [5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2.5s]
+
+      Request A takes 23.4ms  --> increments bucket {le="25ms"}
+      Request B takes 84.1ms  --> increments bucket {le="100ms"}
+      Request C takes 104.9ms --> increments bucket {le="250ms"}
+      ```
+    - **Guaranteed Metric-Trace Parity**: Metrics and traces never diverge on request counts or latency percentiles since metrics are computed directly from spans.
+    - **Powers Automated APM**: Supplies Prometheus RED timeseries used by Grafana Application Observability and service dependency maps.
+
+- **Production Deployment Topology: The 2-Tier Hybrid Model**:
+  - **Why Not Sidecars in Every Pod?**: Running an OTel collector sidecar inside every application pod wastes massive resources (500 pods = 500 collector instances consuming 50–100MB RAM each). Sidecars are reserved primarily for serverless workloads (AWS Fargate, Cloud Run) where host access is unavailable.
+  - **Tier 1 (DaemonSet on Every Node)**: Exactly one lightweight collector agent runs per Kubernetes worker node. Application pods send OTLP traffic to `status.hostIP:4317` with near-zero latency. The agent handles fast local batching, memory protection, and enriches telemetry with Kubernetes metadata (`k8s.pod.name`, `k8s.namespace.name`) via the `k8sattributes` processor.
+  - **Tier 2 (Gateway Cluster Deployment)**: A standalone, horizontally autoscaled collector deployment behind an internal load balancer. DaemonSets forward batched streams to the Gateway. The Gateway cluster performs heavy cluster-wide operations:
+    - *Tail-based sampling*: Buffers all spans of a trace across multiple nodes to retain 100% of errors and high-latency requests.
+    - *SpanMetrics computation*: Derives RED metrics without double-instrumenting application code.
+    - *PII scrubbing*: Enforces global data sanitization rules before data leaves infrastructure.
+    - *Centralized egress*: Manages credentialed connections to Tempo, Prometheus/Mimir, and Loki.
 
 #### Interaction
 
 ```mermaid
 flowchart TD
-    subgraph Applications ["Application Cluster"]
-        App1["Go Service A (OTel SDK)"]
-        App2["Go Service B (OTel SDK)"]
+    subgraph Node1 ["Kubernetes Node 1"]
+        AppA1["App Pod A"]
+        AppB1["App Pod B"]
+        Agent1["OTel Collector DaemonSet<br/>(Local Agent on hostIP)"]
+        AppA1 -->|"OTLP"| Agent1
+        AppB1 -->|"OTLP"| Agent1
     end
 
-    subgraph Collector ["OpenTelemetry Collector Pipeline"]
-        Recv["Receivers<br/><code>otlp (grpc:4317, http:4318)</code>"]
-        Proc["Processors<br/><code>memory_limiter, batch, transform</code>"]
-        Conn["SpanMetrics Connector<br/>(Derives RED metrics from Spans)"]
-        ExpTraces["Traces Exporter<br/><code>otlp/tempo</code>"]
-        ExpMetrics["Metrics Exporter<br/><code>prometheus / otlp</code>"]
-        ExpLogs["Logs Exporter<br/><code>otlphttp/loki</code>"]
+    subgraph Node2 ["Kubernetes Node 2"]
+        AppA2["App Pod A"]
+        AppC1["App Pod C"]
+        Agent2["OTel Collector DaemonSet<br/>(Local Agent on hostIP)"]
+        AppA2 -->|"OTLP"| Agent2
+        AppC1 -->|"OTLP"| Agent2
+    end
 
-        Recv --> Proc
-        Proc --> Conn
-        Conn --> ExpMetrics
-        Proc --> ExpTraces
-        Proc --> ExpMetrics
-        Proc --> ExpLogs
+    subgraph GatewayTier ["Tier 2: OTel Collector Gateway (Deployment Behind Load Balancer)"]
+        GW["Collector Gateway Cluster<br/>(Tail Sampling, SpanMetrics, PII Scrubbing)"]
     end
 
     subgraph StorageBackends ["Observability Storage Layer"]
@@ -586,14 +647,15 @@ flowchart TD
         Loki[("Grafana Loki<br/>(Log Stream Chunks)")]
     end
 
-    App1 -->|"OTLP (Traces, Metrics, Logs)"| Recv
-    App2 -->|"OTLP (Traces, Metrics, Logs)"| Recv
-    ExpTraces --> Tempo
-    ExpMetrics --> Prom
-    ExpLogs --> Loki
+    Agent1 -->|"OTLP gRPC (Batched & Enriched)"| GW
+    Agent2 -->|"OTLP gRPC (Batched & Enriched)"| GW
+    GW -->|"Traces"| Tempo
+    GW -->|"Metrics"| Prom
+    GW -->|"Logs"| Loki
 
-    style Collector fill:#f0f5ff,stroke:#2f54eb,stroke-width:1.5px
-    style Applications fill:#f6ffed,stroke:#52c41a,stroke-width:1.5px
+    style Node1 fill:#f6ffed,stroke:#52c41a,stroke-width:1.5px
+    style Node2 fill:#f6ffed,stroke:#52c41a,stroke-width:1.5px
+    style GatewayTier fill:#f0f5ff,stroke:#2f54eb,stroke-width:1.5px
     style StorageBackends fill:#fff7e6,stroke:#fa8c16,stroke-width:1.5px
 ```
 
@@ -630,8 +692,10 @@ connectors:
   spanmetrics:
     histogram:
       explicit:
+        # Bounded cardinality: Duration is recorded as values sorted into fixed buckets, not labels
         buckets: [5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2.5s]
     dimensions:
+      # Strictly bounded low-cardinality labels (never add user_id, order_id, or dynamic UUIDs)
       - name: http.status_code
       - name: http.route
 
