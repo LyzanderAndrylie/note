@@ -608,37 +608,29 @@ The OpenTelemetry Collector standardizes data ingestion, batching, scrubbing, an
     - **Guaranteed Metric-Trace Parity**: Metrics and traces never diverge on request counts or latency percentiles since metrics are computed directly from spans.
     - **Powers Automated APM**: Supplies Prometheus RED timeseries used by Grafana Application Observability and service dependency maps.
 
-- **Production Deployment Topology: The 2-Tier Hybrid Model**:
-  - **Why Not Sidecars in Every Pod?**: Running an OTel collector sidecar inside every application pod wastes massive resources (500 pods = 500 collector instances consuming 50–100MB RAM each). Sidecars are reserved primarily for serverless workloads (AWS Fargate, Cloud Run) where host access is unavailable.
-  - **Tier 1 (DaemonSet on Every Node)**: Exactly one lightweight collector agent runs per Kubernetes worker node. Application pods send OTLP traffic to `status.hostIP:4317` with near-zero latency. The agent handles fast local batching, memory protection, and enriches telemetry with Kubernetes metadata (`k8s.pod.name`, `k8s.namespace.name`) via the `k8sattributes` processor.
-  - **Tier 2 (Gateway Cluster Deployment)**: A standalone, horizontally autoscaled collector deployment behind an internal load balancer. DaemonSets forward batched streams to the Gateway. The Gateway cluster performs heavy cluster-wide operations:
-    - *Tail-based sampling*: Buffers all spans of a trace across multiple nodes to retain 100% of errors and high-latency requests.
-    - *SpanMetrics computation*: Derives RED metrics without double-instrumenting application code.
-    - *PII scrubbing*: Enforces global data sanitization rules before data leaves infrastructure.
-    - *Centralized egress*: Manages credentialed connections to Tempo, Prometheus/Mimir, and Loki.
-
 #### Interaction
 
 ```mermaid
 flowchart TD
-    subgraph Node1 ["Kubernetes Node 1"]
-        AppA1["App Pod A"]
-        AppB1["App Pod B"]
-        Agent1["OTel Collector DaemonSet<br/>(Local Agent on hostIP)"]
-        AppA1 -->|"OTLP"| Agent1
-        AppB1 -->|"OTLP"| Agent1
+    subgraph Applications ["Application Cluster"]
+        App1["Go Service A (OTel SDK)"]
+        App2["Go Service B (OTel SDK)"]
     end
 
-    subgraph Node2 ["Kubernetes Node 2"]
-        AppA2["App Pod A"]
-        AppC1["App Pod C"]
-        Agent2["OTel Collector DaemonSet<br/>(Local Agent on hostIP)"]
-        AppA2 -->|"OTLP"| Agent2
-        AppC1 -->|"OTLP"| Agent2
-    end
+    subgraph Collector ["OpenTelemetry Collector Pipeline"]
+        Recv["Receivers<br/><code>otlp (grpc:4317, http:4318)</code>"]
+        Proc["Processors<br/><code>memory_limiter, batch, transform</code>"]
+        Conn["SpanMetrics Connector<br/>(Derives RED metrics from Spans)"]
+        ExpTraces["Traces Exporter<br/><code>otlp/tempo</code>"]
+        ExpMetrics["Metrics Exporter<br/><code>prometheus / otlp</code>"]
+        ExpLogs["Logs Exporter<br/><code>otlphttp/loki</code>"]
 
-    subgraph GatewayTier ["Tier 2: OTel Collector Gateway (Deployment Behind Load Balancer)"]
-        GW["Collector Gateway Cluster<br/>(Tail Sampling, SpanMetrics, PII Scrubbing)"]
+        Recv --> Proc
+        Proc --> Conn
+        Conn --> ExpMetrics
+        Proc --> ExpTraces
+        Proc --> ExpMetrics
+        Proc --> ExpLogs
     end
 
     subgraph StorageBackends ["Observability Storage Layer"]
@@ -647,15 +639,14 @@ flowchart TD
         Loki[("Grafana Loki<br/>(Log Stream Chunks)")]
     end
 
-    Agent1 -->|"OTLP gRPC (Batched & Enriched)"| GW
-    Agent2 -->|"OTLP gRPC (Batched & Enriched)"| GW
-    GW -->|"Traces"| Tempo
-    GW -->|"Metrics"| Prom
-    GW -->|"Logs"| Loki
+    App1 -->|"OTLP (Traces, Metrics, Logs)"| Recv
+    App2 -->|"OTLP (Traces, Metrics, Logs)"| Recv
+    ExpTraces --> Tempo
+    ExpMetrics --> Prom
+    ExpLogs --> Loki
 
-    style Node1 fill:#f6ffed,stroke:#52c41a,stroke-width:1.5px
-    style Node2 fill:#f6ffed,stroke:#52c41a,stroke-width:1.5px
-    style GatewayTier fill:#f0f5ff,stroke:#2f54eb,stroke-width:1.5px
+    style Collector fill:#f0f5ff,stroke:#2f54eb,stroke-width:1.5px
+    style Applications fill:#f6ffed,stroke:#52c41a,stroke-width:1.5px
     style StorageBackends fill:#fff7e6,stroke:#fa8c16,stroke-width:1.5px
 ```
 
@@ -734,3 +725,67 @@ service:
       processors: [memory_limiter, batch]
       exporters: [otlphttp/loki]
 ```
+
+#### b. Production Deployment Topology: 2-Tier Hybrid Architecture
+
+In production Kubernetes clusters, running a collector sidecar inside every application pod introduces substantial resource waste (e.g., 500 application pods = 500 separate collector instances consuming memory). Conversely, relying solely on a remote gateway forces applications to transmit unbatched telemetry across the cluster network.
+
+The industry-standard solution is the **2-Tier Hybrid Architecture**, combining a **Node DaemonSet** agent tier with a **Centralized Gateway** tier.
+
+| Deployment Pattern | Placement | Primary Role | Pros | Cons |
+| :--- | :--- | :--- | :--- | :--- |
+| **Sidecar** | Inside application Pod | Isolated single-service proxy | Zero network hop (`localhost`); ideal for serverless / AWS Fargate | High RAM multiplication across many pods |
+| **DaemonSet (Tier 1)** | 1 per Kubernetes Node | Local host collector | Extremely resource-efficient (1 agent per node); enriches with k8s metadata | Cannot execute cluster-wide tail sampling |
+| **Gateway (Tier 2)** | Scalable standalone Deployment | Centralized pipeline processor | Centralized tail-based sampling, spanmetrics, and secret management | Telemetry traverses cluster network |
+| **2-Tier Hybrid** | **DaemonSet + Gateway** | End-to-end telemetry pipeline | Lowest app latency, minimal RAM footprint, and full cluster-wide processing | Requires managing two collector configurations |
+
+##### Architecture Flow
+
+```mermaid
+flowchart TD
+    subgraph Node1 ["Kubernetes Node 1"]
+        AppA1["App Pod A"]
+        AppB1["App Pod B"]
+        Agent1["Node Agent (DaemonSet)<br/>• Local batching & memory limiter<br/>• Attaches k8s pod/node metadata"]
+        AppA1 -->|"OTLP (hostIP:4317)"| Agent1
+        AppB1 -->|"OTLP (hostIP:4317)"| Agent1
+    end
+
+    subgraph Node2 ["Kubernetes Node 2"]
+        AppA2["App Pod A"]
+        AppC1["App Pod C"]
+        Agent2["Node Agent (DaemonSet)<br/>• Local batching & memory limiter<br/>• Attaches k8s pod/node metadata"]
+        AppA2 -->|"OTLP (hostIP:4317)"| Agent2
+        AppC1 -->|"OTLP (hostIP:4317)"| Agent2
+    end
+
+    subgraph GatewayTier ["Centralized Gateway Cluster (Deployment Behind Service)"]
+        GW["Collector Gateway Replicas<br/>• Cluster-wide Tail-based Sampling<br/>• SpanMetrics RED Derivation<br/>• PII Redaction & Scrubbing"]
+    end
+
+    subgraph StorageBackends ["Storage Layer"]
+        Tempo[("Grafana Tempo (Traces)")]
+        Prom[("Prometheus / Mimir (Metrics)")]
+        Loki[("Grafana Loki (Logs)")]
+    end
+
+    Agent1 -->|"Batched OTLP (gRPC)"| GW
+    Agent2 -->|"Batched OTLP (gRPC)"| GW
+    GW --> Tempo
+    GW --> Prom
+    GW --> Loki
+
+    style Node1 fill:#f6ffed,stroke:#52c41a,stroke-width:1.5px
+    style Node2 fill:#f6ffed,stroke:#52c41a,stroke-width:1.5px
+    style GatewayTier fill:#f0f5ff,stroke:#2f54eb,stroke-width:1.5px
+    style StorageBackends fill:#fff7e6,stroke:#fa8c16,stroke-width:1.5px
+```
+
+- **Tier 1 (DaemonSet Agent)**:
+  - **Zero-Latency Ingestion**: Application pods send OTLP to `status.hostIP:4317` on the local node.
+  - **Local Metadata Enrichment**: Uses the `k8sattributes` processor to automatically extract and attach `k8s.pod.name`, `k8s.namespace.name`, and `k8s.node.name` to all telemetry without application code involvement.
+  - **Fast In-Memory Batching**: Compresses and batches telemetry before sending it over the cluster network.
+- **Tier 2 (Gateway Deployment)**:
+  - **Cluster-Wide Tail-Based Sampling**: Buffers all spans of a distributed trace across multiple nodes to ensure 100% of errors and high-latency requests are preserved while safely discarding redundant 200 OK traces.
+  - **Centralized Metrics & Scrubbing**: Computes `spanmetrics` and scrubs sensitive PII/tokens before data leaves infrastructure.
+  - **Secure Egress**: Consolidates storage credentials and network egress firewalls to a single managed pool of replicas.
