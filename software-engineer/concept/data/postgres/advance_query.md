@@ -244,6 +244,21 @@ CROSS JOIN LATERAL (
 
 Standard SQL forbids referencing a calculated column alias within the same `SELECT` clause or `WHERE` clause without retyping the entire calculation or wrapping the query in another subquery.
 
+> [!WARNING]
+> **Invalid Standard SQL (Column Alias Scope)**
+> Because `WHERE` is evaluated before `SELECT` and `SELECT` expressions are evaluated independently, referencing an alias in either place fails:
+>
+> ```sql
+> -- INVALID: Referencing column aliases in the same SELECT and in WHERE
+> SELECT p.id,
+>        p.product_name,
+>        (p.retail_price - p.cost_price) AS markup,
+>        (p.retail_price * 0.10) AS tax_amount,
+>        (p.retail_price + tax_amount) AS final_price  -- ERROR: column "tax_amount" does not exist
+> FROM products p
+> WHERE markup > 15.00;                                -- ERROR: column "markup" does not exist
+> ```
+
 `CROSS JOIN LATERAL (VALUES (...))` cleanly solves this:
 
 ```sql
@@ -286,6 +301,23 @@ FROM articles a
 CROSS JOIN LATERAL unnest(a.tags) WITH ORDINALITY AS t(tag_name, tag_position);
 ```
 
+**Example `articles` Table:**
+
+| `article_id` | `title` | `tags` |
+| --- | --- | --- |
+| `1` | `PostgreSQL Indexing` | `{"postgres", "btree", "performance"}` |
+| `2` | `Go Concurrency` | `{"go", "goroutines"}` |
+
+**Result Table:**
+
+| `article_id` | `title` | `tag_name` | `tag_position` |
+| --- | --- | --- | --- |
+| `1` | `PostgreSQL Indexing` | `postgres` | `1` |
+| `1` | `PostgreSQL Indexing` | `btree` | `2` |
+| `1` | `PostgreSQL Indexing` | `performance` | `3` |
+| `2` | `Go Concurrency` | `go` | `1` |
+| `2` | `Go Concurrency` | `goroutines` | `2` |
+
 #### Unpacking JSONB Arrays to Relational Columns
 
 ```sql
@@ -301,6 +333,21 @@ SELECT e.id AS event_id,
 FROM webhook_events e
 CROSS JOIN LATERAL jsonb_to_recordset(e.payload->'items') AS item(sku TEXT, qty INT);
 ```
+
+**Example `webhook_events` Table:**
+
+| `id` | `payload` |
+| --- | --- |
+| `101` | `{"items": [{"sku": "A1", "qty": 2}, {"sku": "B2", "qty": 5}]}` |
+| `102` | `{"items": [{"sku": "C3", "qty": 1}]}` |
+
+**Result Table:**
+
+| `event_id` | `sku` | `qty` |
+| --- | --- | --- |
+| `101` | `A1` | `2` |
+| `101` | `B2` | `5` |
+| `102` | `C3` | `1` |
 
 ---
 
