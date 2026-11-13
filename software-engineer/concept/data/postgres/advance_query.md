@@ -209,6 +209,10 @@ $$\text{For every row } r \in \text{OuterTable}, \text{ execute } \text{Subquery
 2. **`LEFT JOIN LATERAL ... ON true` (Left Outer Join Behavior)**:
    If the lateral subquery returns **0 rows**, the outer row is preserved, and all columns of the lateral subquery evaluate to `NULL`.
 
+> [!NOTE]
+> **Why `ON true`?**
+> SQL syntax requires an `ON` (or `USING`) condition for `JOIN` and `LEFT JOIN`, even when the correlation filter lives inside the `LATERAL` subquery. `CROSS JOIN LATERAL (...)` is semantically and planner-equivalent to `JOIN LATERAL (...) ON true` (`INNER JOIN LATERAL (...) ON true`)—both drop unmatched outer rows, and `CROSS JOIN LATERAL` is generally preferred simply to avoid the `ON true` boilerplate.
+
 ---
 
 ### 3.3 Production Pattern 1: High-Performance Top-N Per Group
