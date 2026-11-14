@@ -4,7 +4,7 @@
 | ------------- | -------------------------- |
 | Author        | Lyzander Marciano Andrylie |
 | Creation Date | Nov 8, 2026                |
-| Last Updated  | Nov 8, 2026                |
+| Last Updated  | Nov 14, 2026               |
 
 ## References
 
@@ -13,6 +13,7 @@
 - [Linux Programmer's Manual: dup(2)](https://man7.org/linux/man-pages/man2/dup.2.html): Duplicate an open file descriptor
 - [Linux Programmer's Manual: epoll(7)](https://man7.org/linux/man-pages/man7/epoll.7.html): Scalable I/O event notification mechanism and descriptor multiplexing
 - [POSIX.1-2017: File Descriptors](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_166): POSIX specification for file descriptor semantics, tables, and standard streams
+- [bash.md](./bash/bash.md): Bash command evaluation pipeline, shell process execution, and stream redirection abstractions
 - [directory_structure.md](./directory_structure.md): Standard filesystem hierarchy, device virtual nodes (`/dev`), and kernel runtime filesystem (`/proc`)
 - [file_permissions.md](./file_permissions.md): Discretionary access control, file ownership, and inode permission bits
 - [inodes.md](./inodes.md): Inode structure, block allocation, hard/symbolic links, and filesystem limits

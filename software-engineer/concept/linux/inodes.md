@@ -4,13 +4,14 @@
 | ------------- | -------------------------- |
 | Author        | Lyzander Marciano Andrylie |
 | Creation Date | Nov 8, 2026                |
-| Last Updated  | Nov 8, 2026                |
+| Last Updated  | Nov 14, 2026               |
 
 ## References
 
 - [Linux Programmer's Manual: stat(2)](https://man7.org/linux/man-pages/man2/stat.2.html): System call interface for retrieving inode metadata
 - [Linux Programmer's Manual: inode(7)](https://man7.org/linux/man-pages/man7/inode.7.html): Operating system specification for file types, timestamps, and attributes
 - [ext4 Filesystem Documentation (Kernel.org)](https://www.kernel.org/doc/html/latest/filesystems/ext4/index.html): On-disk layout, extent trees, and inode structures
+- [bash.md](./bash/bash.md): Bash mental model, pathname globbing, and shell test operators inspecting inode metadata
 - [directory_structure.md](./directory_structure.md): Standard filesystem layout, mount points, and directory entry mechanics
 - [file_permissions.md](./file_permissions.md): Discretionary access control, ownership UID/GID, and mode bits stored in the inode
 - [file_descriptors.md](./file_descriptors.md): Process file descriptor tables, open file descriptions, and stream redirection
