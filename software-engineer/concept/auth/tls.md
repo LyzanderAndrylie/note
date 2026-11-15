@@ -100,6 +100,9 @@ flowchart LR
 
 An **X.509 v3 Digital Certificate** is a cryptographically bound document that binds a public key to an identity (a domain name, organization, or machine).
 
+> [!NOTE]
+> An X.509 certificate is **not encrypted**. Its contents are readable by anyone, and the signature is only used to verify integrity and authenticity.
+
 ```mermaid
 flowchart TD
     subgraph X509Cert ["X.509 v3 Certificate Structure"]
@@ -136,6 +139,22 @@ flowchart TD
    - `keyEncipherment`: Allowed to encrypt symmetric keys (used in RSA key exchange).
    - `serverAuth`: Valid for authenticating a TLS server to a client.
    - `clientAuth`: Valid for authenticating a TLS client to a server (crucial for **mTLS**).
+
+#### How the CA Creates It vs. How the Client Reads & Verifies It
+
+1. **Signing (by the CA)**:
+   - Take the raw bytes of `TBSCertificate`.
+   - Compute a one-way hash: `digest = SHA256(TBSCertificate)`.
+   - Sign that digest with the **CA's private key**: `SignatureValue = Sign(CA_PrivateKey, digest)`.
+2. **Reading & Verifying (by Chrome / the client)**:
+   - **Parse (Read)**: Chrome parses the raw ASN.1 bytes of `TBSCertificate` directly. That is how it reads the domain name, public key, issuer, and dates—no keys or decryption needed.
+   - **Re-hash**: Chrome takes the exact `TBSCertificate` bytes it received and runs the same hash function itself:
+     ```text
+     expected_digest = SHA256(TBSCertificate)
+     ```
+   - **Verify the Signature**: Using the **parent CA's public key**, Chrome checks that `SignatureValue` is valid for `expected_digest`:
+     - **RSA**: Applies the CA's public key to `SignatureValue` to recover the original signed digest, and checks `recovered_digest == expected_digest`.
+     - **ECDSA / Ed25519**: Feeds `(CA_PublicKey, expected_digest, SignatureValue)` into the signature verification math, which returns `valid` or `invalid`.
 
 ### 2.3 Certificate File Formats & Encodings
 
@@ -178,6 +197,36 @@ flowchart TD
 - **Root CA Isolation**: The Root CA private key is extremely valuable. If compromised, every certificate it issued is untrusted. Root CAs are kept **offline in air-gapped secure vaults** or physical Hardware Security Modules (HSMs).
 - **Day-to-day Operations**: Intermediate CAs perform online, automated issuance (e.g., via ACME). If an intermediate CA is compromised, only that intermediate needs revocation; the Root CA remains intact.
 
+#### Example: How Chrome Validates a Server Certificate (Leaf → Root CA)
+
+Suppose you visit `https://api.example.com`. During the TLS handshake, the server presents a certificate chain—typically `[Leaf, Intermediate]`—along with a `CertificateVerify` signature proving it holds the leaf's private key. Notice the server normally does **not** need to send the Root CA, because Chrome already has it locally.
+
+```text
+Server sends:
+  [1] Leaf:         Subject=api.example.com         | Issuer=Example Intermediate R3
+  [2] Intermediate: Subject=Example Intermediate R3 | Issuer=GlobalTrust Root G1
+
+Chrome Trust Store (local):
+  [3] Root CA:      Subject=GlobalTrust Root G1     | Issuer=GlobalTrust Root G1 (Trusted Anchor)
+```
+
+Chrome's **Chrome Certificate Verifier** validates this chain bottom-up from the leaf to a trusted root:
+
+1. **Validate the Leaf Certificate (`api.example.com`)**:
+   - **Hostname (SAN) Match**: Checks the `Subject Alternative Name` extension for `DNS:api.example.com` (or a matching wildcard like `DNS:*.example.com`). Legacy `CN` is ignored.
+   - **Validity & Key Usage**: Verifies the current system clock falls within `NotBefore`–`NotAfter`, `Basic Constraints` is `CA:FALSE` (not a CA), `Key Usage` allows `digitalSignature`, and `Extended Key Usage` includes `serverAuth`.
+   - **Signature Verification (Leaf → Intermediate)**: Matches the leaf's `Issuer` and `Authority Key Identifier (AKI)` to `Example Intermediate R3`'s `Subject` and `Subject Key Identifier (SKI)`, then verifies the leaf's signature using the intermediate's public key.
+2. **Validate the Intermediate CA (`Example Intermediate R3`)**:
+   - **Path Building**: Uses the intermediate sent by the server (or, if omitted, attempts to use cached intermediates or fetch via the leaf's `AIA caIssuers` URL).
+   - **CA Constraints**: Confirms `Basic Constraints` has `CA:TRUE`, checks `pathlen` limits (e.g., `pathlen:0` forbids further sub-CAs beneath it), and verifies `Key Usage` includes `keyCertSign`.
+   - **Signature Verification (Intermediate → Root)**: Matches the intermediate's `Issuer` / `AKI` to `GlobalTrust Root G1` and verifies the intermediate's signature using the Root CA's public key.
+3. **Terminate at a Trusted Root CA (`GlobalTrust Root G1`)**:
+   - **Trust Store Lookup**: Checks whether `GlobalTrust Root G1` is present as a trusted anchor in the **Chrome Root Store** (or, for local/corporate CAs, the OS trust store).
+   - **Outcome**: Because the Root CA is pre-installed and trusted locally (not trusted merely because it is self-signed) and its validity window passes, the chain is trusted. If no path reaches a trusted root, Chrome blocks the connection with `NET::ERR_CERT_AUTHORITY_INVALID`.
+4. **Additional Browser Checks (Revocation & Certificate Transparency)**:
+   - **Revocation**: Chrome checks its bundled **CRLSets** (pushed via browser updates for high-priority revocations) and any **OCSP Stapled** response from the server, avoiding slow, privacy-exposing live OCSP requests during navigation.
+   - **Certificate Transparency (CT)**: For publicly trusted certificates, Chrome requires valid **Signed Certificate Timestamps (SCTs)** proving the leaf certificate was logged in multiple public CT logs; missing SCTs trigger `NET::ERR_CERTIFICATE_TRANSPARENCY_REQUIRED`.
+
 ### 3.2 Trust Stores (Root Stores)
 
 Clients trust a certificate only if its chain terminates at an anchor present in their **Trust Store**:
@@ -193,6 +242,8 @@ Clients trust a certificate only if its chain terminates at an anchor present in
   - Go runtime: By default reads OS roots; allows programmatic override via `crypto/x509.NewCertPool()`.
 
 ### 3.3 The Certificate Lifecycle: From CSR to Issuance
+
+Modern certificate issuance is commonly automated using **ACME (Automatic Certificate Management Environment)**, standardized in [RFC 8555](https://datatracker.ietf.org/doc/html/rfc8555) — an open protocol for automating the issuance, validation, renewal, and revocation of TLS/X.509 certificates without manual human intervention (e.g., via Let's Encrypt, Certbot, Caddy, or Kubernetes `cert-manager`).
 
 ```mermaid
 sequenceDiagram
@@ -336,7 +387,23 @@ When reconnecting to a server previously visited, the client can use a Pre-Share
 
 ---
 
-### 4.4 Comparison Matrix: TLS 1.2 vs. TLS 1.3
+### 4.4 Proof of Private Key Possession (`CertificateVerify`)
+
+Because certificates are public documents, an attacker can easily obtain and replay a server's valid certificate chain. Validating the CA chain only proves the certificate is authentic—it does **not** prove the sender actually owns it.
+
+To prove possession of the leaf certificate's **private key**, TLS requires a live signature over the current handshake:
+
+- **TLS 1.3 (`CertificateVerify`)**:
+  - The server sends `{CertificateVerify}` right after `{Certificate}`, containing a signature computed with the **leaf private key** over a hash of the entire handshake transcript so far (`ClientHello` through `Certificate`), prefixed with a TLS 1.3 context string.
+  - The client verifies this signature using the **public key inside the leaf certificate**. Because the handshake transcript includes fresh random values (`ClientRandom`, `ServerRandom`, ephemeral key shares), a recorded `CertificateVerify` cannot be replayed in another session.
+  - In **mTLS**, the client likewise sends `{CertificateVerify}` after its `{Certificate}` message.
+- **TLS 1.2 (`ServerKeyExchange` vs. `CertificateVerify`)**:
+  - A TLS 1.2 **server** using ECDHE/DHE does **not** send a message named `CertificateVerify`; instead, it signs `(ClientRandom + ServerRandom + ECDHE Parameters)` inside **`ServerKeyExchange`** using its leaf private key.
+  - A TLS 1.2 **client** in mTLS **does** send `CertificateVerify` (signing the handshake messages) to prove it owns the client certificate's private key.
+
+---
+
+### 4.5 Comparison Matrix: TLS 1.2 vs. TLS 1.3
 
 | Feature                        | TLS 1.2 (RFC 5246)                                          | TLS 1.3 (RFC 8446)                                          |
 | :----------------------------- | :---------------------------------------------------------- | :---------------------------------------------------------- |
@@ -410,6 +477,11 @@ sequenceDiagram
 
 1. **Microservice-to-Microservice Communication (Zero Trust Architecture)**:
    - In modern Kubernetes clusters and Service Meshes (**Istio**, **Linkerd**, **Consul**), sidecar proxies (Envoy) automatically inject and rotate short-lived certificates, enforcing mTLS for every east-west RPC.
+   > [!NOTE]
+   > **East-west RPC** refers to internal service-to-service calls inside a cluster or data center (e.g., `Order Service` calling `Payment Service` via gRPC or HTTP):
+   >
+   > - **East-West traffic (lateral / internal)**: Traffic moving _horizontally_ between microservices inside your infrastructure.
+   > - **North-South traffic (edge / external)**: Traffic moving _vertically_ between external users/clients and your edge/gateway (e.g., `Browser` → `Load Balancer / Ingress` → `API Gateway`).
 2. **High-Security APIs & Financial Integrations**:
    - Open Banking APIs, SWIFT transactions, and payment processors require mTLS to ensure rogue clients cannot even reach application-level parsing.
 3. **IoT & Hardware Device Authentication**:
