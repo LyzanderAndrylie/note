@@ -460,14 +460,23 @@ type Account struct {
 }
 
 func main() {
+	// 1. Instantiate the English locale provider containing CLDR plural/formatting rules.
 	enLocale := en.New()
+
+	// 2. Build a UniversalTranslator: first arg is the fallback locale, followed by all supported locales.
 	uni := ut.New(enLocale, enLocale)
+
+	// 3. Look up the "en" translator handle (second return value reports whether the locale was found).
 	trans, _ := uni.GetTranslator("en")
 
+	// 4. Create the validator and bind all built-in English error templates to this (validate, trans) pair.
 	v := validator.New(validator.WithRequiredStructEnabled())
 	_ = en_translations.RegisterDefaultTranslations(v, trans)
 
+	// 5. Run struct validation; produces FieldErrors for "email" and "gte=18".
 	err := v.Struct(Account{Email: "invalid", Age: 15})
+
+	// 6. Unwrap ValidationErrors, then translate all FieldErrors at once into map[Namespace]message.
 	var valErrs validator.ValidationErrors
 	if errors.As(err, &valErrs) {
 		for field, msg := range valErrs.Translate(trans) {
