@@ -4,7 +4,7 @@
 | ------------- | ------------------------------------------------------------------------------------- |
 | Author        | Lyzander Marciano Andrylie                                                            |
 | Creation Date | Nov 8, 2026                                                                           |
-| Last Updated  | Nov 8, 2026                                                                           |
+| Last Updated  | Nov 17, 2026                                                                          |
 | Repositories  | [matplotlib/matplotlib](https://github.com/matplotlib/matplotlib) (`lib/matplotlib/`) |
 
 ## References
@@ -141,6 +141,8 @@ ax.legend(frameon=True, facecolor="white", edgecolor="none")
 plt.close(fig)
 ```
 
+![matplotlib_artist_hierarchy.png](./attachments/matplotlib_artist_hierarchy.png)
+
 ---
 
 ### 2. Pyplot Procedural State Machine vs. Object-Oriented Interface
@@ -212,6 +214,8 @@ fig.savefig("benchmark.png", dpi=300, bbox_inches="tight")
 plt.close(fig)
 ```
 
+![matplotlib_benchmark.png](./attachments/matplotlib_benchmark.png)
+
 ---
 
 ### 3. Rendering Pipeline and Backend Subsystems
@@ -280,7 +284,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Verify backend configuration programmatically
-print(f"Active backend: {matplotlib.get_backend()}")  # Output: Active backend: agg
+print(f"Active backend: {matplotlib.get_backend()}")  # Output: Active backend: Agg
 
 fig, ax = plt.subplots(figsize=(6, 4))
 ax.plot(np.random.randn(100).cumsum(), color="#d32f2f", lw=1.5)
@@ -292,6 +296,10 @@ fig.savefig("ci_output.png", format="png", dpi=200)
 
 plt.close(fig)
 ```
+
+![matplotlib_ci_output.png](./attachments/matplotlib_ci_output.png)
+
+- Vector output: [matplotlib_ci_output.svg](./attachments/matplotlib_ci_output.svg)
 
 ---
 
@@ -373,6 +381,8 @@ ax.text(
 plt.close(fig)
 ```
 
+![matplotlib_coordinate_transforms.png](./attachments/matplotlib_coordinate_transforms.png)
+
 ---
 
 ### 5. Multi-Subplot Spatial Allocation and Composition
@@ -440,6 +450,8 @@ ax_dict["C"].set_title("Noise Distribution")
 fig.savefig("sensor_dashboard.png", dpi=300)
 plt.close(fig)
 ```
+
+![matplotlib_sensor_dashboard.png](./attachments/matplotlib_sensor_dashboard.png)
 
 ---
 
@@ -526,3 +538,7 @@ ax.legend(loc="upper right", frameon=False)
 fig.savefig("gaussian_distribution.pdf", format="pdf", bbox_inches="tight")
 plt.close(fig)
 ```
+
+![matplotlib_gaussian_distribution.png](./attachments/matplotlib_gaussian_distribution.png)
+
+- Vector PDF output: [matplotlib_gaussian_distribution.pdf](./attachments/matplotlib_gaussian_distribution.pdf)
