@@ -4,7 +4,7 @@
 | ------------- | ------------------------------------------------------------------------------------- |
 | Author        | Lyzander Marciano Andrylie                                                            |
 | Creation Date | Nov 8, 2026                                                                           |
-| Last Updated  | Nov 17, 2026                                                                          |
+| Last Updated  | Nov 18, 2026                                                                          |
 | Repositories  | [matplotlib/matplotlib](https://github.com/matplotlib/matplotlib) (`lib/matplotlib/`) |
 
 ## References
@@ -83,6 +83,8 @@ Every visual component within a Matplotlib figure subclasses `matplotlib.artist.
 | `Line2D`     | Primitive | `Axes`            | Renders continuous poly-lines, markers, and error bars                                     |
 | `Patch`      | Primitive | `Axes`            | 2D vector shapes with fill and stroke (`Rectangle`, `Circle`, `Polygon`, `Wedge`)          |
 | `Text`       | Primitive | `Figure` / `Axes` | Typography rendering for titles, labels, tick text, and mathematical annotations           |
+
+![matplotlib_artist_components.png](./attachments/matplotlib_artist_components.png)
 
 #### Interaction
 
@@ -323,6 +325,8 @@ Matplotlib relies on a modular transformation tree where every artist is associa
 | **Axes**          | `ax.transAxes`        | `[0.0, 1.0]`, `[0.0, 1.0]`        | Subplot labels, legends, corner annotations, and bounding boxes |
 | **Figure**        | `fig.transFigure`     | `[0.0, 1.0]`, `[0.0, 1.0]`        | Suptitles, canvas watermarks, multi-axes connecting lines       |
 | **Display**       | `IdentityTransform`   | `[0, width_px]`, `[0, height_px]` | Low-level event hit-testing and physical pixel positioning      |
+
+![matplotlib_coordinate_spaces.png](./attachments/matplotlib_coordinate_spaces.png)
 
 #### Interaction
 
