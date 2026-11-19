@@ -238,6 +238,37 @@ CROSS JOIN LATERAL (
 ) recent_orders;
 ```
 
+**Example `customers` Table:**
+
+| `id` | `name`  |
+| ---- | ------- |
+| `1`  | `Alice` |
+| `2`  | `Bob`   |
+| `3`  | `Carol` |
+
+**Example `orders` Table:**
+
+| `order_id` | `customer_id` | `order_date` | `total_amount` |
+| ---------- | ------------- | ------------ | -------------- |
+| `101`      | `1`           | `2026-11-01` | `25.00`        |
+| `102`      | `1`           | `2026-11-03` | `40.00`        |
+| `103`      | `1`           | `2026-11-05` | `15.50`        |
+| `104`      | `1`           | `2026-11-08` | `90.00`        |
+| `201`      | `2`           | `2026-11-02` | `60.00`        |
+| `202`      | `2`           | `2026-11-06` | `12.00`        |
+
+**Result Table:**
+
+| `customer_id` | `customer_name` | `order_id` | `order_date` | `total_amount` |
+| ------------- | --------------- | ---------- | ------------ | -------------- |
+| `1`           | `Alice`         | `104`      | `2026-11-08` | `90.00`        |
+| `1`           | `Alice`         | `103`      | `2026-11-05` | `15.50`        |
+| `1`           | `Alice`         | `102`      | `2026-11-03` | `40.00`        |
+| `2`           | `Bob`           | `202`      | `2026-11-06` | `12.00`        |
+| `2`           | `Bob`           | `201`      | `2026-11-02` | `60.00`        |
+
+*(Notice `order_id = 101` is dropped by `LIMIT 3` for Alice, and `Carol` (`id = 3`) is excluded because `CROSS JOIN LATERAL` drops outer rows with 0 matching orders—use `LEFT JOIN LATERAL ... ON true` if you want Carol included with `NULL` order columns.)*
+
 #### Why `LATERAL` Beats Window Functions for High-Volume Tables
 
 - **Window Function Approach**: `ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date DESC)` forces PostgreSQL to scan **every single row in the entire `orders` table** (e.g., 10,000,000 rows), sort or partition them all, and then filter `WHERE rn <= 3`.
@@ -754,6 +785,13 @@ WHERE transaction_date >= '2026-01-01'
 GROUP BY DATE_TRUNC('month', transaction_date)
 ORDER BY month DESC;
 ```
+
+How `failure_rate_pct` works:
+
+- **`COUNT(*) FILTER (WHERE status = 'FAILED')`**: Counts only failed transactions in the group (returns `bigint`).
+- **`100.0 * ...`**: Promotes the `bigint` count to `numeric` **before** dividing, converting the ratio to a percentage and avoiding PostgreSQL's integer division truncation (where `bigint / bigint` would truncate `3 / 100` to `0`).
+- **`NULLIF(COUNT(*), 0)`**: Returns `NULL` when total rows are `0` (e.g., an empty result set without `GROUP BY`), turning potential `division by zero` errors into `NULL`.
+- **`ROUND(..., 2)`**: Rounds the `numeric` percentage to 2 decimal places (PostgreSQL's two-argument `ROUND(val, scale)` requires `numeric`, which `100.0` provides).
 
 ---
 
