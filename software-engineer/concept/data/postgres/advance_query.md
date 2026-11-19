@@ -843,6 +843,29 @@ GROUP BY ROLLUP (region, product_category)
 ORDER BY GROUPING(region), region, GROUPING(product_category), category;
 ```
 
+**Example `regional_sales` Table:**
+
+| `region` | `product_category` | `sales_amount` |
+| -------- | ------------------ | -------------- |
+| `North`  | `Electronics`      | `500`          |
+| `North`  | `Furniture`        | `300`          |
+| `North`  | `NULL`             | `100`          |
+| `South`  | `Electronics`      | `400`          |
+
+**Result Table:**
+
+| `region`              | `category`               | `is_region_subtotal` | `is_category_subtotal` | `total_sales` |
+| --------------------- | ------------------------ | -------------------- | ---------------------- | ------------- |
+| `North`               | `--- ALL CATEGORIES ---` | `0`                  | `0`                    | `100`         |
+| `North`               | `Electronics`            | `0`                  | `0`                    | `500`         |
+| `North`               | `Furniture`              | `0`                  | `0`                    | `300`         |
+| `North`               | `--- ALL CATEGORIES ---` | `0`                  | `1`                    | `900`         |
+| `South`               | `Electronics`            | `0`                  | `0`                    | `400`         |
+| `South`               | `--- ALL CATEGORIES ---` | `0`                  | `1`                    | `400`         |
+| `--- ALL REGIONS ---` | `--- ALL CATEGORIES ---` | `1`                  | `1`                    | `1300`        |
+
+*(Notice how both the natural `NULL` row (`total_sales = 100`) and the `North` subtotal (`total_sales = 900`) render `'--- ALL CATEGORIES ---'` under `COALESCE`, and only `is_category_subtotal` (`0` vs. `1`) tells them apart—in production, pair `COALESCE` with `CASE WHEN GROUPING(product_category) = 1 THEN '--- ALL CATEGORIES ---' ELSE COALESCE(product_category, '(Uncategorized)') END` so natural `NULL` values aren't mislabeled.)*
+
 ---
 
 ## 8. Advanced Upsert: `INSERT ... ON CONFLICT`
@@ -942,51 +965,4 @@ flowchart TD
 
     Q_Card -- Yes --> UseLateral["Use CROSS JOIN LATERAL with LIMIT N<br/>Index-backed: only reads N rows per category"]
     Q_Card -- No --> UseWindow["Use ROW_NUMBER() OVER (PARTITION BY ...)<br/>General-purpose standard SQL approach"]
-```
-
----
-
-## Summary Reference Cheat Sheet
-
-```sql
--- 1. Deduplicate & First-Per-Group (N=1)
-SELECT DISTINCT ON (user_id) user_id, status, created_at
-FROM audit_logs
-ORDER BY user_id, created_at DESC;
-
--- 2. Top-N Per Group with Index-Skip Emulation (N=3)
-SELECT c.category_name, p.*
-FROM categories c
-CROSS JOIN LATERAL (
-    SELECT product_name, price
-    FROM products p
-    WHERE p.category_id = c.id
-    ORDER BY p.price DESC
-    LIMIT 3
-) p;
-
--- 3. Atomic Queue Popping
-WITH next_item AS (
-    SELECT id FROM task_queue WHERE status = 'PENDING'
-    ORDER BY priority DESC LIMIT 1
-    FOR UPDATE SKIP LOCKED
-)
-UPDATE task_queue t
-SET status = 'RUNNING' FROM next_item ni
-WHERE t.id = ni.id RETURNING t.*;
-
--- 4. Conditional Aggregation
-SELECT dept_id,
-       COUNT(*) FILTER (WHERE active = true) AS active_cnt,
-       AVG(salary) FILTER (WHERE role = 'ENGINEER') AS avg_eng_sal
-FROM employees GROUP BY dept_id;
-
--- 5. Subtotals and Rollups
-SELECT region, department, SUM(revenue)
-FROM sales
-GROUP BY ROLLUP (region, department);
-
--- 6. Safe Upsert
-INSERT INTO counters (key, val) VALUES ('hits', 1)
-ON CONFLICT (key) DO UPDATE SET val = counters.val + EXCLUDED.val;
 ```
