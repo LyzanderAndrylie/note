@@ -12,6 +12,8 @@ A comprehensive, engineering-grade technical guide to **Transport Layer Security
 - [RFC 8659: DNS Certification Authority Authorization (CAA) Resource Record](https://datatracker.ietf.org/doc/html/rfc8659): DNS resource record for specifying authorized CAs.
 - [Mozilla SSL Configuration Generator & Server Side TLS Guidelines](https://wiki.mozilla.org/Security/Server_Side_TLS): Recommended cryptographic cipher suites and web server configurations.
 - [oauth.md](./oauth.md): Mutual TLS (mTLS) client authentication and certificate-bound access tokens.
+- [oidc.md](./oidc.md): HTTPS transport security for OIDC discovery endpoints, JWKS distribution, and token exchanges.
+- [architecture.md](../kubernetes/architecture.md): mTLS and X.509 PKI securing Kubernetes control-plane and worker-node communication.
 
 ---
 

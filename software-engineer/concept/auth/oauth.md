@@ -13,7 +13,9 @@ A technical guide and engineering reference on the OAuth authorization framework
 - [The OAuth 2.1 Authorization Framework (Draft)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1): Consolidation of OAuth 2.0 security best current practices.
 - [OpenID Connect Core 1.0 Specification](https://openid.net/specs/openid-connect-core-1_0.html): Identity federation and profile retrieval on top of OAuth 2.0.
 - [jwt.md](./jwt.md): Compact JSON claims representations, JOSE signatures (JWS), and encryption (JWE).
+- [oidc.md](./oidc.md): OpenID Connect identity layer, ID Token validation, discovery, and workload OIDC federation.
 - [tls.md](./tls.md): Transport Layer Security, mTLS sender-constrained tokens, and certificate validation.
+- [workload_identity.md](../kubernetes/workload_identity.md): RFC 8693 OAuth 2.0 token exchange and OIDC federation from Kubernetes to AWS STS and Google STS.
 
 ---
 

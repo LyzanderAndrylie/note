@@ -13,6 +13,8 @@ A comprehensive technical guide to **JSON Web Tokens (JWT)**, the **JOSE (Javasc
 - [RFC 8037: CFRG Elliptic Curve Diffie-Hellman (ECDH) and Signatures in JOSE](https://datatracker.ietf.org/doc/html/rfc8037): EdDSA and ECDH algorithms in JOSE.
 - [OpenID Connect Core 1.0 Specification](https://openid.net/specs/openid-connect-core-1_0.html): Identity layer specification defining ID tokens and user authentication.
 - [oauth.md](./oauth.md): OAuth 2.0 and OAuth 2.1 authorization frameworks, grant flows, and token usage.
+- [oidc.md](./oidc.md): OpenID Connect ID Token claims, discovery (`/.well-known/openid-configuration`), and verification rules.
+- [workload_identity.md](../kubernetes/workload_identity.md): Kubernetes projected ServiceAccount JWTs federated with AWS STS and Google STS.
 
 ---
 
