@@ -7,6 +7,7 @@ A technical guide and engineering reference on the OAuth authorization framework
 - [RFC 6749: The OAuth 2.0 Authorization Framework](https://datatracker.ietf.org/doc/html/rfc6749): Core authorization framework, roles, client types, and authorization grants.
 - [RFC 6750: The OAuth 2.0 Authorization Framework - Bearer Token Usage](https://datatracker.ietf.org/doc/html/rfc6750): HTTP header, request body, and URI query parameter bearer token usage.
 - [RFC 7636: Proof Key for Code Exchange (PKCE)](https://datatracker.ietf.org/doc/html/rfc7636): Mitigating authorization code interception attacks on public clients.
+- [RFC 7662: OAuth 2.0 Token Introspection](https://datatracker.ietf.org/doc/html/rfc7662): Back-channel protocol enabling Resource Servers to query the active state and metadata of a token.
 - [RFC 8252: OAuth 2.0 for Native Apps (AppAuth)](https://datatracker.ietf.org/doc/html/rfc8252): Best practices for native application authorization.
 - [RFC 8628: OAuth 2.0 Device Authorization Grant](https://datatracker.ietf.org/doc/html/rfc8628): Authorization flow for browserless and input-constrained devices.
 - [RFC 9449: Demonstrating Proof-of-Possession (DPoP)](https://datatracker.ietf.org/doc/html/rfc9449): Application-level sender-constraining for OAuth tokens.
@@ -16,6 +17,7 @@ A technical guide and engineering reference on the OAuth authorization framework
 - [oidc.md](./oidc.md): OpenID Connect identity layer, ID Token validation, discovery, and workload OIDC federation.
 - [tls.md](./tls.md): Transport Layer Security, mTLS sender-constrained tokens, and certificate validation.
 - [workload_identity.md](../kubernetes/workload_identity.md): RFC 8693 OAuth 2.0 token exchange and OIDC federation from Kubernetes to AWS STS and Google STS.
+- [common_vulnerabilities.md](../security/common_vulnerabilities.md): CSRF, XSS, SSRF, SQL injection, and access control threat mechanisms and mitigations.
 
 ---
 
@@ -43,19 +45,25 @@ flowchart LR
 OAuth 2.0 ([RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749)) solves this by introducing an authorization intermediary and replacing direct credential sharing with **scoped, revocable, short-lived tokens**.
 
 ```mermaid
-flowchart TD
-    subgraph OAuthEcosystem ["OAuth 2.0 Delegation Model"]
-        RO["Resource Owner<br/>(End User)"]
-        Client["Client Application<br/>(SPA, Mobile App, Backend Service)"]
-        AS["Authorization Server<br/>(IdP / OAuth AS)"]
-        RS["Resource Server<br/>(Protected API)"]
-    end
+sequenceDiagram
+    autonumber
+    actor RO as Resource Owner<br/>(End User)
+    participant Web as Web Browser<br/>(User-Agent)
+    participant Client as Client Application<br/>(SPA, Mobile App, Backend Service)
+    participant AS as Authorization Server<br/>(IdP / OAuth AS)
+    participant RS as Resource Server<br/>(Protected API)
 
-    RO -->|"1. Grants Consent"| AS
-    Client -->|"2. Requests Access on behalf of User"| AS
-    AS -->|"3. Issues Access Token"| Client
-    Client -->|"4. Presents Access Token (Bearer)"| RS
-    RS -->|"5. Returns Protected Resource"| Client
+    RO->>Web: Uses Client Application
+    Web->>Client: Requests protected action
+    Client-->>Web: Redirects user to IdP Web (requested scope)
+    Web->>AS: Opens IdP Consent Page (scope=...)
+    RO->>AS: Authenticates & authorizes specific scope
+    AS-->>Web: Redirects back with Authorization Grant
+    Web->>Client: Delivers Authorization Grant
+    Client->>AS: Exchanges Grant for Access Token
+    AS-->>Client: Issues Scoped Access Token
+    Client->>RS: Presents Access Token (Bearer)
+    RS-->>Client: Returns Protected Resource
 ```
 
 ---
@@ -131,7 +139,7 @@ classDiagram
 ```
 
 - **Access Token**: A credential representing authorization granted to the client. It can be:
-  - **Opaque (Reference Token)**: A random string serving as a database lookup key; requires token introspection (`RFC 7662`) by the Resource Server.
+  - **Opaque (Reference Token)**: A random string serving as a database lookup key; contains no readable claims and requires **token introspection** ([RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)) by the Resource Server against the Authorization Server's `/introspect` endpoint to verify validity and retrieve metadata (see [Section 4.6](#46-token-introspection-rfc-7662)).
   - **Structured (Value Token / JWT)**: Self-contained cryptographic token (`RFC 7519`) containing signed claims (`sub`, `aud`, `exp`, `scope`), validated offline using the Authorization Server's public keys (`JWKS`).
 - **Refresh Token**: A long-lived credential used exclusively to obtain fresh access tokens when current access tokens expire, without re-prompting the user.
 - **ID Token (OIDC Extension)**: A signed JWT representing identity assertions about the user's authentication event (identity layer, not access authorization).
@@ -289,8 +297,13 @@ sequenceDiagram
 
 #### Key Characteristics:
 
-- **No Resource Owner Interaction**: The client acts on its own behalf.
-- **No Refresh Tokens**: Since the client can authenticate unattended using its static credentials, issuing refresh tokens creates unnecessary state. When the access token expires, the client simply calls `/token` again.
+- **No Resource Owner Interaction**: The client acts on its own behalf (`RFC 6749 §4.4`).
+- **No Refresh Tokens**: Since the client can authenticate unattended using its pre-provisioned credentials, issuing refresh tokens creates unnecessary state. When the access token expires, the client simply calls `/token` again.
+- **Client Authentication Methods (Confidential Clients Only)**: The client authenticates to `/token` using a **pre-registered static credential** (never safe for public clients like SPAs or mobile apps):
+  - **Shared Symmetric Secret (`client_secret`)**: Both the client and AS hold the same secret, sent via HTTP Basic Auth (`client_secret_basic`), POST body (`client_secret_post`), or used as an HMAC key (`client_secret_jwt`).
+  - **Asymmetric Key Assertion (`private_key_jwt`, [RFC 7523](https://datatracker.ietf.org/doc/html/rfc7523))**: Only the client's **public key** (or JWKS URL) is pre-registered with the AS; the client keeps the **private key** and sends a short-lived signed JWT (`client_assertion`) instead of transmitting a shared secret.
+  - **Mutual TLS (`mTLS`, [RFC 8705](https://datatracker.ietf.org/doc/html/rfc8705))**: The client authenticates at the TLS layer with a client X.509 certificate (and can bind the resulting access token to that certificate).
+- **Optional Sender-Constraining**: Client authentication only proves the caller's identity to the **Authorization Server**; layering **DPoP** ([Section 7.3](#73-securing-bearer-tokens-dpop-rfc-9449)) or **mTLS** also binds the returned access token so a leaked token cannot be replayed against the Resource Server.
 
 ---
 
@@ -365,6 +378,46 @@ sequenceDiagram
     AS-->>Client: 401 Unauthorized (Session terminated due to breach)
     Client->>Client: Force user to re-authenticate with full credentials
 ```
+
+---
+
+### 4.6 Token Introspection (RFC 7662)
+
+When a Resource Server receives an **opaque (reference) access token**, it cannot decode claims or verify signatures locally. Even with structured JWTs, a Resource Server may need to confirm in real time that a token has not been revoked before its `exp` timestamp.
+
+**OAuth 2.0 Token Introspection ([RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662))** solves this by defining a back-channel `POST /introspect` endpoint on the Authorization Server where an authorized Resource Server queries the current state (`active`) and metadata (`scope`, `sub`, `client_id`, `exp`, `token_type`) of a token.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as Client Application
+    participant RS as Resource Server<br/>(or API Gateway)
+    participant AS as Authorization Server<br/>(/introspect)
+
+    Client->>RS: GET /api/orders<br/>(Authorization: Bearer OPAQUE_ACCESS_TOKEN)
+    Note over RS: Token is opaque — cannot validate locally
+    RS->>AS: POST /introspect (Back-Channel, RS authenticated)<br/>(token=OPAQUE_ACCESS_TOKEN&token_type_hint=access_token)
+    AS->>AS: Look up token state, expiry, and revocation status
+    alt Token is valid & active
+        AS-->>RS: 200 OK<br/>{"active": true, "scope": "read:orders", "sub": "usr_123", "exp": 1795245200}
+        RS->>RS: Verify active == true and required scope
+        RS-->>Client: 200 OK (Protected Resource)
+    else Token is expired, revoked, or unknown
+        AS-->>RS: 200 OK<br/>{"active": false}
+        RS-->>Client: 401 Unauthorized (invalid_token)
+    end
+```
+
+#### Key Mechanics & Architectural Trade-offs:
+
+- **Authenticated Caller Requirement**: The `/introspect` endpoint must not be public; the Resource Server must authenticate (e.g., HTTP Basic Auth with `client_id`/`client_secret`, mTLS, or a client assertion) so attackers cannot probe tokens or harvest user metadata (`RFC 7662 §2.1`).
+- **Uniform Inactive Response (`active: false`)**: For expired, revoked, malformed, or nonexistent tokens, the Authorization Server returns HTTP `200 OK` with `{"active": false}` and omits all other claims to avoid leaking token validity details (`RFC 7662 §2.2`).
+- **Request & Response Parameters**:
+  - **Request** (`application/x-www-form-urlencoded`): `token` (required) and optional `token_type_hint` (`access_token` or `refresh_token`) to help the AS optimize store lookups.
+  - **Response** (`application/json`): `active` (required boolean), plus optional metadata such as `scope`, `client_id`, `username`, `token_type`, `exp`, `iat`, `sub`, `aud`, `iss`, and `jti`.
+- **Introspection vs. Offline JWT Validation**:
+  - **Pros**: Enables **immediate revocation** (revoked tokens fail introspection on the very next request) and **zero claim leakage** to public clients (used heavily at API gateways in the **Phantom Token Pattern** — see [jwt.md](./jwt.md#strategy-d-the-phantom-token-pattern-perimeter-translation)).
+  - **Cons**: Adds a synchronous network call and latency overhead to API requests and makes the Authorization Server a runtime availability dependency unless the Resource Server caches introspection results briefly (which trades instant revocation for lower latency).
 
 ---
 
@@ -497,45 +550,169 @@ flowchart TD
 
 ### 7.2 Open Redirectors and Exact Redirect URI Matching
 
-If an Authorization Server permits loose matching or wildcards (e.g., `https://*.example.com/oauth/callback` or regex matching):
+If an Authorization Server validates `redirect_uri` using **prefix matching**, **regexes**, or **subdomain wildcards** (e.g., `https://*.example.com/*` or `https://app.example.com/oauth/`), an attacker can chain an **open redirector** or **path traversal** vulnerability on the trusted domain to exfiltrate authorization codes or tokens.
 
-1. An attacker discovers an open redirect flaw on any subdomain: `https://blog.example.com/redirect?url=https://evil.com`.
-2. The attacker crafts an authorization request with `redirect_uri=https://blog.example.com/redirect?url=https://evil.com`.
-3. The Authorization Server validates the URL against the wildcard pattern and redirects the user with the authorization code.
-4. The intermediate vulnerable page forwards the request to `evil.com`, leaking the `code` in the query string to the attacker.
+#### Attack Mechanics (Wildcard / Prefix Bypass + Open Redirector):
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Victim as Victim (User-Agent)
+    participant Attacker as Attacker (evil.com)
+    participant AS as Authorization Server
+    participant VulnEndpoint as Trusted Domain Open Redirect<br/>(blog.example.com/out)
+
+    Attacker->>Victim: Sends crafted /authorize link<br/>(redirect_uri=https://blog.example.com/out?next=https://evil.com)
+    Victim->>AS: GET /authorize?redirect_uri=https://blog.example.com/out?next=https://evil.com
+    Note over AS: Loose validation matches pattern<br/>https://*.example.com/* -> Accepted!
+    Victim->>AS: Authenticates & consents (or auto-approved via SSO)
+    AS-->>Victim: 302 Redirect to<br/>https://blog.example.com/out?next=https://evil.com&code=AUTH_CODE
+    Victim->>VulnEndpoint: GET /out?next=https://evil.com&code=AUTH_CODE
+    VulnEndpoint-->>Victim: Redirects to https://evil.com<br/>(forwarding query params, preserving #fragment, or leaking via Referer)
+    Victim->>Attacker: Requests https://evil.com with leaked AUTH_CODE
+    Attacker->>AS: POST /token (exchanges AUTH_CODE if PKCE is absent)
+```
+
+#### Common Bypass & Leakage Vectors:
+
+1. **Wildcard Subdomain Hijacking**: A registered pattern like `https://*.example.com/callback` allows targeting any subdomain (e.g., `blog.example.com` or an unmaintained microsite) that exposes an open redirect.
+2. **Prefix & Path Traversal**: A registered prefix like `https://app.example.com/oauth/` can be bypassed via `https://app.example.com/oauth/../../redirect?url=https://evil.com` if the Authorization Server checks `startsWith()` without normalizing path segments.
+3. **How the Credential Leaks Across the Redirect**:
+   - **Query-forwarding open redirect**: The intermediate endpoint forwards incoming query parameters (`code`, `state`) onto the target URL.
+   - **Client-side / JS redirect (`Referer` leak)**: A page redirecting via `window.location` or `<meta http-equiv="refresh">` can expose the full URL (including `?code=...`) in the `Referer` header to `evil.com` unless restricted by `Referrer-Policy`.
+   - **URL Fragment Preservation**: In legacy Implicit flows (`#access_token=...`) or `response_mode=fragment`, browsers retain the `#fragment` across HTTP `302` redirects directly to `evil.com`.
+
+#### Defense: Exact Byte-for-Byte String Matching (OAuth 2.1 / RFC 9700)
+
+```mermaid
+flowchart LR
+    Req["Incoming redirect_uri<br/>from /authorize"] --> Check{"Exact string match<br/>against registered URI?"}
+    Check -- "Yes (Exact match)" --> Allow["Proceed with Authorization"]
+    Check -- "No (Extra path, query, traversal, or subdomain)" --> Reject["Reject Immediately (400 Bad Request)<br/>Do NOT redirect to invalid URI"]
+```
 
 > [!CAUTION]
-> **OAuth 2.1 Mitigation**: Authorization Servers **must** require exact string comparison for all registered redirect URIs. Subdomain wildcards and path pattern matching are forbidden.
+> **OAuth 2.1 Mitigation**: Authorization Servers **must** require exact string comparison (`RFC 3986 §6.2.1`) for all registered redirect URIs—subdomain wildcards, regexes, and unnormalized path prefix matching are forbidden. When `redirect_uri` is invalid or unregistered, the Authorization Server must display an error directly rather than redirecting. Pairing exact matching with **PKCE** provides defense-in-depth by ensuring a leaked `code` cannot be redeemed without `code_verifier`.
 
 ---
 
 ### 7.3 Securing Bearer Tokens: DPoP (RFC 9449)
 
-Standard OAuth access tokens are **Bearer Tokens**: whoever holds the token can use it, like physical cash. If an attacker steals an access token via XSS or network sniffing, the Resource Server cannot distinguish between the legitimate client and the thief.
+Standard OAuth access tokens are **Bearer Tokens**: whoever holds the token can use it, like physical cash. If an attacker steals an access token via XSS, local storage, or network sniffing, the Resource Server cannot distinguish between the legitimate client and the thief.
 
-**DPoP (Demonstrating Proof-of-Possession, [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449))** transforms access tokens into **Sender-Constrained Tokens** bound to a private cryptographic key held by the client.
+**DPoP (Demonstrating Proof-of-Possession, [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449))** transforms access tokens into **Sender-Constrained Tokens** cryptographically bound to an asymmetric key pair held by the client. Every protected request must include both the bound access token and a fresh **DPoP Proof** signed by the matching private key.
 
 ```mermaid
 sequenceDiagram
     autonumber
+    actor User as Resource Owner
     participant Client as Client (SPA / Mobile)
     participant AS as Authorization Server
     participant RS as Resource Server
 
-    Note over Client: Generates asymmetric key pair (e.g. ES256)
-    Note over Client: Signs DPoP Proof JWT with private key<br/>(htm="POST", htu="/token", jti=uuid, iat=now)
-    Client->>AS: POST /token (Header: DPoP: <DPoP_PROOF_JWT>)
-    AS->>AS: Verify DPoP signature & thumbprint (jkt)
-    Note over AS: Binds access_token to client's public key thumbprint
-    AS-->>Client: 200 OK (access_token, token_type: "DPoP")
+    Note over Client: 1. Key Setup (once per device/session)<br/>Generates non-extractable key pair (e.g., ES256)
 
-    Note over Client: Signs new DPoP Proof for API call<br/>(htm="GET", htu="/api/orders", jti=uuid)
+    User->>Client: Click "Sign in"
+    Client->>AS: GET /authorize (+ PKCE code_challenge, optional dpop_jkt)
+    AS->>User: Authenticate & Consent
+    AS-->>Client: 302 Redirect (?code=AUTH_CODE)
+
+    Note over Client: 2. Token Exchange<br/>Signs DPoP Proof with private key<br/>(typ="dpop+jwt", jwk=PUB_KEY, htm="POST", htu="/token", jti, iat)
+    Client->>AS: POST /token (code, code_verifier)<br/>Header: DPoP: <DPoP_PROOF_JWT>
+    opt Server requires nonce freshness (RFC 9449 §8)
+        AS-->>Client: 400 (error="use_dpop_nonce", Header: DPoP-Nonce: <NONCE>)
+        Client->>AS: Retry POST /token with DPoP Proof containing nonce=<NONCE>
+    end
+    AS->>AS: Verify PKCE, DPoP signature, and compute jkt = Base64URL(SHA256(jwk))
+    Note over AS: Binds access_token (cnf.jkt) and<br/>public client's refresh_token to jkt
+    AS-->>Client: 200 OK (access_token, refresh_token, token_type: "DPoP")
+
+    Note over Client: 3. Protected API Call<br/>Signs fresh DPoP Proof (htm="GET", htu="/api/orders", jti, ath=SHA256(access_token))
     Client->>RS: GET /api/orders<br/>Header: Authorization: DPoP <ACCESS_TOKEN><br/>Header: DPoP: <DPoP_PROOF_JWT>
-    RS->>RS: 1. Validate DPoP signature against embedded public key<br/>2. Match public key thumbprint with token claim (cnf.jkt)<br/>3. Verify HTTP method & URL match
+    RS->>RS: 1. Verify DPoP signature with proof.header.jwk<br/>2. Check Base64URL(SHA256(jwk)) == access_token.cnf.jkt<br/>3. Verify htm, htu, iat, jti (replay), and ath (token hash)
     RS-->>Client: 200 OK (Protected Resource)
+
+    Note over Client,AS: 4. Token Refresh (same private key)<br/>POST /token (grant_type=refresh_token) must include a new DPoP proof signed by the same key
 ```
 
-If an attacker intercepts the DPoP-bound access token, they cannot use it against the Resource Server without possessing the client's non-extractable private key to sign fresh DPoP proofs.
+#### 1. What is a DPoP Proof? (`DPoP` Header JWT)
+
+A **DPoP Proof** is a short-lived, single-use JWT created by the client for **one specific HTTP request** (`RFC 9449 §4.2`). Unlike an access token (issued by the AS), the DPoP proof is **self-signed by the client** and sent in the `DPoP` HTTP header:
+
+```json
+// JWT Header
+{
+  "typ": "dpop+jwt",   // Prevents cross-protocol confusion with access/ID tokens
+  "alg": "ES256",      // Asymmetric algorithm only (HS256 / "none" forbidden)
+  "jwk": {             // Client's PUBLIC key embedded inline (never the private key)
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "l8tFrhx-34tV3hRICRDY9zCkDlpBhF42UQUfWVAWBFs",
+    "y": "9VE4jf_Ok_o64zbTTlcuNJajHmt6v9TDVrU0CdvGRDA"
+  }
+}
+
+// JWT Payload
+{
+  "jti": "e1c9d3f4-8b2a-4c6e-9f1a-2d3b4c5e6f7a", // Unique ID to block replay attacks
+  "htm": "GET",                                   // Target HTTP method
+  "htu": "https://api.example.com/orders",        // Target URI (without query or fragment)
+  "iat": 1795245100,                              // Fresh timestamp (tight TTL window)
+  "ath": "fUHyO2r2Z3DZ53EsNrW..._bK3w"            // Base64URL(SHA-256(access_token)) — binds proof to token
+}
+```
+
+**How the Signature is Computed (Standard JWS with Client Private Key):**
+
+Yes — the signature is always computed using the **client's asymmetric private key** (matching the public key embedded in `header.jwk`), following standard JWS Compact Serialization ([RFC 7515](https://datatracker.ietf.org/doc/html/rfc7515)):
+
+1. **Build the signing input** by Base64URL-encoding the UTF-8 JSON of the header and payload:
+   ```text
+   signing_input = Base64URL(header_json) + "." + Base64URL(payload_json)
+   ```
+   _(Because `jwk` is inside `header_json`, the embedded public key itself is integrity-protected by the signature.)_
+2. **Sign with the private key** using the asymmetric algorithm declared in `alg` (e.g., `ES256` = ECDSA P-256 + SHA-256):
+   ```text
+   signature = Sign(client_private_key, ASCII(signing_input))
+   ```
+   In a browser, `crypto.subtle.sign(...)` computes this inside the Web Crypto subsystem using the non-extractable `CryptoKey` handle without ever exposing the raw private key bytes to JavaScript.
+3. **Assemble the `DPoP` header value**:
+   ```text
+   DPoP = signing_input + "." + Base64URL(signature)
+   ```
+4. **Server verification**: The AS or Resource Server extracts the **public key** from `header.jwk`, verifies `signature` over `signing_input` with that public key, and confirms `jwk`'s thumbprint matches `cnf.jkt`. Because only the matching private key can produce a valid signature for `header.jwk`, passing verification proves possession of the private key.
+
+> [!NOTE]
+> **`ath` (Access Token Hash)** is required whenever the DPoP proof accompanies an access token to a Resource Server, preventing an attacker from pairing a valid DPoP proof with a different token. Some servers also issue a **`DPoP-Nonce`** header that the client must echo in the proof's `nonce` claim to enforce server-controlled freshness.
+
+#### 2. What is a JWK Thumbprint (`jkt`) and `cnf.jkt` Binding?
+
+A **JWK Thumbprint (`jkt`)**, standardized in [RFC 7638](https://datatracker.ietf.org/doc/html/rfc7638), is a canonical, deterministic **SHA-256 fingerprint** of a public key's required JWK members (ignoring optional metadata like `kid`, `use`, or `alg`):
+
+```mermaid
+flowchart LR
+    JWK["Public JWK in Proof Header<br/>{crv, kty, x, y}"] --> Canonical["Canonical JSON (RFC 7638)<br/>Lexicographically sorted required fields"]
+    Canonical --> Hash["SHA-256 + Base64URL"]
+    Hash --> JKT["jkt Thumbprint<br/>'0ZcOCORZNYy-DWpqq30j...'"]
+    JKT --> Token["Embedded in Access Token<br/>cnf: { jkt: '0ZcOCORZNYy...' }"]
+    Token --> Verify["RS compares SHA256(proof.jwk) == token.cnf.jkt"]
+```
+
+- Why not embed the entire public key in the access token? Using `jkt` keeps access tokens compact while still uniquely identifying the exact public key via the `cnf` (Confirmation, [RFC 7800](https://datatracker.ietf.org/doc/html/rfc7800)) claim.
+- For **opaque access tokens**, the AS stores `jkt` alongside the token record and returns `cnf.jkt` in its `/introspect` response (Section 4.6) so the Resource Server can still verify the binding.
+
+#### 3. How Clients Store the Private Key Securely
+
+DPoP's guarantee depends on keeping the private key **non-extractable** so stolen tokens cannot be replayed from another device:
+
+| Client Environment       | Recommended Key Storage Mechanism                         | Security Properties & Caveats                                                                                                                                                                                                                                                                                                                                                       |
+| :----------------------- | :-------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **SPA (Web Browser)**    | **Web Crypto API** (`extractable: false`) + **IndexedDB** | `crypto.subtle.generateKey(..., false, ["sign"])` creates a `CryptoKey` handle stored in IndexedDB (`localStorage` cannot store `CryptoKey` objects). JS can sign proofs without ever reading raw key bytes—blocking off-device key exfiltration. _(Caveat: active XSS in the same tab can still call `sign()` while the session is open; use **BFF** in Section 8 when possible.)_ |
+| **iOS Native App**       | **Secure Enclave** + **Keychain**                         | Private key is generated inside hardware (`kSecAttrTokenIDSecureEnclave`); raw bytes never enter app RAM.                                                                                                                                                                                                                                                                           |
+| **Android Native App**   | **Android Keystore** (**TEE** / **StrongBox**)            | Signing executes inside the hardware Trusted Execution Environment or StrongBox HSM (`isStrongBoxBacked(true)`).                                                                                                                                                                                                                                                                    |
+| **Confidential Backend** | **Cloud KMS / HSM** or **TPM-backed Keystore**            | Asymmetric signing via KMS/HSM APIs or OS hardware-sealed vaults ensures key material never sits in plaintext config or disk files.                                                                                                                                                                                                                                                 |
+
+If an attacker intercepts a DPoP-bound access token, it is useless off-device because they cannot forge fresh `DPoP` proofs without access to the client's non-extractable private key.
 
 ---
 
@@ -581,14 +758,14 @@ flowchart TD
     end
 ```
 
-| Security Dimension                  | OAuth 2.0 Baseline                     | OAuth 2.1 Standard                                              |
-| :---------------------------------- | :------------------------------------- | :-------------------------------------------------------------- |
-| **PKCE**                            | Optional extension (RFC 7636).         | **Mandatory** for all clients using authorization codes.        |
-| **Implicit Grant**                  | Supported (standard for SPAs in 2012). | **Removed completely**.                                         |
-| **Resource Owner Password (ROPC)**  | Supported for legacy apps.             | **Removed completely**.                                         |
-| **Redirect URI Matching**           | Allowed prefix / wildcard matching.    | **Exact string match** required.                                |
-| **Refresh Tokens (Public Clients)** | Permitted without restrictions.        | Must be **sender-constrained** (DPoP/mTLS) or use **Rotation**. |
-| **Token in URI Query String**       | Discouraged, but allowed in RFC 6750.  | **Explicitly forbidden**.                                       |
+| Security Dimension                   | OAuth 2.0 Baseline                                                               | OAuth 2.1 Standard                                                                                                                                                                           |
+| :----------------------------------- | :------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **PKCE**                             | Optional extension (RFC 7636).                                                   | **Mandatory** for all clients using authorization codes.                                                                                                                                     |
+| **Implicit Grant**                   | Supported (`response_type=token`, returned `#access_token=...` in URI fragment). | **Removed completely**.                                                                                                                                                                      |
+| **Resource Owner Password (ROPC)**   | Supported for legacy apps.                                                       | **Removed completely**.                                                                                                                                                                      |
+| **Redirect URI Matching**            | Allowed prefix / wildcard matching.                                              | **Exact string match** required.                                                                                                                                                             |
+| **Refresh Tokens (Public Clients)**  | Permitted without restrictions.                                                  | Must be **sender-constrained** ([DPoP](#73-securing-bearer-tokens-dpop-rfc-9449)/mTLS) or use **Refresh Token Rotation (RTR)** ([Section 4.5](#45-refresh-token-rotation--reuse-detection)). |
+| **Bearer Token in URI Query String** | Allowed in RFC 6750 §2.3 (`GET /api?access_token=...`), though discouraged.      | **Explicitly forbidden** (must send via `Authorization` header to prevent URL log & `Referer` leakage).                                                                                      |
 
 ---
 

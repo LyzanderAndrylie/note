@@ -15,6 +15,7 @@ A comprehensive technical guide to **JSON Web Tokens (JWT)**, the **JOSE (Javasc
 - [oauth.md](./oauth.md): OAuth 2.0 and OAuth 2.1 authorization frameworks, grant flows, and token usage.
 - [oidc.md](./oidc.md): OpenID Connect ID Token claims, discovery (`/.well-known/openid-configuration`), and verification rules.
 - [workload_identity.md](../kubernetes/workload_identity.md): Kubernetes projected ServiceAccount JWTs federated with AWS STS and Google STS.
+- [common_vulnerabilities.md](../security/common_vulnerabilities.md): XSS token theft, CSRF cookie defenses, and related application security mitigations.
 
 ---
 

@@ -17,6 +17,7 @@
 - [jwt.md](./jwt.md): JWS/JWE structures, registered claims (`iss`, `sub`, `aud`, `exp`), JWKS key rotation, and JWT attack vectors
 - [tls.md](./tls.md): HTTPS transport security required for OIDC discovery, token endpoints, and JWKS distribution
 - [workload_identity.md](../kubernetes/workload_identity.md): Non-human OIDC federation connecting Kubernetes ServiceAccount tokens to AWS STS and Google STS
+- [common_vulnerabilities.md](../security/common_vulnerabilities.md): CSRF, XSS, SSRF, and access control defenses relevant to authentication flows
 
 ## Description
 
@@ -150,12 +151,12 @@ An **ID Token** is a security token formatted as a signed **JWT (JWS)**—or nes
 
 OIDC defines three interactive browser flows based on OAuth 2.0 (`response_type`) plus a non-interactive **workload federation** pattern used by Kubernetes and CI/CD systems.
 
-| Flow                            | `response_type`                  | Token Delivery Channel         | Recommended Use                                                         |
-| :------------------------------ | :------------------------------- | :----------------------------- | :---------------------------------------------------------------------- |
-| **Authorization Code (+ PKCE)** | `code`                           | Back-channel (`/token`)        | All modern web apps, SPAs (with BFF or PKCE), native mobile, CLI        |
-| **Hybrid Flow**                 | `code id_token` (or `+ token`)   | Front-channel + Back-channel   | Legacy high-assurance specs (FAPI 1.0) needing early ID check; rare now |
-| **Implicit Flow (Legacy)**      | `id_token` or `id_token token`   | Front-channel (`#` fragment)   | Deprecated in OAuth 2.1; leaks tokens in browser history/redirects      |
-| **Workload OIDC Federation**    | None (direct platform issuance)  | Local projection / runtime API | Kubernetes Pods, GitHub Actions, GitLab CI authenticating to Cloud STS  |
+| Flow                            | `response_type`                 | Token Delivery Channel         | Recommended Use                                                         |
+| :------------------------------ | :------------------------------ | :----------------------------- | :---------------------------------------------------------------------- |
+| **Authorization Code (+ PKCE)** | `code`                          | Back-channel (`/token`)        | All modern web apps, SPAs (with BFF or PKCE), native mobile, CLI        |
+| **Hybrid Flow**                 | `code id_token` (or `+ token`)  | Front-channel + Back-channel   | Legacy high-assurance specs (FAPI 1.0) needing early ID check; rare now |
+| **Implicit Flow (Legacy)**      | `id_token` or `id_token token`  | Front-channel (`#` fragment)   | Deprecated in OAuth 2.1; leaks tokens in browser history/redirects      |
+| **Workload OIDC Federation**    | None (direct platform issuance) | Local projection / runtime API | Kubernetes Pods, GitHub Actions, GitLab CI authenticating to Cloud STS  |
 
 #### a. Authorization Code Flow with PKCE (Interactive Login)
 
@@ -261,14 +262,14 @@ done | jq .
 
 Most real-world OIDC vulnerabilities stem from trusting unverified claims, bypassing discovery constraints, or conflating identity with authorization.
 
-| Pitfall / Attack Vector                | Failure Mechanism                                                                       | Mitigation                                                                          |
-| :------------------------------------- | :-------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------- |
+| Pitfall / Attack Vector                  | Failure Mechanism                                                                       | Mitigation                                                                          |
+| :--------------------------------------- | :-------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------- |
 | **Dynamic Discovery SSRF (`iss`/`jku`)** | RP fetches `/.well-known/openid-configuration` from attacker-controlled `iss` in token  | Pin trusted `iss` URLs in config; ignore untrusted `jku`/`x5u` headers              |
-| **Email-Based Account Takeover**       | App links users by `email` instead of `(iss, sub)`; attacker registers unverified email | Key users strictly by `(iss, sub)`; check `email_verified: true` for display/alerts |
-| **Token Confusion (Cross-App Replay)** | RP skips `aud` check; attacker replays an ID Token issued for App A into App B          | Enforce exact `aud` match (and `azp` when multi-audience)                           |
-| **ID Token Used as API Bearer Token**  | Resource server accepts ID Token instead of Access Token; lacks scopes & wrong `aud`    | Require Access Tokens at Resource Servers; keep ID Tokens inside the RP             |
+| **Email-Based Account Takeover**         | App links users by `email` instead of `(iss, sub)`; attacker registers unverified email | Key users strictly by `(iss, sub)`; check `email_verified: true` for display/alerts |
+| **Token Confusion (Cross-App Replay)**   | RP skips `aud` check; attacker replays an ID Token issued for App A into App B          | Enforce exact `aud` match (and `azp` when multi-audience)                           |
+| **ID Token Used as API Bearer Token**    | Resource server accepts ID Token instead of Access Token; lacks scopes & wrong `aud`    | Require Access Tokens at Resource Servers; keep ID Tokens inside the RP             |
 | **Unbounded JWKS Refresh on `kid` Miss** | Attacker floods requests with random `kid` values, triggering outbound JWKS storms      | Cache JWKS with TTL + cooldown/single-flight lock on refresh                        |
-| **Missing `nonce` / `state` Check**    | Attacker injects their own login callback (Login CSRF) or replays a captured ID Token   | Bind cryptographic `state` and `nonce` to `HttpOnly; SameSite=Lax` session cookies  |
+| **Missing `nonce` / `state` Check**      | Attacker injects their own login callback (Login CSRF) or replays a captured ID Token   | Bind cryptographic `state` and `nonce` to `HttpOnly; SameSite=Lax` session cookies  |
 
 > [!IMPORTANT]
 > In multi-tenant OIDC setups (such as federated Kubernetes clusters or SaaS SSO), always validate **both** `iss` and `sub` together and apply explicit claim scoping (e.g., exact namespace and service account match) to prevent confused-deputy privilege escalation across tenants.

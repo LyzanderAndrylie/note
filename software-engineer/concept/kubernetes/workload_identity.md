@@ -18,6 +18,7 @@
 - [oidc.md](../auth/oidc.md): OpenID Connect discovery (`/.well-known/openid-configuration`), JWKS verification, and workload OIDC federation
 - [jwt.md](../auth/jwt.md): Signed JWT claims (`iss`, `sub`, `aud`, `exp`) and cryptographic validation
 - [oauth.md](../auth/oauth.md): OAuth 2.0 bearer access tokens issued by Google STS / IAM Credentials API
+- [common_vulnerabilities.md](../security/common_vulnerabilities.md): SSRF attack mechanics and IMDSv2 / resolved-IP mitigations
 
 ## Description
 
@@ -32,8 +33,8 @@ Every cloud API call is evaluated by **Identity and Access Management (IAM)** al
 - **AWS IAM Model**:
   - **Principals**: IAM Users (static, discouraged for workloads), **IAM Roles** (assumed temporarily via STS), and Federated Principals.
   - **Policies**: JSON documents specifying `Effect` (`Allow` / `Deny`), `Action`, `Resource`, and `Condition`. An **IAM Role** has two distinct policies:
-    1. **Trust Policy (Resource-Based)**: Defines *who* is allowed to call `sts:AssumeRole*` on this role (e.g., a specific Kubernetes OIDC `sub`).
-    2. **Permissions Policy (Identity-Based)**: Defines *what* AWS APIs the caller can invoke once assumed (e.g., `s3:GetObject`).
+    1. **Trust Policy (Resource-Based)**: Defines _who_ is allowed to call `sts:AssumeRole*` on this role (e.g., a specific Kubernetes OIDC `sub`).
+    2. **Permissions Policy (Identity-Based)**: Defines _what_ AWS APIs the caller can invoke once assumed (e.g., `s3:GetObject`).
   - **Evaluation Rule**: **Default Deny → Explicit Allow → Explicit Deny always overrides Allow** (also bounded by Permission Boundaries, Session Policies, and Organizations SCPs).
 - **Google Cloud IAM Model**:
   - **Principals**: Google Accounts, **Google Service Accounts (GSAs)**, and Federated Workload Identity principals (`principal://iam.googleapis.com/...` or `principalSet://...`).
@@ -43,13 +44,13 @@ Every cloud API call is evaluated by **Identity and Access Management (IAM)** al
   - **Static Keys in `Secret`s** (`AWS_ACCESS_KEY_ID` / GCP JSON key): No automatic rotation, easily leaked in Git/logs/`etcd` backups, and unlimited blast radius until manually revoked.
   - **Node-Level IAM (EC2 Instance Profile / GCE VM Service Account)**: Every Pod on a shared worker node can query the Instance Metadata Service (`169.254.169.254`), forcing the node role to hold the union of permissions for all workloads scheduled on it.
 
-| Dimension                   | AWS IAM                                                      | Google Cloud IAM                                                |
-| :-------------------------- | :----------------------------------------------------------- | :-------------------------------------------------------------- |
-| **Workload Identity Unit**  | IAM Role (assumed via STS)                                   | Direct Federated Principal (`principal://...`) or GSA           |
-| **Policy Attachment**       | Identity-based (on Role) + Resource-based (Trust/Bucket)     | Resource-hierarchy Allow/Deny Policies (Org → Project → Bucket) |
-| **STS Exchange Protocol**   | `sts:AssumeRoleWithWebIdentity` / `AssumeRoleForPodIdentity` | RFC 8693 OAuth 2.0 Token Exchange (`sts.googleapis.com`)        |
-| **Returned Credential**     | Temporary SigV4 tuple (`AccessKeyId`, `SecretKey`, `Token`)  | Short-lived OAuth 2.0 Bearer Access Token (`ya29....`)          |
-| **Default / Max Token TTL** | Default 1h (configurable 15m–12h via role `MaxSessionDuration`) | Default 1h (configurable up to 12h via org policy for GSA)   |
+| Dimension                   | AWS IAM                                                         | Google Cloud IAM                                                |
+| :-------------------------- | :-------------------------------------------------------------- | :-------------------------------------------------------------- |
+| **Workload Identity Unit**  | IAM Role (assumed via STS)                                      | Direct Federated Principal (`principal://...`) or GSA           |
+| **Policy Attachment**       | Identity-based (on Role) + Resource-based (Trust/Bucket)        | Resource-hierarchy Allow/Deny Policies (Org → Project → Bucket) |
+| **STS Exchange Protocol**   | `sts:AssumeRoleWithWebIdentity` / `AssumeRoleForPodIdentity`    | RFC 8693 OAuth 2.0 Token Exchange (`sts.googleapis.com`)        |
+| **Returned Credential**     | Temporary SigV4 tuple (`AccessKeyId`, `SecretKey`, `Token`)     | Short-lived OAuth 2.0 Bearer Access Token (`ya29....`)          |
+| **Default / Max Token TTL** | Default 1h (configurable 15m–12h via role `MaxSessionDuration`) | Default 1h (configurable up to 12h via org policy for GSA)      |
 
 ---
 
@@ -344,12 +345,12 @@ gcloud storage buckets add-iam-policy-binding gs://payments-ledger-bucket \
 
 Choosing the right mechanism depends on whether workloads stay within one managed Kubernetes provider or span multiple clouds and on-premises clusters.
 
-| Mechanism                       | Supported Clusters        | Pod Credential Path                       | Trust Anchor                              | STS Endpoint & Protocol                 | ABAC / Attribute Conditions           |
-| :------------------------------ | :------------------------ | :---------------------------------------- | :---------------------------------------- | :-------------------------------------- | :------------------------------------ |
-| **AWS IRSA**                    | EKS, self-managed, GKE    | Projected JWT + `AWS_ROLE_ARN`            | IAM OIDC Provider (`iss` + JWKS)          | `sts:AssumeRoleWithWebIdentity`         | Condition on `sub` / `aud`            |
-| **AWS EKS Pod Identity**        | EKS only                  | Local agent `169.254.170.23` + JWT        | `pods.eks.amazonaws.com` + Association    | `eks-auth:AssumeRoleForPodIdentity`     | Automatic K8s session tags (ABAC)     |
-| **GCP Workload Identity Fed.**  | Self-managed, EKS, on-prem| Projected JWT + `external_account` JSON   | Workload Identity Pool + OIDC Provider    | `sts.googleapis.com` (RFC 8693)         | Rich CEL mappings & conditions        |
-| **GKE Workload Identity**       | GKE only                  | GKE Metadata Server (`169.254.169.254`)   | Managed `<PROJECT_ID>.svc.id.goog` pool   | `sts.googleapis.com` (managed by agent) | IAM CEL conditions on resources/attrs |
+| Mechanism                      | Supported Clusters         | Pod Credential Path                     | Trust Anchor                            | STS Endpoint & Protocol                 | ABAC / Attribute Conditions           |
+| :----------------------------- | :------------------------- | :-------------------------------------- | :-------------------------------------- | :-------------------------------------- | :------------------------------------ |
+| **AWS IRSA**                   | EKS, self-managed, GKE     | Projected JWT + `AWS_ROLE_ARN`          | IAM OIDC Provider (`iss` + JWKS)        | `sts:AssumeRoleWithWebIdentity`         | Condition on `sub` / `aud`            |
+| **AWS EKS Pod Identity**       | EKS only                   | Local agent `169.254.170.23` + JWT      | `pods.eks.amazonaws.com` + Association  | `eks-auth:AssumeRoleForPodIdentity`     | Automatic K8s session tags (ABAC)     |
+| **GCP Workload Identity Fed.** | Self-managed, EKS, on-prem | Projected JWT + `external_account` JSON | Workload Identity Pool + OIDC Provider  | `sts.googleapis.com` (RFC 8693)         | Rich CEL mappings & conditions        |
+| **GKE Workload Identity**      | GKE only                   | GKE Metadata Server (`169.254.169.254`) | Managed `<PROJECT_ID>.svc.id.goog` pool | `sts.googleapis.com` (managed by agent) | IAM CEL conditions on resources/attrs |
 
 - **Multi-Cloud Pattern (EKS → GCP or GKE → AWS)**:
   - **EKS Pod → GCP**: Register the EKS cluster's OIDC issuer URL in a GCP Workload Identity Pool (or federate via an AWS IAM Role using GCP's AWS provider type) and mount an `external_account` JSON; zero GCP JSON keys leave GCP.
@@ -361,14 +362,14 @@ Choosing the right mechanism depends on whether workloads stay within one manage
 
 Workload identity federation removes static keys, but misconfigured trust policies or exposed node metadata endpoints still allow privilege escalation.
 
-| Pitfall                                 | Failure Mechanism                                                                       | Production Hardening                                                                       |
-| :-------------------------------------- | :-------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- |
-| **Wildcard `sub` / Confused Deputy**    | Trust policy omits `sub` or matches `system:serviceaccount:*:*`; any Pod assumes role   | Pin exact `StringEquals` on both `:aud` and `:sub` (AWS) or CEL `attribute_condition` (GCP)|
-| **IMDS SSRF / Node Role Leakage**       | Pod ignores IRSA and calls `169.254.169.254` to steal EC2/GCE node credentials          | Enforce AWS **IMDSv2** with `http_put_response_hop_limit = 1`; enable GKE Metadata Server  |
-| **Audience Reuse (`aud` Confusion)**    | Reusing K8s API server audience for STS lets a stolen token call `kube-apiserver`       | Use dedicated audiences (`sts.amazonaws.com`, `pods.eks.amazonaws.com`, GCP provider URI)  |
-| **Excessive K8s RBAC -> Cloud Pivot**   | User with `create pods` or `create serviceaccounts/token` in `payments` mints its cloud role | Restrict `TokenRequest` and Pod creation RBAC in namespaces mapped to sensitive IAM roles |
-| **Stale SDK Credential Caching**        | Legacy SDKs read `AWS_WEB_IDENTITY_TOKEN_FILE` once at startup and fail after 1h expiry | Use current AWS/GCP SDKs supporting automatic credential refresh; test rotation past TTL   |
-| **Default ServiceAccount Over-Binding** | Binding cloud IAM roles to `system:serviceaccount:<ns>:default` exposes all pods in NS  | Create one dedicated `ServiceAccount` per workload and disable `automountServiceAccountToken` |
+| Pitfall                                 | Failure Mechanism                                                                            | Production Hardening                                                                          |
+| :-------------------------------------- | :------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
+| **Wildcard `sub` / Confused Deputy**    | Trust policy omits `sub` or matches `system:serviceaccount:*:*`; any Pod assumes role        | Pin exact `StringEquals` on both `:aud` and `:sub` (AWS) or CEL `attribute_condition` (GCP)   |
+| **IMDS SSRF / Node Role Leakage**       | Pod ignores IRSA and calls `169.254.169.254` to steal EC2/GCE node credentials               | Enforce AWS **IMDSv2** with `http_put_response_hop_limit = 1`; enable GKE Metadata Server     |
+| **Audience Reuse (`aud` Confusion)**    | Reusing K8s API server audience for STS lets a stolen token call `kube-apiserver`            | Use dedicated audiences (`sts.amazonaws.com`, `pods.eks.amazonaws.com`, GCP provider URI)     |
+| **Excessive K8s RBAC -> Cloud Pivot**   | User with `create pods` or `create serviceaccounts/token` in `payments` mints its cloud role | Restrict `TokenRequest` and Pod creation RBAC in namespaces mapped to sensitive IAM roles     |
+| **Stale SDK Credential Caching**        | Legacy SDKs read `AWS_WEB_IDENTITY_TOKEN_FILE` once at startup and fail after 1h expiry      | Use current AWS/GCP SDKs supporting automatic credential refresh; test rotation past TTL      |
+| **Default ServiceAccount Over-Binding** | Binding cloud IAM roles to `system:serviceaccount:<ns>:default` exposes all pods in NS       | Create one dedicated `ServiceAccount` per workload and disable `automountServiceAccountToken` |
 
 > [!CAUTION]
 > **Kubernetes RBAC Is Part of Your Cloud IAM Trust Boundary**: Any identity granted RBAC permission to create Pods or call the `serviceaccounts/token` (`TokenRequest`) subresource in namespace `payments` can mint a valid OIDC JWT for `system:serviceaccount:payments:billing-sa` and assume its AWS or GCP IAM privileges. Audit Kubernetes RBAC and cloud IAM bindings together.
