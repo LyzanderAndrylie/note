@@ -12,6 +12,7 @@
 - [Kubernetes Official Documentation: API Concepts & Admission Control](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/): Request lifecycle, optimistic concurrency (`resourceVersion`), and mutating/validating webhooks
 - [Kubernetes Official Documentation: ServiceAccount Token Volume Projection](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#serviceaccount-token-volume-projection): Bound, time-limited, audience-scoped JWT tokens via `TokenRequest` API
 - [etcd Documentation: Raft Consensus Architecture](https://etcd.io/docs/latest/learning/design-learner/): Distributed quorum consensus and MVCC key-value persistence backing Kubernetes
+- [kubernetes.md](./kubernetes.md): Beginner-friendly introduction to Kubernetes core concepts (Pods, Deployments, Services, Ingress, ConfigMaps, and `kubectl`)
 - [workload_identity.md](./workload_identity.md): Bridging Kubernetes ServiceAccount OIDC tokens to AWS STS, Google STS, and Cloud IAM
 - [oidc.md](../auth/oidc.md): OpenID Connect discovery (`/.well-known/openid-configuration`) and JWKS served by `kube-apiserver`
 - [jwt.md](../auth/jwt.md): Signed JWT structure used by Kubernetes bound ServiceAccount tokens

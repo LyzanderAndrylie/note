@@ -14,6 +14,7 @@
 - [Google Cloud Documentation: Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation): External OIDC Workload Identity Pools, CEL attribute mapping, RFC 8693 STS token exchange, and direct resource access
 - [Google Cloud Documentation: Workload Identity Federation for GKE](https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity): Native `<PROJECT_ID>.svc.id.goog` pool, GKE Metadata Server, and KSA-to-IAM bindings
 - [RFC 8693: OAuth 2.0 Token Exchange](https://datatracker.ietf.org/doc/html/rfc8693): Standard STS token exchange grant (`urn:ietf:params:oauth:grant-type:token-exchange`) used by Google STS
+- [kubernetes.md](./kubernetes.md): Beginner-friendly introduction to Pods, Deployments, Services, ConfigMaps, Secrets, and `kubectl`
 - [architecture.md](./architecture.md): Kubernetes Control Plane, `kubelet` projected ServiceAccount tokens, and in-cluster RBAC
 - [oidc.md](../auth/oidc.md): OpenID Connect discovery (`/.well-known/openid-configuration`), JWKS verification, and workload OIDC federation
 - [jwt.md](../auth/jwt.md): Signed JWT claims (`iss`, `sub`, `aud`, `exp`) and cryptographic validation
