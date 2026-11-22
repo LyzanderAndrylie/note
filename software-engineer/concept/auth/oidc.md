@@ -4,7 +4,7 @@
 | ------------- | -------------------------- |
 | Author        | Lyzander Marciano Andrylie |
 | Creation Date | Nov 20, 2026               |
-| Last Updated  | Nov 20, 2026               |
+| Last Updated  | Nov 22, 2026               |
 
 ## References
 
@@ -28,6 +28,9 @@
 ### 1. Authentication Layer Over OAuth 2.0 & Protocol Roles
 
 OAuth 2.0 solves **authorization** ("what can this app access?"), whereas OIDC adds **authentication** ("who is the principal?") without inventing a separate transport protocol.
+
+> [!NOTE]
+> **Principal**: Any entity whose identity can be authenticated and represented by an identity claim (`sub`)—such as a human end-user, a service account, or an automated workload (CI/CD job, Pod, microservice).
 
 - **Triggered by the `openid` Scope**: An OIDC request is an OAuth 2.0 authorization request that includes `openid` in the `scope` parameter; omitting `openid` turns the exchange into plain OAuth 2.0 with no ID Token.
 - **Standard OIDC Scopes**:
@@ -82,6 +85,8 @@ sequenceDiagram
     RP->>RP: Match kid in cached JWKS and verify signature locally
 ```
 
+**Example: `/.well-known/openid-configuration` Discovery Document**
+
 ```json
 {
   "issuer": "https://auth.example.com",
@@ -129,6 +134,8 @@ An **ID Token** is a security token formatted as a signed **JWT (JWS)**—or nes
 | `nonce`     | Conditional | String            | Echoed anti-replay value binding the ID Token to the client session  |
 | `azp`       | Conditional | String            | `client_id` to which the token was issued (required if multi-`aud`)  |
 | `acr`/`amr` | Optional    | String / Array    | Assurance level (e.g., `urn:mace:incommon:iap:silver`) & MFA methods |
+
+**Example: Decoded ID Token Payload**
 
 ```json
 {
@@ -194,6 +201,44 @@ sequenceDiagram
     RP-->>User: Establish authenticated application session
 ```
 
+**Parameter Placement & Lifecycle (`state`, `nonce`, `code`, PKCE)**
+
+| Parameter                       | Stored By RP (Pre-Login)             | Sent In                                                     | Returned In                             | Verified Where & Why                                                                      |
+| :------------------------------ | :----------------------------------- | :---------------------------------------------------------- | :-------------------------------------- | :---------------------------------------------------------------------------------------- |
+| **`state`**                     | `HttpOnly; SameSite=Lax` cookie      | `GET /authorize` (query)                                    | `GET /callback` (query)                 | **RP `/callback`**: assert `callback.state == session.state`, then delete (Login CSRF)    |
+| **`nonce`**                     | `HttpOnly; SameSite=Lax` cookie      | `GET /authorize` (query)                                    | `POST /token` (signed `id_token` claim) | **RP after `/token`**: assert `id_token.nonce == session.nonce`, then delete (ID replay)  |
+| **`code`**                      | Not pre-stored (minted by OP)        | `POST /token` (back-channel body)                           | `302 /callback` (query, single-use)     | **OP `/token`**: validate `code`, `redirect_uri`, `client_id`, then burn (hides tokens)   |
+| **`code_challenge`/`verifier`** | `code_verifier` in RP session/memory | `code_challenge` (`/authorize`), `code_verifier` (`/token`) | Never returned                          | **OP `/token`**: assert `BASE64URL(SHA256(code_verifier)) == code_challenge` (code theft) |
+
+**Example: Front-Channel `GET /authorize` & Back-Channel `POST /oauth/token`**
+
+```http
+# 1. Front-channel browser redirect to OP (via 302 from RP)
+GET /authorize?response_type=code
+  &client_id=web-client-prod
+  &redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback
+  &scope=openid%20profile%20email
+  &state=st_8f3a9c2d1e
+  &nonce=n-0S6_WzA2Mj
+  &code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+  &code_challenge_method=S256 HTTP/1.1
+Host: auth.example.com
+
+# 2. Back-channel token exchange (RP -> OP)
+POST /oauth/token HTTP/1.1
+Host: auth.example.com
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code
+&code=SplxlOBeZQQYbYS6WxSbIA
+&redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback
+&client_id=web-client-prod
+&code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+```
+
+> [!NOTE]
+> **Why `redirect_uri` Appears in `POST /oauth/token`**: No redirect happens on `/oauth/token`—it returns tokens in a `200 OK` JSON body. Because OIDC requires `redirect_uri` on `GET /authorize`, the RP must send the exact same `redirect_uri` string again in `POST /oauth/token`, and the OP checks `token_req.redirect_uri == auth_req.redirect_uri` byte-for-byte before issuing tokens to bind `code` to the callback URL that received it.
+
 #### b. Non-Interactive Workload OIDC Federation (Machine-to-Machine)
 
 Cloud-native workloads have no browser or human user; instead, the workload orchestrator acts as an OpenID Provider that mints short-lived, audience-scoped OIDC JWTs directly to each workload.
@@ -234,6 +279,9 @@ Accepting an ID Token without enforcing every validation step in OpenID Connect 
 6. **Validate `nonce`**: In interactive flows, confirm `nonce` matches the value stored in the user's pre-login session and invalidate it after single use.
 7. **Cross-Check `/userinfo` Subject**: When calling `/userinfo` with the Access Token, verify the returned `sub` equals the ID Token's `sub` to detect token substitution attacks.
 
+> [!NOTE]
+> **`exp` vs. `max_age` (`auth_time`)**: `exp` is set by the OP and bounds **token lifetime** (how long this JWT remains valid after issuance), whereas `max_age` is sent by the RP on `GET /authorize` to bound **authentication freshness** (how recently the user entered credentials). Because an OP with an active SSO cookie can mint a fresh `exp` hours after the user last logged in, sensitive flows send `max_age` and verify `now - auth_time <= max_age`.
+
 ```shell
 # Decode and inspect an OIDC JWT header and payload locally (does NOT verify signature)
 TOKEN="eyJhbGciOiJSUzI1NiIsImtpZCI6ImstMSJ9.eyJpc3MiOiJodHRwczovL2F1dGguZXhhbXBsZS5jb20iLCJzdWIiOiJ1c3JfMTIzIiwiYXVkIjoid2ViLWFwcCIsImV4cCI6MTc5NTE3NDgwMH0.sig"
@@ -271,5 +319,20 @@ Most real-world OIDC vulnerabilities stem from trusting unverified claims, bypas
 | **Unbounded JWKS Refresh on `kid` Miss** | Attacker floods requests with random `kid` values, triggering outbound JWKS storms      | Cache JWKS with TTL + cooldown/single-flight lock on refresh                        |
 | **Missing `nonce` / `state` Check**      | Attacker injects their own login callback (Login CSRF) or replays a captured ID Token   | Bind cryptographic `state` and `nonce` to `HttpOnly; SameSite=Lax` session cookies  |
 
+---
+
+### 7. Multi-Tenant OIDC Trust & Confused-Deputy Prevention
+
+In multi-tenant OIDC setups, a Relying Party (such as AWS STS, Google STS, or a SaaS backend) acts as a **deputy** granting privileges from JWT claims. If its trust policy evaluates `iss` or `sub` too loosely, an attacker in another tenant can present a **legitimately signed** OIDC token and trick the RP into granting access to a victim tenant's resources.
+
+- **Cross-Issuer `sub` Collision (Checking `sub` Without `iss`)**: `sub` is only unique within a single `iss`. Identical subjects such as `system:serviceaccount:payments:deployer` across `prod` and `sandbox` Kubernetes clusters—or `sub: "admin"` across separate customer IdPs—collide unless the policy binds `(iss, sub)` together.
+- **Shared-Issuer Confused Deputy (Checking `iss` Without Scoped Claims)**: Multi-tenant providers issue tokens for millions of unrelated tenants under one shared `iss` (e.g., `https://token.actions.githubusercontent.com` for GitHub Actions or `/common` for Microsoft Entra). Checking only `iss` or using loose wildcards lets any external repository, untrusted PR branch, or foreign tenant pass signature and issuer validation.
+
+| Environment                | Confused-Deputy Failure Mode                                                        | Required Trust Policy Scope                                                                   |
+| :------------------------- | :---------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
+| **Kubernetes Federation**  | Identical `system:serviceaccount:<ns>:<sa>` across clusters or `ns-*` globs         | Pin exact cluster `iss`, `aud`, and exact `sub` (`system:serviceaccount:<namespace>:<sa>`)    |
+| **CI/CD (GitHub Actions)** | Single global `iss` shared by all repositories; `repo:org/*` allows any branch/fork | Pin `iss`, `aud`, and scoped `sub` (`repo:<org>/<repo>:environment:<env>` or protected `ref`) |
+| **Multi-Tenant SaaS SSO**  | Shared IdP `iss` across customer orgs or matching `sub` without `iss`               | Key principals by `(iss, sub)` and enforce an explicit tenant claim (`tid` / `org_id`) match  |
+
 > [!IMPORTANT]
-> In multi-tenant OIDC setups (such as federated Kubernetes clusters or SaaS SSO), always validate **both** `iss` and `sub` together and apply explicit claim scoping (e.g., exact namespace and service account match) to prevent confused-deputy privilege escalation across tenants.
+> In multi-tenant OIDC setups (such as federated Kubernetes clusters, shared CI/CD issuers, or SaaS SSO), always validate **both** `iss` and `sub` together and apply explicit, non-wildcard claim scoping (`sub`, `aud`, and tenant/environment claims) to prevent confused-deputy privilege escalation across tenants.
