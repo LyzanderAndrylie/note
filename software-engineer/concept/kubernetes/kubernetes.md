@@ -161,7 +161,7 @@ Because Pods come and go with changing IP addresses, Kubernetes decouples **wher
   - Gives a group of Pods one **permanent IP address** and an **automatic DNS name** (`<service-name>.<namespace>.svc.cluster.local`, or simply `<service-name>` inside the same namespace).
   - Continuously watches matching Pods and routes traffic **only to Pods passing their readiness check**.
 - **Ingress (HTTP/HTTPS Front Door)**:
-  - Acts as a smart Layer-7 reverse proxy (backed by an Ingress Controller like NGINX, Envoy, or a cloud ALB) that routes external domain names and URL paths to internal Services and terminates HTTPS/TLS certificates.
+  - An `Ingress` is a YAML routing rule enforced by an **Ingress Controller** (such as NGINX, Envoy, or a cloud controller like AWS ALB / GKE Ingress) that routes external hostnames and URL paths to internal Services and terminates HTTPS/TLS.
   - Saves cost and complexity: one external LoadBalancer + Ingress can route dozens of services (`api.example.com/orders` → `orders-svc`, `api.example.com/users` → `users-svc`).
 
 | Networking Object | Exposure Scope            | When to Use                                                                 |
@@ -176,18 +176,41 @@ Because Pods come and go with changing IP addresses, Kubernetes decouples **wher
 ```mermaid
 flowchart LR
     Client["External User<br>(https://api.example.com/shop)"]
-    Ing["Ingress<br>(TLS + Path Routing)"]
-    Svc["Service: shop-api<br>(Stable ClusterIP + DNS)<br>selector: app=shop-api"]
+    LB["Cloud LoadBalancer<br>(Public IP)"]
+    Ing["Ingress Controller<br>(TLS + Path Routing)"]
+    Svc["Service: shop-api<br>(ClusterIP + DNS)<br>selector: app=shop-api"]
     P1["Pod 1<br>(Ready)"]
     P2["Pod 2<br>(Ready)"]
     P3["Pod 3<br>(Not Ready - Skipped)"]
 
-    Client --> Ing
-    Ing -->|"/shop -> shop-api:80"| Svc
-    Svc -->|"Load balance"| P1
-    Svc -->|"Load balance"| P2
+    Client --> LB
+    LB --> Ing
+    Ing -->|"/shop -> shop-api:80 (port)"| Svc
+    Svc -->|"Forward to :8080 (targetPort)"| P1
+    Svc -->|"Forward to :8080 (targetPort)"| P2
     Svc -.->|"Excluded until ready"| P3
 ```
+
+> [!NOTE]
+> **How Cloud LoadBalancer and Ingress Fit Together**
+>
+> In most setups, external traffic hits a Cloud LoadBalancer first. The exact path depends on which Ingress Controller you use:
+>
+> 1. **In-cluster Ingress Controller (NGINX, Envoy, Traefik — very common)**:
+>    - `Ingress` itself is just a YAML rule; an **Ingress Controller** (running as Pods inside the cluster) enforces it.
+>    - Installing the Ingress Controller creates a Kubernetes `Service` of `type: LoadBalancer` in front of its Pods. Kubernetes's cloud controller detects this `Service` and automatically provisions a real **Cloud LoadBalancer** (e.g., AWS NLB or GCP Network Load Balancer) with one public IP pointing to the Ingress Controller Pods.
+>    - Your application Services stay internal (`type: ClusterIP`), so all apps share that single public Cloud LoadBalancer.
+>
+>    ```text
+>    External User -> Cloud LoadBalancer (provisioned by Ingress Service type: LoadBalancer) -> Ingress Controller Pods -> ClusterIP Service (shop-api:80) -> App Pods (:8080)
+>    ```
+>
+> 2. **Cloud-native L7 Ingress Controller (AWS ALB Controller, GKE Ingress)**:
+>    - The controller translates your `Ingress` YAML directly into a managed **Cloud L7 LoadBalancer** (e.g., AWS ALB or Google Cloud HTTP(S) Load Balancer), so the LoadBalancer *is* the Ingress.
+>
+>    ```text
+>    External User -> Cloud L7 LoadBalancer (Ingress rules + TLS) -> App Pods (:8080)
+>    ```
 
 ```yaml
 apiVersion: v1
@@ -199,8 +222,8 @@ spec:
   selector:
     app: shop-api # Routes to all healthy Pods with label app: shop-api
   ports:
-    - port: 80 # Port callers connect to (http://shop-api:80)
-      targetPort: 8080 # Port the container listens on
+    - port: 80 # Service port that callers connect to (http://shop-api:80)
+      targetPort: 8080 # Pod container port where your app listens (matches containerPort: 8080)
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
