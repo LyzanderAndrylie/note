@@ -19,6 +19,7 @@
 - [oidc.md](../auth/oidc.md): OpenID Connect discovery (`/.well-known/openid-configuration`), JWKS verification, and workload OIDC federation
 - [jwt.md](../auth/jwt.md): Signed JWT claims (`iss`, `sub`, `aud`, `exp`) and cryptographic validation
 - [oauth.md](../auth/oauth.md): OAuth 2.0 bearer access tokens issued by Google STS / IAM Credentials API
+- [tmpfs_and_ramfs.md](../linux/tmpfs_and_ramfs.md): RAM-backed `tmpfs` vs `ramfs` internals, Linux disk swap behavior, and cgroup memory accounting for Kubernetes projected token volumes
 - [common_vulnerabilities.md](../security/common_vulnerabilities.md): SSRF attack mechanics and IMDSv2 / resolved-IP mitigations
 
 ## Description
@@ -109,6 +110,17 @@ IRSA uses standard OIDC trust between AWS IAM and the Kubernetes cluster's OIDC 
   4. The mutating webhook (`amazon-eks-pod-identity-webhook`) injects `AWS_ROLE_ARN`, `AWS_WEB_IDENTITY_TOKEN_FILE`, and the `projected` token volume into every Pod using that ServiceAccount (on self-managed K8s, mount the projected volume and set both env vars directly).
 - **SDK Refresh**: AWS SDKs automatically detect `AWS_ROLE_ARN` + `AWS_WEB_IDENTITY_TOKEN_FILE` in the default credential chain, call STS, sign AWS requests with SigV4, and re-read the rotated token file before STS credentials expire.
 - **Limits**: AWS accounts have a default quota of 100 IAM OIDC identity providers, and IAM role trust policies have a 2,048-character (4,096 expandable) limit—making one role shared across dozens of clusters awkward.
+
+| Step / Component                         | What It Actually Does                                                                                                                                            | Stored on Disk?                         |
+| :--------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------- |
+| **1. Mutating Webhook** (Pod creation)   | Edits the Pod spec to add `AWS_ROLE_ARN`, `AWS_WEB_IDENTITY_TOKEN_FILE`, and the `projected` volume definition. Never calls AWS.                                 | No                                      |
+| **2. `kubelet`** (Worker Node)           | Requests a Kubernetes OIDC JWT from `kube-apiserver`, writes it to `AWS_WEB_IDENTITY_TOKEN_FILE` (`tmpfs`), and auto-rotates it.                                 | Yes — K8s JWT only (`tmpfs`, RAM-backed) |
+| **3. AWS SDK in Pod** (at runtime)       | Reads the K8s JWT from that file, calls AWS STS directly (`AssumeRoleWithWebIdentity`), and caches `AccessKeyId`, `SecretAccessKey`, and `SessionToken` in RAM. | No — kept in app memory only            |
+
+> [!NOTE]
+> **Why `tmpfs` (RAM-backed)?** On Linux, `tmpfs` exposes a normal file path (so SDKs can simply `open()` and `read()` it) while keeping its contents in RAM rather than on physical SSD/EBS storage. Kubernetes uses `tmpfs` for `Secret` and `projected` token volumes so tokens never persist on disk snapshots, vanish immediately when the Pod stops, and rotate via atomic symlink updates with zero disk I/O.
+>
+> **Why Linux disk swap is disabled by default:** Unlike unswappable `ramfs`, `tmpfs` pages can be evicted ("paged out") to disk swap when a node runs low on RAM. Kubernetes worker nodes disable Linux disk swap by default so sensitive `tmpfs` tokens are never written out to physical disk, and so containers exceeding `limits.memory` are cleanly `OOMKilled` instead of spilling into slow disk swap and degrading other Pods on the node.
 
 ##### Interaction
 

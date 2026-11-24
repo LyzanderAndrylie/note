@@ -14,6 +14,7 @@
 - [file_permissions.md](./file_permissions.md): Discretionary access control model, symbolic and octal modes, special bits, and creation masks.
 - [inodes.md](./inodes.md): Filesystem inode architecture, dentry mapping, hard/symbolic links, and allocation models.
 - [file_descriptors.md](./file_descriptors.md): Process file descriptor tables, standard streams, and kernel I/O abstraction.
+- [tmpfs_and_ramfs.md](./tmpfs_and_ramfs.md): In-memory page-cache filesystems (`tmpfs` and `ramfs`) backing `/run`, `/dev/shm`, and `/tmp`.
 - [conda.md](../tools/conda/conda.md): Isolated user-space environment prefixes and package directory layouts.
 
 ## Description

@@ -15,6 +15,7 @@
 - [directory_structure.md](./directory_structure.md): Standard filesystem layout, mount points, and directory entry mechanics
 - [file_permissions.md](./file_permissions.md): Discretionary access control, ownership UID/GID, and mode bits stored in the inode
 - [file_descriptors.md](./file_descriptors.md): Process file descriptor tables, open file descriptions, and stream redirection
+- [tmpfs_and_ramfs.md](./tmpfs_and_ramfs.md): In-memory page-cache filesystems (`tmpfs` and `ramfs`), `nr_inodes` quotas, and swap behavior
 - [file_io.md](../python/file_io.md): High-level I/O streams, buffer synchronization, and storage persistence
 
 ## Description
