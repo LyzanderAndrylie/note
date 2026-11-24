@@ -18,6 +18,7 @@
 - [tls.md](./tls.md): HTTPS transport security required for OIDC discovery, token endpoints, and JWKS distribution
 - [workload_identity.md](../kubernetes/workload_identity.md): Non-human OIDC federation connecting Kubernetes ServiceAccount tokens to AWS STS and Google STS
 - [common_vulnerabilities.md](../security/common_vulnerabilities.md): CSRF, XSS, SSRF, and access control defenses relevant to authentication flows
+- [ci_cd.md](../tools/gitlab/ci_cd.md): Beginner's guide to GitLab CI/CD `.gitlab-ci.yml` pipelines, variables, secrets, and `id_tokens` OIDC authentication
 
 ## Description
 
