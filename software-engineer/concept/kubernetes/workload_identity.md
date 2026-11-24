@@ -136,6 +136,12 @@ sequenceDiagram
     S3-->>Pod: 200 OK (Object Data)
 ```
 
+| STS Credential Field | Simple Purpose                                                                                             | Sent Over the Wire?              |
+| :------------------- | :--------------------------------------------------------------------------------------------------------- | :------------------------------- |
+| `AccessKeyId`        | Public ID (`ASIA...` prefix for STS) identifying the temporary credential set in the `Authorization` header | Yes                              |
+| `SecretAccessKey`    | Private signing key used locally by the SDK to compute the **SigV4** HMAC signature for each HTTP request  | No (only the signature is sent)  |
+| `SessionToken`       | Opaque token encoding the assumed IAM Role, expiry, and session tags (`X-Amz-Security-Token` header)       | Yes (required with `ASIA...` ID) |
+
 ```json
 {
   "Version": "2012-10-17",
@@ -158,6 +164,7 @@ sequenceDiagram
 ```
 
 ```yaml
+# EKS: annotate the ServiceAccount; amazon-eks-pod-identity-webhook injects the volume & env vars automatically
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -167,6 +174,9 @@ metadata:
     eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/payments-billing-role
     eks.amazonaws.com/token-expiration: "3600"
 ```
+
+> [!NOTE]
+> **Self-Managed K8s & `AWS_WEB_IDENTITY_TOKEN_FILE`**: On EKS, `amazon-eks-pod-identity-webhook` automatically injects a `projected` `serviceAccountToken` volume (`audience: sts.amazonaws.com`) plus `AWS_ROLE_ARN` and `AWS_WEB_IDENTITY_TOKEN_FILE` into Pods using an annotated `ServiceAccount`. Without that webhook (self-managed K8s or GKE → AWS), you define the `projected` volume, `volumeMount`, and both env vars directly in the Pod spec. `AWS_WEB_IDENTITY_TOKEN_FILE` is simply the container path to the mounted, auto-rotated JWT file (`<mountPath>/<serviceAccountToken.path>`, conventionally `/var/run/secrets/eks.amazonaws.com/serviceaccount/token`).
 
 #### b. EKS Pod Identity (EKS-Native Agent & ABAC Session Tags)
 
