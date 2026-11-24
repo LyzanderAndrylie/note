@@ -19,6 +19,7 @@
 - [workload_identity.md](../kubernetes/workload_identity.md): Non-human OIDC federation connecting Kubernetes ServiceAccount tokens to AWS STS and Google STS
 - [common_vulnerabilities.md](../security/common_vulnerabilities.md): CSRF, XSS, SSRF, and access control defenses relevant to authentication flows
 - [ci_cd.md](../tools/gitlab/ci_cd.md): Beginner's guide to GitLab CI/CD `.gitlab-ci.yml` pipelines, variables, secrets, and `id_tokens` OIDC authentication
+- [actions.md](../tools/github/actions.md): Beginner's guide to GitHub Actions `.github/workflows/` CI/CD workflows, `GITHUB_TOKEN`, secrets, and `id-token: write` OIDC authentication
 
 ## Description
 

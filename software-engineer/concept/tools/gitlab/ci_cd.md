@@ -17,6 +17,7 @@
 - [Predefined CI/CD Variables Reference](https://docs.gitlab.com/ci/variables/predefined_variables/): Built-in variables injected by GitLab (`CI_COMMIT_BRANCH`, `CI_PIPELINE_SOURCE`, `CI_JOB_TOKEN`, etc.)
 - [Make Jobs Start Earlier with `needs`](https://docs.gitlab.com/ci/yaml/needs/): Directed Acyclic Graph (DAG) job dependencies to bypass strict stage barriers
 - [Optimize GitLab CI/CD Configuration Files](https://docs.gitlab.com/ci/yaml/yaml_optimization/): Keeping configurations DRY with `default`, `extends`, `!reference`, and `include`
+- [actions.md](../github/actions.md): Companion beginner's guide to GitHub Actions `.github/workflows/` CI/CD configuration
 - [config.md](../git/config.md): Git configuration scopes, identity settings, and everyday Git workflow defaults
 - [oidc.md](../../auth/oidc.md): Workload OIDC federation for authenticating CI/CD jobs to cloud providers without static secrets
 

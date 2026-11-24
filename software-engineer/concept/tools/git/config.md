@@ -12,6 +12,7 @@
 - [Pro Git: Customizing Git](https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration): Practical guide to scopes, identity attribution, and formatting.
 - [tasks.md](../vscode/tasks.md): Automating developer tasks and Git workflows inside Visual Studio Code.
 - [ci_cd.md](../gitlab/ci_cd.md): Beginner's guide to GitLab CI/CD `.gitlab-ci.yml` pipelines, stages, variables, caching, and rules.
+- [actions.md](../github/actions.md): Beginner's guide to GitHub Actions `.github/workflows/` CI/CD workflows, triggers, secrets, caching, and environments.
 
 ## Description
 
